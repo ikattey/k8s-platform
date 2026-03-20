@@ -15,7 +15,7 @@ Runs from the GitHub Actions UI. Pick a cluster (`ovh-starter`, `hetzner-starter
 
 > **Hetzner prerequisite:** MicroOS Packer snapshots must exist in your Hetzner project before running the workflow. The CI workflow cannot build them -- run `packer build` locally first. See [quickstart-hetzner.md](quickstart-hetzner.md#4-build-microos-snapshots).
 
-### Credential mapping
+## Credential mapping
 
 ### Shared secrets (both clouds)
 

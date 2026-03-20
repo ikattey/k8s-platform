@@ -1,13 +1,15 @@
-# Kubernetes Platform
+# Kubernetes Platform Starter Kit
 
-Terraform + ArgoCD setup for provisioning production Kubernetes across clouds. Same platform stack on any supported cloud — DNS, TLS, secrets, monitoring, and GitOps — via a two-stage Terraform flow.
+A starter kit for bootstrapping production Kubernetes across clouds. Fork this repo, follow the quickstart for your cloud, and you get a working platform with DNS, TLS, secrets, monitoring, and GitOps pre-wired.
+
+Once you've forked, the repo is yours. ArgoCD watches your fork, so from that point on you own the lifecycle and evolve it to suit your needs.
 
 [![Terraform Plan](https://github.com/masena-dev/k8s-platform/actions/workflows/terraform-plan.yml/badge.svg)](https://github.com/masena-dev/k8s-platform/actions/workflows/terraform-plan.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ## Supported clouds
 
-| Cloud | What you get | Quickstart |
+| Cloud | Cluster type | Quickstart |
 |-------|-------------|------------|
 | **OVH Cloud** | Managed Kubernetes (OVH handles the control plane) | [quickstart-ovh.md](docs/quickstart-ovh.md) |
 | **Hetzner Cloud** | Self-managed k3s via [kube-hetzner](https://github.com/mysticaltech/terraform-hcloud-kube-hetzner) | [quickstart-hetzner.md](docs/quickstart-hetzner.md) |
@@ -20,7 +22,7 @@ Terraform + ArgoCD setup for provisioning production Kubernetes across clouds. S
 
 - **Automated DNS and TLS** — push a service with an Ingress, get a valid HTTPS certificate and DNS record (Traefik + cert-manager + external-dns via Cloudflare).
 - **Monitoring and logging** — Grafana, Prometheus, and Loki (with S3 backend), plus pre-configured alerts.
-- **Secrets without Vault** — External Secrets Operator (ESO) syncs from 1Password into Kubernetes. Set `TF_VAR_onepassword_team_logins_vault_id` and Terraform will auto-create browser logins for ArgoCD, Grafana, and Prometheus.
+- **Secret management via 1Password** — External Secrets Operator syncs secrets from 1Password into Kubernetes, so cluster credentials and team logins are managed in one place. See [credential-flow.md](docs/credential-flow.md) for details.
 - **GitOps** — ArgoCD watches your fork and updates the cluster on push via the app-of-apps pattern.
 - **A working demo app** — proves ingress, DNS, and TLS end-to-end.
 
@@ -28,9 +30,9 @@ An optional data layer (CloudNativePG, DragonflyDB, Typesense, NATS) is included
 
 ## Architecture decisions
 
-- **Cloudflare for DNS** — Hardcoded into `external-dns` and `cert-manager` to eliminate manual DNS records. This is a hard dependency.
-- **1Password for secrets** — Stage 2 writes bootstrap credentials into 1Password, and ESO reads them back. One store handles human logins and cluster secrets—no Vault cluster required.
-- **S3 state backend** — Keeps state cloud-agnostic without provider-specific extras like DynamoDB.
+- **Cloudflare for DNS** — hardcoded into `external-dns` and `cert-manager` to eliminate manual DNS records. This is a hard dependency.
+- **1Password for secrets** — Stage 2 writes bootstrap credentials into 1Password, and ESO reads them back. One store handles human logins and cluster secrets without requiring a separate secrets infrastructure like Vault.
+- **S3 state backend** — keeps state cloud-agnostic without provider-specific extras like DynamoDB.
 - **ArgoCD over Flux** — Stage 2 installs ArgoCD and creates a single root Application to fan out platform components via sync waves.
 
 ## How it works
@@ -70,7 +72,7 @@ Each guide is self-contained: accounts, credentials, config, deploy.
 terraform   ~> 1.14
 kubectl
 helm
-aws CLI     (S3-compatible state backends)
+aws CLI     (S3-compatible state backends — not AWS-specific)
 packer      (Hetzner only — MicroOS node images)
 hcloud CLI  (Hetzner only)
 ```
