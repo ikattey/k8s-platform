@@ -2,6 +2,7 @@
 .terraform/
 *.tfstate
 *.tfstate.*
+**/backend.hcl
 *.tfplan
 tfplan
 tfplan.*

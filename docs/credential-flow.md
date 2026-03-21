@@ -2,14 +2,13 @@
 
 ## Bootstrap flow
 
-1. Stage 2 Terraform creates the `onepassword-token` Secret for ESO.
+1. Stage 2 Terraform creates the `onepassword-token` Secret for ESO (requires `enable_onepassword_bootstrap = true`, the default).
 2. ArgoCD installs ESO.
 3. ArgoCD installs the `platform-secrets` app, which creates the
    `ClusterSecretStore`.
 4. ArgoCD installs `bootstrap-secrets`.
 5. ESO reads 1Password items and writes namespace-local Kubernetes Secrets.
-6. ArgoCD installs `monitoring-middleware`, which reads
-   `monitoring/monitoring-basic-auth`.
+6. ArgoCD installs `monitoring-middleware`, which creates `monitoring/monitoring-basic-auth` (via ExternalSecret from 1Password) and the Traefik basicAuth Middleware that references it.
 
 When CNPG is enabled, Stage 2 also creates the `database` namespace early so bootstrap secrets exist before the CNPG app syncs.
 
@@ -24,7 +23,8 @@ Terraform creates Kubernetes Secrets and syncs them to 1Password. ESO keeps Kube
 Infrastructure items (for Kubernetes Secret sync via ESO):
 
 - `grafana-<cluster>` when `TF_VAR_onepassword_infra_vault_id` is set
-- `loki-s3-<cluster>` when `TF_VAR_onepassword_infra_vault_id` is set and object storage is enabled in Stage 1
+- `loki-s3-<cluster>` when `TF_VAR_onepassword_infra_vault_id` is set and the cluster stage outputs S3 access/secret key credentials for object storage
+- `cnpg-backup-<cluster>` when `TF_VAR_onepassword_infra_vault_id` is set, CNPG is enabled, and the cluster stage outputs S3 credentials
 - `cloudflare-dns-<cluster>` when `TF_VAR_onepassword_infra_vault_id` is set
 - `monitoring-basic-auth-<cluster>` when `TF_VAR_onepassword_infra_vault_id` is set
 - `grafana-oidc-<cluster>` when Grafana OAuth is enabled and `TF_VAR_onepassword_infra_vault_id` is set
@@ -47,7 +47,7 @@ Browser-login items for human access:
 When OVH managed PostgreSQL is enabled (`database_provider = "managed"`, OVH only — not available on Hetzner):
 
 1. Stage 1 provisions the database and exports credentials as Terraform outputs
-2. Stage 2 creates `database-credentials` Secret in the `demo` namespace (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DATABASE_URL`) and writes `database-<cluster>` to 1Password
+2. Stage 2 creates `database-credentials` Secret in the `demo` namespace (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DATABASE_WRITE_URL`, `DATABASE_READ_URL`) and writes `database-<cluster>` to 1Password
 3. If `database.enabled: true` in `clusters/<cluster>/bootstrap-secrets.yaml`, ESO syncs the item back for ongoing refresh
 
 When CNPG is used instead, the same Secret contract is populated from Terraform-generated passwords. The workload interface is identical.
@@ -85,8 +85,8 @@ Common Kubernetes Secret bindings:
 - Grafana OAuth reads `monitoring/grafana-oauth` (when OAuth is enabled)
 - Loki reads `monitoring/loki-storage-credentials`
 - Prometheus and Alertmanager ingress read `monitoring/monitoring-basic-auth`
-- demo workloads read `demo/database-credentials` (DATABASE_URL, DB_HOST, etc.)
-- CNPG uses `database/postgres-app-bootstrap` for its internal superuser
+- demo workloads read `demo/database-credentials` (DATABASE_WRITE_URL, DATABASE_READ_URL, DB_HOST, etc.)
+- CNPG uses `database/postgres-app-bootstrap` for the initial application user credentials (the `cnpg_database_user` variable)
 - CNPG backups read `database/cnpg-backup-credentials` for S3 access
 
 ## Verification

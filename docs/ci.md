@@ -5,7 +5,7 @@
 Every PR that touches `terraform/`, `argocd/`, or `values/` runs:
 
 - `terraform init -backend=false && terraform validate` for each cluster and addons directory
-- `helm lint` on the ArgoCD root chart, demo-app, and cert-manager issuers
+- `helm lint` on the ArgoCD root chart, demo-app, cert-manager issuers, and platform-alerts
 - Results posted as a PR comment with per-component pass/fail
 
 
@@ -27,6 +27,8 @@ Runs from the GitHub Actions UI. Pick a cluster (`ovh-starter`, `hetzner-starter
 | `ONEPASSWORD_TEAM_LOGINS_VAULT_ID` | `TF_VAR_onepassword_team_logins_vault_id` | 1Password team logins vault UUID (optional) |
 | `ARGOCD_GITHUB_TOKEN` | `TF_VAR_github_token` | GitHub PAT -- repo access for ArgoCD (only for private repos) |
 
+> `TF_VAR_onepassword_infra_vault` (the vault name) is resolved automatically from the UUID at apply time and does not require a separate CI secret.
+
 | GitHub Variable | `.env` source | Example |
 |---|---|---|
 | `ARGOCD_REPO_URL` | `TF_VAR_argocd_repo_url` | `https://github.com/your-org/k8s-platform.git` |
@@ -34,6 +36,8 @@ Runs from the GitHub Actions UI. Pick a cluster (`ovh-starter`, `hetzner-starter
 | `LETSENCRYPT_EMAIL` | `TF_VAR_letsencrypt_email` | `ops@example.com` |
 | `OIDC_ADMINS` | `TF_VAR_oidc_admins` | `["admin@example.com"]` |
 | `OIDC_VIEWERS` | `TF_VAR_oidc_viewers` | `["viewer@example.com"]` |
+
+> `TF_VAR_cloud_provider` is hardcoded per workflow job (`ovh` or `hetzner`) and does not require a GitHub secret or variable.
 
 ### OVH Cloud
 
@@ -97,8 +101,11 @@ Runs from the GitHub Actions UI. Pick a cluster (`ovh-starter`, `hetzner-starter
 | GitHub Variable | `.env` source | Example |
 |---|---|---|
 | `HETZNER_CLUSTER_NAME` | `TF_VAR_cluster_name` | `hetzner-starter` |
+| `HETZNER_CLUSTER_REGION` | `TF_VAR_region` | `nbg1` |
 | `HETZNER_STARTER_DOMAIN` | `TF_VAR_domain` | `starter.example.com` |
 | `HETZNER_OIDC_ALLOWED_DOMAINS` | `TF_VAR_oidc_allowed_domains` | `example.com` |
+
+> The cluster region defaults to `nbg1` in the workflow. If deploying to a different location (`hel1`, `fsn1`), add a `HETZNER_CLUSTER_REGION` variable and pass it as `TF_VAR_region`.
 
 ### Environment setup
 
@@ -127,4 +134,4 @@ If your state bucket is in a different region, update the `TF_VAR_state_region` 
 
 The `demo-app.yml` workflow builds and pushes the demo app image to GHCR when files in `demo-app/` change on the default branch. The build and push steps run on forks. The auto-update of the image tag in `values/demo-app/values.yaml` only runs on the original repo. Forks can reuse the workflow for their own GHCR namespace by updating the image reference in `values/demo-app/values.yaml`.
 
-> To use `ovh-ca`, add `TF_VAR_ovh_endpoint` to the workflow env blocks (default is `ovh-eu`).
+> The default OVH endpoint is `ovh-ca`. If your OVH API token was created on `eu.api.ovh.com`, add `TF_VAR_ovh_endpoint: ovh-eu` to the cluster Plan and Apply env blocks.

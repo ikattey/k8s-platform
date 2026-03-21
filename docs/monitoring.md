@@ -17,7 +17,7 @@ The kit ships:
 
 > Loki requires S3 object storage. Set `enable_object_storage = true` in Stage 1 cluster `terraform.tfvars` before the first apply.
 >
-> Loki resolves bucket names from `clusters/<cluster>/loki-values.yaml`. On OVH, Terraform populates bucket names into the ArgoCD overlay automatically. On Hetzner, bucket names are written to `clusters/<cluster>/loki-values.yaml` by the object storage module output — verify this file exists and contains your actual bucket names after Stage 1.
+> Loki resolves bucket names at bootstrap time. On both OVH and Hetzner, Terraform injects the bucket name and endpoint into the ArgoCD application values automatically — no manual editing is needed when `enable_object_storage = true`. The `clusters/<cluster>/loki-values.yaml` file is a static fallback for manual setups where Terraform injection is not used; in that case, populate the bucket names in that file by hand after Stage 1 before deploying Loki.
 
 ## Alerts
 
@@ -139,8 +139,10 @@ Example LogQL queries:
 {app="traefik"} |= "500"
 ```
 
-Available stream labels: `namespace`, `pod`, `container`, `app`,
-`app_kubernetes_io_name`, `node`, `cluster`.
+Stream labels come from two sources:
+
+- **Pod discovery labels** (extracted from pod metadata): `namespace`, `pod`, `container`, `app`, `app_kubernetes_io_name`, `app_kubernetes_io_component`, `app_kubernetes_io_instance`, `app_kubernetes_io_version`, `node`
+- **External labels** (added to every stream by Alloy): `cluster`, `environment`
 
 Log retention: 7 days. Set `retention_period` in `values/loki/values.yaml` to change.
 

@@ -7,8 +7,10 @@ CNPG backups consist of base backups (`Backup` objects) and WAL segments archive
 ## Where backup settings live
 
 - `values/cnpg/cluster/values.yaml`: shared defaults
-- `values/cnpg/cluster/values-{cloud}.yaml`: cloud-specific storage and auth
+- `values/cnpg/cluster/values-{cloud}.yaml`: cloud-specific storage and auth (fallback defaults only — see note below)
 - `clusters/{name}/cnpg-values.yaml`: per-cluster enablement and schedule
+
+> `backup.destinationPath` and `backup.endpointURL` are injected dynamically by ArgoCD from Terraform outputs when `cnpgBackupBucketName` is set at bootstrap time. The `values-{cloud}.yaml` files provide fallback defaults for manual setups where Terraform injection is not used.
 
 Example:
 
@@ -203,7 +205,7 @@ The CNPG chart auto-tunes PostgreSQL from pod memory limits:
 |-----------|---------|---------|
 | `shared_buffers` | 25% of memory limit | 128 MB |
 | `effective_cache_size` | 75% of memory limit | 512 MB |
-| `maintenance_work_mem` | 5% of memory limit | 64 MB |
+| `maintenance_work_mem` | 5% of memory limit | 64 MB minimum, 2 GB maximum |
 
 Computed in `values/cnpg/cluster/templates/_helpers.tpl`. These three parameters cannot be overridden directly — they are always calculated from the memory limit. To change them, increase `cluster.resources.limits.memory` in `values/cnpg/cluster/values.yaml` or per-cluster cnpg-values.
 

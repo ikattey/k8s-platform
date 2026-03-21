@@ -41,10 +41,11 @@ export TF_VAR_oidc_allowed_domains=""                # e.g. "example.com" — sh
 
 export TF_VAR_grafana_oauth_client_id=""
 export TF_VAR_grafana_oauth_client_secret=""
-export TF_VAR_grafana_oauth_auth_url="https://accounts.google.com/o/oauth2/v2/auth"
-export TF_VAR_grafana_oauth_token_url="https://oauth2.googleapis.com/token"
-export TF_VAR_grafana_oauth_api_url="https://openidconnect.googleapis.com/v1/userinfo"
-export TF_VAR_grafana_oauth_scopes="openid email profile"
+# Optional — defaults to Google. Override for other providers.
+# export TF_VAR_grafana_oauth_auth_url="https://accounts.google.com/o/oauth2/v2/auth"
+# export TF_VAR_grafana_oauth_token_url="https://oauth2.googleapis.com/token"
+# export TF_VAR_grafana_oauth_api_url="https://openidconnect.googleapis.com/v1/userinfo"
+# export TF_VAR_grafana_oauth_scopes="openid email profile"
 
 export TF_VAR_argocd_oidc_client_id=""
 export TF_VAR_argocd_oidc_client_secret=""
@@ -146,7 +147,7 @@ data:
   policy.default: role:readonly
 ```
 
-The `oidc:` prefix matches `oidc_username_prefix` configured in the cluster stage.
+The `oidc:` prefix matches `oidc_username_prefix`, configured in both the cluster and addons stages — the value must be identical in both `terraform.tfvars` files.
 
 ## Vault behavior
 

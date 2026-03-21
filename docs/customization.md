@@ -203,7 +203,7 @@ PgBouncer maintains a pool of `default_pool_size` backend connections per databa
 
 - **High connection count**: increase `max_client_conn` and add pooler instances
 - **Long transactions or prepared statements**: switch `poolMode` to `session` (disables connection sharing)
-- **Read-heavy workloads with replicas**: create a separate Pooler manifest with `type: ro` in `values/cnpg/cluster/templates/` (the current template only renders one pooler)
+- **Read-heavy workloads with replicas**: a read-only pooler (`pooler-ro.yaml`) is already included in `values/cnpg/cluster/templates/` and activates automatically when `cluster.instances > 1` — no extra manifest needed
 
 ### Disabling the pooler
 
@@ -223,18 +223,23 @@ Components use the cluster default storage class. On Hetzner with dedicated node
 | `fast-rwo` | Longhorn (local NVMe) | PostgreSQL, search indexes |
 | `standard-rwo` | Hetzner CSI (network) | Message queues, general workloads |
 
-Enable in `terraform.tfvars`:
+Enable in the cluster stage `terraform.tfvars`:
+
+```hcl
+enable_storage_nodes = true    # Longhorn needs dedicated nodes
+```
+
+Enable in the addons stage `terraform.tfvars`:
 
 ```hcl
 enable_storage_class_aliases = true
-enable_storage_nodes         = true    # Longhorn needs dedicated nodes
-longhorn_replica_count       = 2       # Match your storage_node_count for redundancy
+longhorn_replica_count       = 2    # Match your storage_node_count for redundancy
 ```
 
 Then set the storage class in per-cloud value overlays:
 
 ```yaml
-# values/cnpg/cluster/values-hetzner.yaml
+# clusters/<cluster>/cnpg-values.yaml
 storage:
   storageClass: fast-rwo
 ```
