@@ -1,0 +1,6 @@
+# AWS cloud overlay for DragonflyDB
+# Dragonfly is treated as an ephemeral cache in this starter kit.
+
+dragonfly:
+  storage:
+    enabled: false

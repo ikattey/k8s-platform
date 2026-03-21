@@ -1,0 +1,2 @@
+# Per-cluster Loki overrides for aws-starter.
+# Bucket names are injected automatically from Terraform outputs.

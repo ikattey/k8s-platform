@@ -2,7 +2,7 @@
 repoURL: ""
 targetRevision: "main"
 
-# Cloud provider overlay (set by Terraform: ovh, hetzner)
+# Cloud provider overlay (set by Terraform: ovh, hetzner, gcp, aws)
 cloudProvider: "ovh"
 
 # Cluster name (set by Terraform, used for per-cluster GitOps overlays)
@@ -20,18 +20,29 @@ environment: "production"
 # "letsencrypt-production" once routing and DNS are verified.
 clusterIssuer: "letsencrypt-staging"
 
-# Loki S3 bucket names (set by Terraform when object storage is provisioned)
+# Loki object storage bucket names (set by Terraform when object storage is provisioned)
 lokiBucketNames:
   chunks: ""
   ruler: ""
 
-# S3 endpoint details (set by Terraform when object storage is provisioned)
+# Velero object storage bucket name (set by Terraform when object storage is provisioned)
+veleroBucketName: ""
+
+# Object storage details (set by Terraform when object storage is provisioned)
 objectStorage:
+  # s3 for AWS / OVH / Hetzner S3-compatible storage, gcs for Google Cloud Storage
+  provider: "s3"
   endpoint: ""
   region: ""
 
 # CNPG backup bucket name (set by Terraform when object storage is provisioned)
 cnpgBackupBucketName: ""
+
+# GCP project ID (used for GCS- and snapshot-backed integrations such as Velero)
+gcpProjectId: ""
+
+# Optional cloud-identity annotation value for the CNPG instance manager service account.
+cnpgServiceAccountAnnotationValue: ""
 
 # 1Password vault name for ESO ClusterSecretStore (set by Terraform)
 onepasswordVaultId: ""
@@ -60,21 +71,23 @@ versions:
   alloy: "1.6.1"
   cnpgOperator: "0.27.1"
   dragonflyOperator: "v1.4.0"
+  velero: "8.4.0"
 
 # Toggle components on/off
 components:
   certManager: true
-  externalSecrets: true           # Day 1 default: ESO + 1Password SDK
+  externalSecrets: true
   platformSecrets: true
   bootstrapSecrets: true
   traefik: true
   externalDns: true
   monitoring: true
-  grafanaOAuth: false            # Set by Terraform when Grafana OAuth client credentials are provided
-  monitoringMiddleware: true      # basicAuth middleware for Prometheus/AlertManager ingress
-  platformAlerts: true            # PrometheusRule alerts for the platform
-  argocdIngress: true             # Ingress for the ArgoCD UI
+  grafanaOAuth: false
+  monitoringMiddleware: true
+  platformAlerts: true
+  argocdIngress: true
   demoApp: false
+  velero: false
   # Data layer (enable per-service as needed)
   cnpg: false
   dragonfly: false

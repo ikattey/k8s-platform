@@ -13,8 +13,8 @@ Once you've forked, the repo is yours. ArgoCD watches your fork, so from that po
 |-------|-------------|------------|
 | **OVH Cloud** | Managed Kubernetes (OVH handles the control plane) | [quickstart-ovh.md](docs/quickstart-ovh.md) |
 | **Hetzner Cloud** | Self-managed k3s via [kube-hetzner](https://github.com/mysticaltech/terraform-hcloud-kube-hetzner) | [quickstart-hetzner.md](docs/quickstart-hetzner.md) |
-| **GCP GKE** | GKE managed Kubernetes | Coming soon |
-| **AWS EKS** | EKS managed Kubernetes | Coming soon |
+| **GCP GKE** | GKE managed Kubernetes | [quickstart-gcp.md](docs/quickstart-gcp.md) |
+| **AWS EKS** | EKS managed Kubernetes | [quickstart-aws.md](docs/quickstart-aws.md) |
 
 > **Note**: The Hetzner quickstart defaults to ARM (`cax21`) nodes. Switch to `ccx*` or `cpx*` before applying if your workloads require x86.
 
@@ -55,6 +55,8 @@ Fork this repo — ArgoCD tracks your fork. Then follow your cloud's quickstart:
 
 - **[OVH Cloud quickstart](docs/quickstart-ovh.md)**
 - **[Hetzner Cloud quickstart](docs/quickstart-hetzner.md)**
+- **[AWS quickstart](docs/quickstart-aws.md)**
+- **[GCP quickstart](docs/quickstart-gcp.md)**
 
 Each guide is self-contained: accounts, credentials, config, deploy.
 

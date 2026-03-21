@@ -1,0 +1,71 @@
+# Velero - installed as a migration/data-movement tool.
+#
+# Platform stance:
+# - CSI Snapshot Data Movement by default on clouds with first-class CSI snapshots
+# - File System Backup (FSB) fallback on clouds where snapshots are weak or unavailable
+# - App-native migration remains an override for specific workloads
+#
+# Bucket names and cloud-provider config are injected from Terraform and the
+# cloud-specific values file.
+
+image:
+  repository: velero/velero
+  tag: v1.15.2
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  server:
+    create: false
+    name: velero
+
+credentials:
+  useSecret: false
+
+backupsEnabled: true
+snapshotsEnabled: true
+
+features: EnableCSI
+
+uploaderType: kopia
+defaultVolumesToFsBackup: false
+deployNodeAgent: true
+
+initContainers: []
+
+configuration:
+  backupStorageLocations:
+    - name: default
+      spec:
+        provider: aws
+        default: true
+        objectStorage:
+          bucket: CHANGEME
+        accessMode: ReadWrite
+  volumeSnapshotLocations: []
+
+server:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+
+nodeAgent:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 2000m
+      memory: 2048Mi
+  tolerations:
+    - operator: Exists
+
+kubectl:
+  image:
+    repository: docker.io/bitnami/kubectl
+    tag: 1.31.4
+
+schedules: {}

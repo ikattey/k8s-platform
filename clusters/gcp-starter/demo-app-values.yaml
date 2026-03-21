@@ -1,0 +1,6 @@
+ingress:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+
+databaseSecret:
+  enabled: true

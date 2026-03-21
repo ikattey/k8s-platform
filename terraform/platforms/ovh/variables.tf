@@ -103,12 +103,12 @@ variable "oidc_username_prefix" {
 
 # Database Configuration
 variable "database_provider" {
-  description = "Database provider: 'managed' for OVH managed PostgreSQL, 'cnpg' for CloudNativePG, 'none' for no database"
+  description = "Database provider: 'managed' for OVH managed PostgreSQL, 'cnpg' for CloudNativePG, 'external' for user-managed, or 'none' to skip"
   type        = string
   default     = "none"
   validation {
-    condition     = contains(["managed", "cnpg", "none"], var.database_provider)
-    error_message = "database_provider must be one of: managed, cnpg, none"
+    condition     = contains(["managed", "cnpg", "external", "none"], var.database_provider)
+    error_message = "database_provider must be one of: managed, cnpg, external, none"
   }
 }
 

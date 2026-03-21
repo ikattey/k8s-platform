@@ -1,0 +1,12 @@
+# Per-cluster ArgoCD values overlay for aws-starter
+
+cloudProvider: "aws"
+clusterIssuer: "letsencrypt-staging"
+
+components:
+  demoApp: true
+  # cnpg: true
+  # dragonfly: true
+  # typesense: true
+  # nats: true
+  # velero: true

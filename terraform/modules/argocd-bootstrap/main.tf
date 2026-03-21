@@ -152,12 +152,28 @@ resource "kubectl_manifest" "root_application" {
                 value = var.object_storage_endpoint
               },
               {
+                name  = "objectStorage.provider"
+                value = var.object_storage_provider
+              },
+              {
                 name  = "objectStorage.region"
                 value = var.object_storage_region
               },
               {
                 name  = "cnpgBackupBucketName"
                 value = var.cnpg_backup_bucket_name
+              },
+              {
+                name  = "gcpProjectId"
+                value = var.gcp_project_id
+              },
+              {
+                name  = "cnpgServiceAccountAnnotationValue"
+                value = var.cnpg_service_account_annotation_value
+              },
+              {
+                name  = "veleroBucketName"
+                value = var.velero_bucket_name
               },
               {
                 name  = "onepasswordItemUuids.monitoringBasicAuth"

@@ -1,0 +1,2 @@
+# Per-cluster Loki overrides for gcp-starter.
+# Bucket names are injected automatically from Terraform outputs.

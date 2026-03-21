@@ -253,23 +253,40 @@ spec:
         valueFiles:
           - $values/values/loki/values.yaml
           - $values/values/loki/values-{{ .Values.cloudProvider }}.yaml
-{{ if and .Values.lokiBucketNames.chunks .Values.lokiBucketNames.ruler }}
+          - $values/clusters/{{ .Values.clusterName }}/loki-values.yaml
+{{- if and .Values.lokiBucketNames.chunks .Values.lokiBucketNames.ruler }}
         valuesObject:
           loki:
             storage:
               bucketNames:
                 chunks: {{ .Values.lokiBucketNames.chunks | quote }}
                 ruler: {{ .Values.lokiBucketNames.ruler | quote }}
-{{- if .Values.objectStorage.endpoint }}
+            {{- if eq .Values.objectStorage.provider "s3" }}
               s3:
+                {{- if .Values.objectStorage.endpoint }}
                 endpoint: {{ trimPrefix "https://" .Values.objectStorage.endpoint | quote }}
-{{- if .Values.objectStorage.region }}
+                {{- end }}
+                {{- if .Values.objectStorage.region }}
                 region: {{ .Values.objectStorage.region | quote }}
+                {{- end }}
+            storage_config:
+              aws:
+                bucketnames: {{ .Values.lokiBucketNames.chunks | quote }}
+                {{- if .Values.objectStorage.region }}
+                region: {{ .Values.objectStorage.region | quote }}
+                {{- end }}
+                s3forcepathstyle: {{ ternary "true" "false" (ne .Values.cloudProvider "aws") }}
+                {{- if .Values.objectStorage.endpoint }}
+                endpoint: {{ .Values.objectStorage.endpoint | quote }}
+                {{- end }}
+            {{- else if eq .Values.objectStorage.provider "gcs" }}
+              gcs:
+                bucket_name: {{ .Values.lokiBucketNames.chunks | quote }}
+            storage_config:
+              gcs:
+                bucket_name: {{ .Values.lokiBucketNames.chunks | quote }}
+            {{- end }}
 {{- end }}
-{{- end }}
-{{ else }}
-          - $values/clusters/{{ .Values.clusterName }}/loki-values.yaml
-{{ end }}
     - repoURL: {{ .Values.repoURL }}
       targetRevision: {{ .Values.targetRevision }}
       ref: values
@@ -316,6 +333,79 @@ spec:
     automated:
       prune: true
       selfHeal: true
+{{- end }}
+---
+{{- if .Values.components.velero }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: velero
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  sources:
+    - repoURL: https://vmware-tanzu.github.io/helm-charts
+      chart: velero
+      targetRevision: {{ .Values.versions.velero }}
+      helm:
+        valueFiles:
+          - $values/values/velero/values.yaml
+          - $values/values/velero/values-{{ .Values.cloudProvider }}.yaml
+{{- if .Values.veleroBucketName }}
+        valuesObject:
+          configuration:
+            backupStorageLocations:
+              - name: default
+                spec:
+                  objectStorage:
+                    bucket: {{ .Values.veleroBucketName | quote }}
+                  {{- if eq .Values.cloudProvider "gcp" }}
+                  provider: gcp
+                  {{- else }}
+                  provider: aws
+                  {{- end }}
+                  {{- if and (eq .Values.objectStorage.provider "s3") .Values.objectStorage.region }}
+                  config:
+                    region: {{ .Values.objectStorage.region | quote }}
+                    {{- if .Values.objectStorage.endpoint }}
+                    s3Url: {{ .Values.objectStorage.endpoint | quote }}
+                    s3ForcePathStyle: {{ ternary "true" "false" (ne .Values.cloudProvider "aws") | quote }}
+                    checksumAlgorithm: ""
+                    {{- end }}
+                  {{- end }}
+            {{- if eq .Values.cloudProvider "aws" }}
+            volumeSnapshotLocations:
+              - name: default
+                spec:
+                  provider: aws
+                  config:
+                    region: {{ .Values.objectStorage.region | quote }}
+            {{- else if eq .Values.cloudProvider "gcp" }}
+            volumeSnapshotLocations:
+              - name: default
+                spec:
+                  provider: gcp
+                  config:
+                    project: {{ .Values.gcpProjectId | quote }}
+                    snapshotLocation: {{ .Values.objectStorage.region | quote }}
+            {{- end }}
+{{- end }}
+    - repoURL: {{ .Values.repoURL }}
+      targetRevision: {{ .Values.targetRevision }}
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velero
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
 {{- end }}
 ---
 {{- if .Values.components.platformAlerts }}

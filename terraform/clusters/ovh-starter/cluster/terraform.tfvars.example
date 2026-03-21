@@ -29,7 +29,7 @@ max_nodes     = 5
 # oidc_client_id = "your-client-id.apps.googleusercontent.com"
 
 # Database (optional)
-# database_provider = "managed"   # or "cnpg" or "none" (default: "none")
+# database_provider = "managed"   # or "cnpg", "external", or "none" (default)
 # database_plan     = "essential"
 # database_flavor   = "db1-4"
 # database_ip_restrictions defaults to the cluster subnet if left unset.

@@ -54,5 +54,5 @@ module "object_storage" {
   depends_on = [module.platform]
 
   bucket_prefix = local.object_storage_bucket_prefix
-  bucket_names  = ["loki-chunks", "loki-ruler", "cnpg-backups"]
+  bucket_names  = ["loki-chunks", "loki-ruler", "cnpg-backups", "velero-backups"]
 }

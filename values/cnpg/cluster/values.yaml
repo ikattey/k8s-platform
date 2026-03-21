@@ -7,7 +7,7 @@
 cluster:
   name: postgres
   imageName: ghcr.io/cloudnative-pg/postgresql:17.6
-  instances: 3
+  instances: 1
   bootstrap:
     database: app
     owner: app
@@ -28,41 +28,29 @@ cluster:
     size: 5Gi
     storageClass: ""  # Defaults to same as storage.storageClass if empty
 
-  # Node scheduling (overridden by cloud overlays)
+  # Node scheduling (overridden by cloud overlays or per-cluster values)
   nodeSelector: {}
   tolerations: []
+  affinity: {}
 
-  # Service account annotations (IRSA/Workload Identity — set in cloud overlays)
+  # Service account annotations for generated cluster service accounts.
+  # Leave empty when you annotate the namespace default service account instead.
   serviceAccountAnnotations: {}
 
   postgresql:
     # Additional parameters beyond auto-tuned ones
     parameters:
       max_connections: "200"
-      work_mem: "4MB"          # Per sort/hash operation; keep conservative relative to memory limit
-      random_page_cost: "1.1"  # Optimized for SSD-backed storage
+      work_mem: "4MB"
+      random_page_cost: "1.1"
       effective_io_concurrency: "200"
       log_statement: "ddl"
-      log_min_duration_statement: "1000"  # Log queries slower than 1s
-      # --- Production tuning (uncomment as needed) ---
-      # WAL management (PG 17 defaults are already good; tune for write-heavy workloads)
-      # min_wal_size: "1GB"
-      # max_wal_size: "2GB"                # Keep well below walStorage.size (5Gi default)
-      # Replica query protection (prevents query cancellation on read replicas)
-      # hot_standby_feedback: "on"
-      # max_standby_streaming_delay: "180s"
-      # max_standby_archive_delay: "180s"
-      # Query performance tracking (CNPG auto-adds to shared_preload_libraries)
-      # pg_stat_statements.max: "10000"
-      # pg_stat_statements.track: "all"
+      log_min_duration_statement: "1000"
 
   monitoring:
     enabled: true
 
 # PgBouncer connection poolers
-# When enabled, deploys two Pooler resources:
-#   - {cluster}-pooler-rw (type: rw) — always
-#   - {cluster}-pooler-ro (type: ro) — only when cluster.instances > 1
 pooler:
   enabled: true
   instances: 2
@@ -76,15 +64,15 @@ pooler:
 # WARNING: Backups are disabled by default. Enable this before using CNPG
 # in production. See docs/backups.md for the full setup procedure.
 backup:
-  enabled: false  # CHANGE THIS before going to production
-  schedule: "0 0 2 * * *"   # Daily at 2 AM UTC
+  enabled: false
+  provider: "s3"             # s3 or gcs
+  schedule: "0 0 2 * * *"    # Daily at 2 AM UTC
   retentionPolicy: "30d"
   compression: "bzip2"
   immediate: false
   suspend: false
-  inheritFromIAMRole: false
-  googleCredentials: {}
-  # barmanObjectStore config comes from cloud overlays
+  inheritFromIAMRole: false  # IRSA / IMDS-backed AWS credentials
+  googleCredentials: {}      # Optional explicit SecretKeySelector map for JSON credentials
   destinationPath: ""
   endpointURL: ""
   # AWS S3 / S3-compatible

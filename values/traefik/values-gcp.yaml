@@ -1,0 +1,5 @@
+# GCP cloud overlay for Traefik
+
+service:
+  annotations:
+    cloud.google.com/load-balancer-type: "External"

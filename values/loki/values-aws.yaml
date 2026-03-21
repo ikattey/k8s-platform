@@ -1,0 +1,22 @@
+# AWS cloud overlay for Loki
+# Use AWS S3 and IRSA.
+
+serviceAccount:
+  create: false
+  name: loki
+
+loki:
+  storage:
+    type: s3
+    bucketNames:
+      chunks: loki-chunks
+      ruler: loki-ruler
+    s3:
+      region: eu-west-1
+      s3ForcePathStyle: false
+  storage_config:
+    aws:
+      region: eu-west-1
+      s3forcepathstyle: false
+  compactor:
+    delete_request_store: s3

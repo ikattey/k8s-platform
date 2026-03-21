@@ -78,6 +78,8 @@ cnpg_enabled = true
 
 CNPG backups require object storage. Set `enable_object_storage = true` in your cluster `terraform.tfvars` if it isn't already. See [backups.md](backups.md) for backup configuration.
 
+On Hetzner, CNPG defaults to the `fast-rwo` storage class for database and WAL volumes. This requires `enable_storage_class_aliases = true` in your addons `terraform.tfvars` — see [Storage classes](#storage-classes) below.
+
 ### Change Traefik or monitoring values
 
 Edit the component values directly:

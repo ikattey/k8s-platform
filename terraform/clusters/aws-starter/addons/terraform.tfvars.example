@@ -1,0 +1,21 @@
+state_bucket = "your-tf-state-bucket"
+state_region = "eu-west-1"
+# state_key  = "k8s-platform/clusters/aws-starter/cluster.tfstate"
+
+argocd_repo_url        = "https://github.com/your-org/k8s-platform"
+argocd_target_revision = "main"
+
+cloud_provider = "aws"
+cluster_name   = "aws-starter"
+domain         = "example.com"
+
+letsencrypt_email = "ops@example.com"
+
+# Recommended: set sensitive values via TF_VAR_ env vars
+# onepassword_service_account_token = ""
+# onepassword_infra_vault          = ""
+# onepassword_infra_vault_id       = ""
+# cloudflare_api_token             = ""
+
+cnpg_enabled   = true
+cnpg_instances = 3
