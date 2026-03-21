@@ -18,7 +18,7 @@ cluster:
   walStorage:
     storageClass: fast-rwo
   nodeSelector:
-    node.kubernetes.io/server-usage: storage
+    server-usage: storage
   tolerations:
     - key: storage
       operator: Equal
