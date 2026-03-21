@@ -1,4 +1,6 @@
 {{- if .Values.components.cnpg }}
+{{- $backupProvider := default "s3" .Values.objectStorage.provider }}
+{{- $backupScheme := ternary "gs" $backupProvider (eq $backupProvider "gcs") }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -20,17 +22,29 @@ spec:
           - values.yaml
           - values-{{ .Values.cloudProvider }}.yaml
           - $values/clusters/{{ .Values.clusterName }}/cnpg-values.yaml
-        {{- if .Values.cnpgBackupBucketName }}
+        {{- if or .Values.cnpgBackupBucketName .Values.cnpgServiceAccountAnnotationValue }}
         parameters:
+          {{- if .Values.cnpgBackupBucketName }}
           - name: backup.destinationPath
-            value: {{ printf "s3://%s/" .Values.cnpgBackupBucketName | quote }}
-          {{- if .Values.objectStorage.endpoint }}
+            value: {{ printf "%s://%s/postgres/" $backupScheme .Values.cnpgBackupBucketName | quote }}
+          - name: backup.provider
+            value: {{ $backupProvider | quote }}
+          {{- if and (eq $backupProvider "s3") .Values.objectStorage.endpoint }}
           - name: backup.endpointURL
             value: {{ .Values.objectStorage.endpoint | quote }}
           {{- end }}
-          {{- if .Values.objectStorage.region }}
+          {{- if and (eq $backupProvider "s3") .Values.objectStorage.region }}
           - name: backup.s3.region
             value: {{ .Values.objectStorage.region | quote }}
+          {{- end }}
+          {{- end }}
+          {{- if and .Values.cnpgServiceAccountAnnotationValue (eq .Values.cloudProvider "aws") }}
+          - name: cluster.serviceAccountAnnotations.eks\.amazonaws\.com/role-arn
+            value: {{ .Values.cnpgServiceAccountAnnotationValue | quote }}
+          {{- end }}
+          {{- if and .Values.cnpgServiceAccountAnnotationValue (eq .Values.cloudProvider "gcp") }}
+          - name: cluster.serviceAccountAnnotations.iam\.gke\.io/gcp-service-account
+            value: {{ .Values.cnpgServiceAccountAnnotationValue | quote }}
           {{- end }}
         {{- end }}
     - repoURL: {{ .Values.repoURL }}

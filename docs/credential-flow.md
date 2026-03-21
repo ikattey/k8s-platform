@@ -12,7 +12,7 @@
 
 When CNPG is enabled, Stage 2 also creates the `database` namespace early so bootstrap secrets exist before the CNPG app syncs.
 
-The kit uses 1Password via ESO's `onepasswordSDK` provider. To use a different backend (AWS Secrets Manager, Vault, Azure Key Vault), update the `ClusterSecretStore` spec in `values/platform-secrets/templates/cluster-secret-store.yaml` and its auth credentials. ExternalSecret manifests reference the store by name and require no changes.
+The kit uses 1Password via ESO's `onepasswordSDK` provider. To use a different backend (AWS Secrets Manager, Vault, GCP Secret Manager), update the `ClusterSecretStore` in `values/platform-secrets/templates/cluster-secret-store.yaml`, set `secretStoreName` in each cluster's `bootstrap-secrets.yaml`, and adjust the `onepasswordItem` values to match your backend's key format. The ExternalSecret template uses standard ESO `key`/`property` fields and works across all backends. See [external-secrets-backends.md](external-secrets-backends.md) for a full migration guide.
 
 ## How secrets reach workloads
 

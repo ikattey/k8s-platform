@@ -1,0 +1,21 @@
+# Per-cluster CNPG overrides for aws-starter.
+#
+# This overlay assumes the AWS cluster was created with a dedicated storage node
+# group and the fast-rwo StorageClass alias.
+
+backup:
+  enabled: true
+  schedule: "0 0 2 * * *"
+
+cluster:
+  storage:
+    storageClass: fast-rwo
+  walStorage:
+    storageClass: fast-rwo
+  nodeSelector:
+    server-usage: storage
+  tolerations:
+    - key: storage
+      operator: Equal
+      value: "true"
+      effect: NoSchedule

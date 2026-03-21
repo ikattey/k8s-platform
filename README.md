@@ -11,6 +11,8 @@ Terraform + ArgoCD starter kit for production Kubernetes. Fork this repo, follow
 |-------|-------------|------------|
 | **OVH Cloud** | Managed Kubernetes (OVH handles the control plane) | [quickstart-ovh.md](docs/quickstart-ovh.md) |
 | **Hetzner Cloud** | Self-managed k3s via [kube-hetzner](https://github.com/mysticaltech/terraform-hcloud-kube-hetzner) | [quickstart-hetzner.md](docs/quickstart-hetzner.md) |
+| **GCP GKE** | GKE managed Kubernetes | [quickstart-gcp.md](docs/quickstart-gcp.md) |
+| **AWS EKS** | EKS managed Kubernetes | [quickstart-aws.md](docs/quickstart-aws.md) |
 
 > **Note**: The Hetzner quickstart defaults to ARM (`cax21`) nodes. Switch to `ccx*` or `cpx*` before running `terraform apply` if your workloads require x86.
 
@@ -49,8 +51,10 @@ Stage 1 provisions the cloud infrastructure. Stage 2 bootstraps ArgoCD with a 1P
 
 Fork this repo, then follow your cloud's quickstart. ArgoCD connects to your fork as part of Stage 2.
 
-- **[OVH Cloud](docs/quickstart-ovh.md)**
-- **[Hetzner Cloud](docs/quickstart-hetzner.md)**
+- **[OVH Cloud quickstart](docs/quickstart-ovh.md)**
+- **[Hetzner Cloud quickstart](docs/quickstart-hetzner.md)**
+- **[AWS quickstart](docs/quickstart-aws.md)**
+- **[GCP quickstart](docs/quickstart-gcp.md)**
 
 Each guide covers accounts, credentials, configuration, and deployment.
 

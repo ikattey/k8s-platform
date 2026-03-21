@@ -1,0 +1,12 @@
+# Per-cluster ArgoCD values overlay for gcp-starter
+
+cloudProvider: "gcp"
+clusterIssuer: "letsencrypt-staging"
+
+components:
+  demoApp: true
+  # cnpg: true
+  # dragonfly: true
+  # typesense: true
+  # nats: true
+  # velero: true

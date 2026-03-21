@@ -228,7 +228,7 @@ locals {
   # -r (all instances), -any (all incl. not-ready). Pooler resources add
   # {cluster}-pooler-rw and {cluster}-pooler-ro (ro only when instances > 1).
   #
-  # Read endpoint logic (mirrors masena-infra):
+  # Read endpoint logic (production-proven pooled vs direct read routing):
   #   instances > 1 + pooler → pooler-ro (pooled reads to replicas)
   #   instances > 1 no pooler → -ro (direct reads to replicas)
   #   instances = 1           → -r (all-instances service; -ro has zero endpoints)
@@ -494,9 +494,13 @@ module "argocd" {
   domain                                = var.domain
   loki_bucket_chunks                    = try(data.terraform_remote_state.cluster.outputs.object_storage_bucket_names["loki-chunks"], "")
   loki_bucket_ruler                     = try(data.terraform_remote_state.cluster.outputs.object_storage_bucket_names["loki-ruler"], "")
+  object_storage_provider               = try(data.terraform_remote_state.cluster.outputs.object_storage_provider, "s3")
   object_storage_endpoint               = try(data.terraform_remote_state.cluster.outputs.object_storage_endpoint, "")
   object_storage_region                 = try(data.terraform_remote_state.cluster.outputs.object_storage_region, "")
   cnpg_backup_bucket_name               = try(data.terraform_remote_state.cluster.outputs.object_storage_bucket_names["cnpg-backups"], "")
+  velero_bucket_name                    = try(data.terraform_remote_state.cluster.outputs.object_storage_bucket_names["velero-backups"], "")
+  gcp_project_id                        = ""
+  cnpg_service_account_annotation_value = ""
   enable_argocd_oidc                    = local.enable_argocd_oidc
   argocd_oidc_client_id                 = var.argocd_oidc_client_id
   argocd_oidc_client_secret             = var.argocd_oidc_client_secret

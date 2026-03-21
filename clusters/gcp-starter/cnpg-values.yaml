@@ -1,0 +1,21 @@
+# Per-cluster CNPG overrides for gcp-starter.
+#
+# This overlay assumes the GCP cluster was created with a dedicated storage node
+# pool and the fast-rwo StorageClass alias.
+
+backup:
+  enabled: true
+  schedule: "0 0 2 * * *"
+
+cluster:
+  storage:
+    storageClass: fast-rwo
+  walStorage:
+    storageClass: fast-rwo
+  nodeSelector:
+    server-usage: storage
+  tolerations:
+    - key: storage
+      operator: Equal
+      value: "true"
+      effect: NoSchedule

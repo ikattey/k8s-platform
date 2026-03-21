@@ -1,0 +1,6 @@
+# AWS cloud overlay for Traefik
+
+service:
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"

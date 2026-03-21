@@ -29,13 +29,13 @@ variable "letsencrypt_email" {
 }
 
 variable "cloud_provider" {
-  description = "Cloud provider for platform overlay (ovh, hetzner)"
+  description = "Cloud provider for platform overlay (ovh, hetzner, gcp, aws)"
   type        = string
   default     = "ovh"
 
   validation {
-    condition     = contains(["ovh", "hetzner"], var.cloud_provider)
-    error_message = "cloud_provider must be one of: ovh, hetzner"
+    condition     = contains(["ovh", "hetzner", "gcp", "aws"], var.cloud_provider)
+    error_message = "cloud_provider must be one of: ovh, hetzner, gcp, aws"
   }
 }
 
@@ -105,6 +105,23 @@ variable "cnpg_backup_bucket_name" {
 
 variable "object_storage_endpoint" {
   description = "S3 endpoint URL for platform object storage. Set by Terraform from the cluster stage when object storage is provisioned."
+  type        = string
+  default     = ""
+}
+
+variable "object_storage_provider" {
+  description = "Object storage provider used by the GitOps layer (s3 or gcs)."
+  type        = string
+  default     = "s3"
+
+  validation {
+    condition     = contains(["s3", "gcs"], var.object_storage_provider)
+    error_message = "object_storage_provider must be one of: s3, gcs"
+  }
+}
+
+variable "velero_bucket_name" {
+  description = "Velero backup bucket name. Set by Terraform from the cluster stage when object storage is provisioned."
   type        = string
   default     = ""
 }
@@ -186,4 +203,16 @@ variable "cnpg_enabled" {
   description = "Enable CloudNativePG operator and PostgreSQL cluster"
   type        = bool
   default     = false
+}
+
+variable "gcp_project_id" {
+  description = "Optional GCP project ID passed into the root ArgoCD values for GCS / snapshot integrations."
+  type        = string
+  default     = ""
+}
+
+variable "cnpg_service_account_annotation_value" {
+  description = "Optional cloud-identity annotation value for the CNPG instance-manager service account."
+  type        = string
+  default     = ""
 }

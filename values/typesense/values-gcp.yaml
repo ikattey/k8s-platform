@@ -1,0 +1,13 @@
+# GCP cloud overlay for Typesense
+# Keep Typesense on the storage node pool to reduce pod churn for the Raft data set.
+
+typesense:
+  storage:
+    storageClass: fast-rwo
+  nodeSelector:
+    server-usage: storage
+  tolerations:
+    - key: storage
+      operator: Equal
+      value: "true"
+      effect: NoSchedule

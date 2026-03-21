@@ -1,0 +1,26 @@
+# Remote state bucket for reading the cluster stage outputs
+state_bucket = "your-tf-state-bucket"
+# state_prefix = "k8s-platform/clusters/gcp-starter/cluster"
+
+argocd_repo_url        = "https://github.com/your-org/k8s-platform"
+argocd_target_revision = "main"
+
+cloud_provider = "gcp"
+cluster_name   = "gcp-starter"
+domain         = "example.com"
+
+letsencrypt_email = "ops@example.com"
+
+# Recommended: set sensitive values via TF_VAR_ env vars
+# onepassword_service_account_token = ""
+# onepassword_infra_vault          = ""
+# onepassword_infra_vault_id       = ""
+# cloudflare_api_token             = ""
+
+# OIDC examples
+# oidc_admins  = ["ops@example.com"]
+# oidc_viewers = ["dev@example.com"]
+
+# CNPG defaults
+cnpg_enabled   = true
+cnpg_instances = 3

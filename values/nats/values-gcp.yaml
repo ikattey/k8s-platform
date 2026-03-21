@@ -1,0 +1,6 @@
+# GCP cloud overlay for NATS JetStream
+
+nats:
+  jetstream:
+    storage:
+      storageClass: standard-rwo
