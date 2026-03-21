@@ -12,6 +12,7 @@
   - `data.yaml`
   - `applications.yaml`
   - `bootstrap-secrets.yaml`
+  - `required-values.yaml` — validates required values at render time
 
 ## Sync order
 
@@ -69,7 +70,7 @@ argocd_repo_url = "https://github.com/your-org/k8s-platform"
 github_token = "ghp_xxxxxxxxxxxx"
 ```
 
-`github_token` is for ArgoCD Git access only. `ghcr_token` is separate — it is for pulling private images from GHCR. Use a token with read access to the repository ArgoCD should sync.
+`github_token` is primarily for ArgoCD Git access. `ghcr_token` is the dedicated token for GHCR image pulling, but if not set, `github_token` is used as a fallback via `coalesce()`. Use a token with read access to the repository ArgoCD should sync.
 
 ## Verification
 

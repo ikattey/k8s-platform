@@ -68,7 +68,7 @@ Use `prometheus-<cluster>` / `alertmanager-<cluster>` browser-login items (team-
 
 ### Grafana password does not update
 
-Grafana applies the admin password at first startup only. To reset: delete the `grafana-admin` Secret, restart the Grafana pod, then re-run Stage 2.
+Grafana applies the admin password at first startup only. To reset: re-run Stage 2 (which recreates the `grafana-admin` Secret with the current password), then restart the Grafana pod. Do not delete the Secret before Stage 2 recreates it — Grafana has `existingSecret: grafana-admin` configured and will crash if the Secret is missing on startup.
 
 ## Data and backups
 

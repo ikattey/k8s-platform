@@ -17,6 +17,9 @@ Build your `.env` from the split example files:
 ### State backend (`.env.shared.example`)
 
 - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` — S3-compatible state bucket credentials
+
+> `TF_VAR_state_bucket`, `TF_VAR_state_region`, and `TF_VAR_state_endpoint` are **not** used by `terraform init` (the backend is configured via `backend.hcl`). They are passed to the addons stage so the `data "terraform_remote_state"` block can read cluster outputs from the correct bucket.
+
 - `TF_VAR_state_bucket` — bucket name
 - `TF_VAR_state_region` — S3 bucket location code: `gra` for OVH, `fsn1` for Hetzner. Bucket region, not cluster region (e.g. `gra`, not `GRA9`).
 - `TF_VAR_state_endpoint` — full URL (e.g. `https://s3.gra.io.cloud.ovh.net`)
@@ -37,6 +40,8 @@ Vault name: used by ESO (`ClusterSecretStore`). Vault UUID: used by Terraform to
 - `TF_VAR_domain` — your domain (e.g. `example.com`)
 - `TF_VAR_letsencrypt_email` — email for Let's Encrypt notifications
 - `TF_VAR_argocd_repo_url` — your fork URL
+- `TF_VAR_argocd_target_revision` — Git branch or tag ArgoCD tracks. Defaults to `main`.
+- `TF_VAR_cloud_provider` — required by the addons stage. Set to `ovh` or `hetzner` to match your cluster.
 
 ### Team logins vault
 

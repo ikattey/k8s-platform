@@ -169,11 +169,26 @@ control_plane_count       = 1
 
 server_type   = "cax21"
 desired_nodes = 2
-
-enable_object_storage = true
 ```
 
 `control_plane_count = 1` is the minimal starting point; the code default is `3` for HA. Always set `control_plane_server_type` explicitly — the default (`cpx22`, shared x86) differs from the `cax21` (ARM) shown above.
+
+### Object storage (optional)
+
+To enable Loki and CNPG backup buckets, add to `terraform.tfvars`:
+
+```hcl
+enable_object_storage = true
+```
+
+Object storage requires two additional environment variables:
+
+```bash
+export TF_VAR_object_storage_access_key="<hetzner-object-storage-access-key>"
+export TF_VAR_object_storage_secret_key="<hetzner-object-storage-secret-key>"
+```
+
+These can reuse the same credentials as your state bucket.
 
 If you plan to use OIDC, also add:
 
@@ -211,13 +226,6 @@ Storage nodes are labeled `server-usage=storage` and tainted
 are present.
 
 For advanced Longhorn tuning (replica count, encryption, backup targets), see the [kube-hetzner storage documentation](https://github.com/mysticaltech/terraform-hcloud-kube-hetzner#storage).
-
-If you keep `enable_object_storage = true`, also add these to your `.env`:
-
-```bash
-export TF_VAR_object_storage_access_key="<hetzner-object-storage-access-key>"
-export TF_VAR_object_storage_secret_key="<hetzner-object-storage-secret-key>"
-```
 
 ## 9. Push to fork
 
@@ -354,7 +362,9 @@ Break-glass passwords (local deploy only — CI deploys don't expose Terraform o
 
 ```bash
 terraform -chdir=terraform/clusters/hetzner-starter/addons output -raw argocd_admin_password
+echo
 terraform -chdir=terraform/clusters/hetzner-starter/addons output -raw grafana_admin_password
+echo
 ```
 
 To enable CNPG, set `cnpg: true` under `components:` in `clusters/hetzner-starter/values.yaml` and `cnpg_enabled = true` in addons `terraform.tfvars`. CNPG backups require object storage (set in Stage 1).

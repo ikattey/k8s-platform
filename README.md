@@ -32,7 +32,7 @@ An optional data layer (CloudNativePG, DragonflyDB, Typesense, NATS) is included
 
 - **Cloudflare for DNS** — hardcoded into `external-dns` and `cert-manager` to eliminate manual DNS records. This is a hard dependency.
 - **1Password for secrets** — Stage 2 writes bootstrap credentials into 1Password, and ESO reads them back. One store handles human logins and cluster secrets without requiring a separate secrets infrastructure like Vault.
-- **S3 state backend** — keeps state cloud-agnostic without provider-specific extras like DynamoDB.
+- **S3 state backend** — keeps state cloud-agnostic without provider-specific extras like DynamoDB. Note: OVH and Hetzner S3 do not support state locking (`use_lockfile = false`). Do not run concurrent Terraform applies against the same cluster — without locking, simultaneous applies can corrupt state.
 - **ArgoCD over Flux** — Stage 2 installs ArgoCD and creates a single root Application to fan out platform components via sync waves.
 
 ## How it works
