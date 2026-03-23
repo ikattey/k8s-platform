@@ -24,7 +24,7 @@ configuration:
         accessMode: ReadWrite
         config:
           region: gra
-          s3Url: https://s3.gra.perf.cloud.ovh.net
+          s3Url: https://s3.gra.io.cloud.ovh.net
           s3ForcePathStyle: "true"
           checksumAlgorithm: ""
   volumeSnapshotLocations: []
