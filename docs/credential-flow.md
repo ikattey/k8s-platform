@@ -42,6 +42,12 @@ Browser-login items for human access:
 - `kubeconfig-oidc-<cluster>` when kubectl OIDC is enabled and a team-logins
   vault is configured
 
+When OIDC is enabled, login items shift between vaults:
+- ArgoCD and Grafana login items move to the infra vault only when their own OIDC is enabled
+- Prometheus and AlertManager login items move to the infra vault when **any** OIDC is enabled (Grafana OAuth or ArgoCD OIDC)
+
+This means enabling only Grafana OAuth will move Prometheus and AlertManager logins to the infra vault while ArgoCD stays in the team vault.
+
 ## Managed PostgreSQL credentials
 
 When OVH managed PostgreSQL is enabled (`database_provider = "managed"`, OVH only — not available on Hetzner):
@@ -67,6 +73,8 @@ Infrastructure vault — ESO uses the vault **name**, Terraform uses the vault *
 export TF_VAR_onepassword_infra_vault="Starter Kit Infra"       # vault name — used by ESO via ClusterSecretStore
 export TF_VAR_onepassword_infra_vault_id="<vault-uuid>"          # vault UUID — used by Terraform to write items
 ```
+
+> **Both variables are required for full functionality.** `onepassword_infra_vault` (name) is used by ESO's ClusterSecretStore. `onepassword_infra_vault_id` (UUID) is used by Terraform to write items. Setting only the name means ESO will look for items that Terraform never created.
 
 ESO `ClusterSecretStore` uses the vault **name** (`TF_VAR_onepassword_infra_vault`); Terraform uses the vault **UUID** (`TF_VAR_onepassword_infra_vault_id`). Both must be set.
 

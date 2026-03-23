@@ -29,7 +29,8 @@ module "platform" {
   backup_bucket_name    = var.backup_bucket_name
   backup_retention_days = var.backup_retention_days
 
-  deletion_protection = var.deletion_protection
+  deletion_protection           = var.deletion_protection
+  master_authorized_cidr_blocks = var.master_authorized_cidr_blocks
 }
 
 module "database" {

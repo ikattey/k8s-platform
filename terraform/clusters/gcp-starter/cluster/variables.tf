@@ -76,7 +76,7 @@ variable "disk_size_gb" {
 }
 
 variable "enable_storage_node_pool" {
-  description = "Create a dedicated storage node pool labeled server-usage=storage"
+  description = "Create a dedicated storage node pool"
   type        = bool
   default     = true
 }
@@ -118,7 +118,7 @@ variable "create_backup_bucket" {
 }
 
 variable "backup_bucket_name" {
-  description = "Optional existing or desired bucket name; leave empty to auto-generate"
+  description = "Optional backup bucket name; leave empty to auto-generate"
   type        = string
   default     = ""
 }
@@ -133,6 +133,15 @@ variable "deletion_protection" {
   description = "Protect the GKE cluster from accidental deletion"
   type        = bool
   default     = true
+}
+
+variable "master_authorized_cidr_blocks" {
+  description = "CIDR blocks allowed to access the GKE master endpoint. Empty list means unrestricted."
+  type = list(object({
+    cidr_block   = string
+    display_name = string
+  }))
+  default = []
 }
 
 variable "database_provider" {

@@ -6,7 +6,7 @@ resource "random_id" "bucket_suffix" {
 resource "aws_s3_bucket" "backups" {
   count         = var.create_backup_bucket ? 1 : 0
   bucket        = var.backup_bucket_name != "" ? var.backup_bucket_name : "${var.cluster_name}-backups-${random_id.bucket_suffix[0].hex}"
-  force_destroy = true
+  force_destroy = var.force_destroy_backup_bucket
 
   tags = merge(local.tags, {
     Purpose = "platform-backups"

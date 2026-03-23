@@ -7,9 +7,11 @@ module "platform" {
 
   vpc_cidr           = var.vpc_cidr
   availability_zones = var.availability_zones
+  az_count           = var.az_count
   single_nat_gateway = var.single_nat_gateway
 
   kubernetes_version                   = var.kubernetes_version
+  enable_cloudwatch_logging            = var.enable_cloudwatch_logging
   cluster_endpoint_public_access       = var.cluster_endpoint_public_access
   cluster_endpoint_private_access      = var.cluster_endpoint_private_access
   cluster_endpoint_public_access_cidrs = var.cluster_endpoint_public_access_cidrs
@@ -24,10 +26,13 @@ module "platform" {
   storage_max_size       = var.storage_max_size
   storage_desired_size   = var.storage_desired_size
   storage_instance_types = var.storage_instance_types
+  enable_spot_instances  = var.enable_spot_instances
 
-  create_backup_bucket  = var.create_backup_bucket
-  backup_bucket_name    = var.backup_bucket_name
-  backup_retention_days = var.backup_retention_days
+  create_backup_bucket             = var.create_backup_bucket
+  force_destroy_backup_bucket      = var.force_destroy_backup_bucket
+  backup_bucket_name               = var.backup_bucket_name
+  backup_retention_days            = var.backup_retention_days
+  enable_vpc_cni_prefix_delegation = var.enable_vpc_cni_prefix_delegation
 }
 
 module "database" {

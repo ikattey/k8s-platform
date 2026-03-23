@@ -23,9 +23,15 @@ variable "vpc_cidr" {
 }
 
 variable "availability_zones" {
-  description = "Availability zones used by the cluster"
+  description = "Explicit availability zones. If empty, az_count zones are selected automatically."
   type        = list(string)
-  default     = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+  default     = []
+}
+
+variable "az_count" {
+  description = "Number of availability zones to use when availability_zones is empty"
+  type        = number
+  default     = 2
 }
 
 variable "single_nat_gateway" {
@@ -38,6 +44,12 @@ variable "kubernetes_version" {
   description = "EKS Kubernetes version"
   type        = string
   default     = "1.31"
+}
+
+variable "enable_cloudwatch_logging" {
+  description = "Send EKS control plane logs to CloudWatch. Off by default (use Loki). Enable for audit compliance."
+  type        = bool
+  default     = false
 }
 
 variable "cluster_endpoint_public_access" {
@@ -79,7 +91,7 @@ variable "general_desired_size" {
 variable "general_instance_types" {
   description = "Instance types for the general-purpose node group"
   type        = list(string)
-  default     = ["m5.large", "m6i.large", "m6a.large"]
+  default     = ["m5.large", "m5a.large", "m6i.large", "m6a.large"]
 }
 
 variable "storage_enabled" {
@@ -112,8 +124,20 @@ variable "storage_instance_types" {
   default     = ["m5.large"]
 }
 
+variable "enable_spot_instances" {
+  description = "Use Spot instances for the general node pool"
+  type        = bool
+  default     = true
+}
+
 variable "create_backup_bucket" {
   description = "Create a shared S3 bucket for Loki, CNPG, and Velero"
+  type        = bool
+  default     = true
+}
+
+variable "force_destroy_backup_bucket" {
+  description = "Allow Terraform to destroy the backup bucket even when non-empty"
   type        = bool
   default     = true
 }
@@ -128,6 +152,12 @@ variable "backup_retention_days" {
   description = "Retention policy for objects in the shared backup bucket"
   type        = number
   default     = 30
+}
+
+variable "enable_vpc_cni_prefix_delegation" {
+  description = "Enable VPC CNI prefix delegation for higher pod density"
+  type        = bool
+  default     = false
 }
 
 variable "database_provider" {

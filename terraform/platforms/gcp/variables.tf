@@ -63,13 +63,13 @@ variable "machine_type" {
 variable "disk_size_gb" {
   description = "Boot disk size for general nodes"
   type        = number
-  default     = 50
+  default     = 100
 }
 
 variable "spot" {
   description = "Use Spot VMs for the general node pool"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "enable_storage_node_pool" {
@@ -130,4 +130,13 @@ variable "deletion_protection" {
   description = "Enable cluster deletion protection"
   type        = bool
   default     = true
+}
+
+variable "master_authorized_cidr_blocks" {
+  description = "CIDR blocks allowed to access the GKE master endpoint. Empty list means unrestricted."
+  type = list(object({
+    cidr_block   = string
+    display_name = string
+  }))
+  default = []
 }

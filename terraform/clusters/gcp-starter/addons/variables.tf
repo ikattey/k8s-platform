@@ -16,7 +16,7 @@ variable "state_bucket" {
   }
 }
 
-variable "state_prefix" {
+variable "state_key" {
   description = "Remote-state prefix for the cluster stage inside the GCS state bucket."
   type        = string
   default     = "k8s-platform/clusters/gcp-starter/cluster"
@@ -250,7 +250,7 @@ variable "monitoring_basic_auth_password" {
 # --- 1Password Dual-Vault ---
 
 variable "onepassword_infra_vault_id" {
-  description = "1Password vault UUID used by Terraform to write infrastructure items (grafana-*, cloudflare-dns-*). Leave empty to skip writing items."
+  description = "1Password vault UUID for Terraform to write infrastructure items. Required alongside onepassword_infra_vault for full secret sync. Leave empty to skip 1Password item creation."
   type        = string
   default     = ""
 }
@@ -262,7 +262,7 @@ variable "onepassword_infra_vault" {
 
   validation {
     condition     = !var.enable_onepassword_bootstrap || var.onepassword_infra_vault != "" || var.onepassword_infra_vault_id != ""
-    error_message = "Either onepassword_infra_vault (name) or onepassword_infra_vault_id (UUID) must be set when enable_onepassword_bootstrap is true."
+    error_message = "Both onepassword_infra_vault (name for ESO) and onepassword_infra_vault_id (UUID for Terraform) should be set when enable_onepassword_bootstrap is true. Setting only the name will prevent Terraform from writing 1Password items."
   }
 }
 
