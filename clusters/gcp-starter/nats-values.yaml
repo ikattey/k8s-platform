@@ -1,0 +1,15 @@
+# Per-cluster NATS overrides for gcp-starter.
+#
+# Pins NATS JetStream to the dedicated storage node pool.
+
+nats:
+  jetstream:
+    storage:
+      storageClass: standard-rwo
+  nodeSelector:
+    k8s-platform/pool-role: storage
+  tolerations:
+    - key: k8s-platform/pool-role
+      operator: Equal
+      value: storage
+      effect: NoSchedule

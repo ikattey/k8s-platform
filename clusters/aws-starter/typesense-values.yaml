@@ -1,0 +1,15 @@
+# Per-cluster Typesense overrides for aws-starter.
+#
+# Pins Typesense to the dedicated storage node group.
+# Requires storage_enabled = true in cluster terraform.tfvars.
+
+typesense:
+  storage:
+    storageClass: fast-rwo
+  nodeSelector:
+    k8s-platform/pool-role: storage
+  tolerations:
+    - key: k8s-platform/pool-role
+      operator: Equal
+      value: storage
+      effect: NoSchedule

@@ -1,0 +1,15 @@
+# Per-cluster NATS overrides for hetzner-starter.
+#
+# Pins NATS JetStream to dedicated storage nodes for local NVMe persistence.
+# Requires enable_storage_nodes = true.
+#
+# If you don't use storage nodes, empty this file.
+
+nats:
+  nodeSelector:
+    k8s-platform/pool-role: storage
+  tolerations:
+    - key: k8s-platform/pool-role
+      operator: Equal
+      value: storage
+      effect: NoSchedule

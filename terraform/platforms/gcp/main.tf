@@ -140,14 +140,13 @@ resource "google_container_node_pool" "storage" {
     oauth_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
 
     labels = {
-      environment    = var.environment
-      role           = "storage"
-      "server-usage" = "storage"
+      environment                = var.environment
+      "k8s-platform/pool-role" = "storage"
     }
 
     taint {
-      key    = "storage"
-      value  = "true"
+      key    = "k8s-platform/pool-role"
+      value  = "storage"
       effect = "NO_SCHEDULE"
     }
   }

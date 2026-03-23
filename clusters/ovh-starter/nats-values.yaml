@@ -1,0 +1,4 @@
+# Per-cluster NATS overrides for ovh-starter.
+#
+# OVH does not support node pool labels or taints, so all workloads
+# run on general-purpose nodes. No nodeSelector or tolerations needed.

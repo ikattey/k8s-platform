@@ -124,9 +124,11 @@ spec:
       targetRevision: {{ .Values.targetRevision }}
       path: values/typesense
       helm:
+        ignoreMissingValueFiles: true
         valueFiles:
           - values.yaml
           - values-{{ .Values.cloudProvider }}.yaml
+          - $values/clusters/{{ .Values.clusterName }}/typesense-values.yaml
     - repoURL: {{ .Values.repoURL }}
       targetRevision: {{ .Values.targetRevision }}
       ref: values
@@ -164,9 +166,11 @@ spec:
       targetRevision: {{ .Values.targetRevision }}
       path: values/nats
       helm:
+        ignoreMissingValueFiles: true
         valueFiles:
           - values.yaml
           - values-{{ .Values.cloudProvider }}.yaml
+          - $values/clusters/{{ .Values.clusterName }}/nats-values.yaml
     - repoURL: {{ .Values.repoURL }}
       targetRevision: {{ .Values.targetRevision }}
       ref: values

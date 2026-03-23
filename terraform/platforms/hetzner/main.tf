@@ -31,16 +31,16 @@ locals {
       disableSchedulingOnCordonedNode     = true
       replicaNodeLevelSoftAntiAffinity    = false
       kubernetesClusterAutoscalerEnabled  = true
-      taintToleration                     = "storage=true:NoSchedule"
-      systemManagedComponentsNodeSelector = "server-usage:storage"
+      taintToleration                     = "k8s-platform/pool-role=storage:NoSchedule"
+      systemManagedComponentsNodeSelector = "k8s-platform/pool-role:storage"
     }
     longhornManager = {
-      nodeSelector = { "server-usage" = "storage" }
-      tolerations  = [{ key = "storage", operator = "Equal", value = "true", effect = "NoSchedule" }]
+      nodeSelector = { "k8s-platform/pool-role" = "storage" }
+      tolerations  = [{ key = "k8s-platform/pool-role", operator = "Equal", value = "storage", effect = "NoSchedule" }]
     }
     longhornDriver = {
-      nodeSelector = { "server-usage" = "storage" }
-      tolerations  = [{ key = "storage", operator = "Equal", value = "true", effect = "NoSchedule" }]
+      nodeSelector = { "k8s-platform/pool-role" = "storage" }
+      tolerations  = [{ key = "k8s-platform/pool-role", operator = "Equal", value = "storage", effect = "NoSchedule" }]
     }
   }
 
@@ -98,12 +98,12 @@ module "kube-hetzner" {
         server_type = var.storage_server_type
         location    = var.region
         labels = [
-          "server-usage=storage",
+          "k8s-platform/pool-role=storage",
           "node.longhorn.io/create-default-disk=true",
           "k8s-platform/storage-node-generation=v1"
         ]
         taints = [
-          "storage=true:NoSchedule"
+          "k8s-platform/pool-role=storage:NoSchedule"
         ]
         count = var.storage_node_count
       }

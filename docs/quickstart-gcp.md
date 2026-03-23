@@ -131,7 +131,7 @@ and routing are verified.
 
 ```bash
 kubectl get storageclass
-kubectl get nodes -L server-usage
+kubectl get nodes -L k8s-platform/pool-role
 ```
 
 Expected portable aliases:
@@ -140,8 +140,8 @@ Expected portable aliases:
 - `standard-rwo` -> `pd-balanced`
 
 The starter cluster creates a dedicated storage node pool labeled
-`server-usage=storage` and tainted `storage=true:NoSchedule` so CNPG and other
-stateful workloads can be isolated on fast nodes.
+`k8s-platform/pool-role=storage` and tainted `k8s-platform/pool-role=storage:NoSchedule`
+so CNPG and other stateful workloads can be isolated. See [node-pools.md](node-pools.md).
 
 ## 9. Verify ArgoCD and Grafana access
 
