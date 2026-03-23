@@ -18,7 +18,7 @@ Build your `.env` from the split example files:
 
 - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` — S3-compatible state bucket credentials
 
-> `TF_VAR_state_bucket`, `TF_VAR_state_region`, and `TF_VAR_state_endpoint` are **not** used by `terraform init` (the backend is configured via `backend.hcl`). They are passed to the addons stage so the `data "terraform_remote_state"` block can read cluster outputs from the correct bucket.
+> `TF_VAR_state_bucket`, `TF_VAR_state_region`, and `TF_VAR_state_endpoint` are **not** used by `terraform init`. The backend is configured by editing the `backend.tf` file in each cluster directory — update the bucket, key, and endpoint to match your state bucket. These three variables are passed to the addons stage so the `data "terraform_remote_state"` block can read cluster outputs from the correct bucket.
 
 - `TF_VAR_state_bucket` — bucket name
 - `TF_VAR_state_region` — S3 bucket location code: `gra` for OVH, `fsn1` for Hetzner. Bucket region, not cluster region (e.g. `gra`, not `GRA9`).
@@ -27,10 +27,7 @@ Build your `.env` from the split example files:
 ### 1Password
 
 - `TF_VAR_onepassword_service_account_token` — service account token
-- `TF_VAR_onepassword_infra_vault` — vault **name** (e.g. `Starter Kit Infra`). This is the human-readable display name, not the vault UUID.
-- `TF_VAR_onepassword_infra_vault_id` — vault **UUID** (find it in 1Password at Settings > Vaults, then click the vault — the UUID is in the URL, e.g. `abc123def456ghi789jkl012`)
-
-Vault name: used by ESO (`ClusterSecretStore`). Vault UUID: used by Terraform to write items.
+- `TF_VAR_onepassword_vault_id` — vault UUID (find via `op vault list` or in 1Password at Settings > Vaults)
 
 `OP_SERVICE_ACCOUNT_TOKEN` is auto-aliased from `TF_VAR_onepassword_service_account_token`; set the value once.
 
@@ -41,7 +38,7 @@ Vault name: used by ESO (`ClusterSecretStore`). Vault UUID: used by Terraform to
 - `TF_VAR_letsencrypt_email` — email for Let's Encrypt notifications
 - `TF_VAR_argocd_repo_url` — your fork URL
 - `TF_VAR_argocd_target_revision` — Git branch or tag ArgoCD tracks. Defaults to `main`.
-- `TF_VAR_cloud_provider` — required by the addons stage. Set to `ovh` or `hetzner` to match your cluster.
+- `TF_VAR_cloud_provider` — required by the addons stage. Set to `ovh`, `hetzner`, `aws`, or `gcp` to match your cluster.
 
 ### Team logins vault
 

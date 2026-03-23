@@ -24,7 +24,7 @@ aws --version
 **Required accounts:**
 
 - **Cloudflare** -- a domain managed in Cloudflare for DNS automation. [Create an API token](https://dash.cloudflare.com/profile/api-tokens) using the "Edit zone DNS" template, scoped to your domain's zone.
-- **1Password** -- a service account with read/write access to an infrastructure vault. Create one in your 1Password admin console under Developer > Service Accounts. You need the vault **name** (e.g. `Starter Kit Infra`) or the vault **UUID** (visible in the URL at Settings > Vaults) — either one works. Also set up a **team logins vault** (can be the same vault or a separate one shared with your team) — Terraform writes browser-login items here for ArgoCD, Grafana, Prometheus, and Alertmanager so your team can log in via 1Password.
+- **1Password** -- a service account with read/write access to an infrastructure vault. Create one in your 1Password admin console under Developer > Service Accounts. You need the vault **UUID** (find via `op vault list` or visible in the URL at Settings > Vaults). Also set up a **team logins vault** (can be the same vault or a separate one shared with your team) — Terraform writes browser-login items here for ArgoCD, Grafana, Prometheus, and Alertmanager so your team can log in via 1Password.
 - **OVH Cloud** -- a Public Cloud project with API access (credentials covered in step 3).
 
 If you plan to use CI (Option B in step 10), you also need admin access to your GitHub fork to create environments and add secrets.
@@ -180,7 +180,7 @@ For private repo access, set `github_token`. See [argocd-guide.md](argocd-guide.
 Required environment variables (from [configuration.md](configuration.md)):
 `TF_VAR_state_bucket`, `TF_VAR_state_region`, `TF_VAR_state_endpoint`,
 `TF_VAR_onepassword_service_account_token`,
-`TF_VAR_onepassword_infra_vault_id` (or `TF_VAR_onepassword_infra_vault` — only one is needed),
+`TF_VAR_onepassword_vault_id`,
 `TF_VAR_cloudflare_api_token`, `TF_VAR_domain`, `TF_VAR_letsencrypt_email`.
 
 (`OP_SERVICE_ACCOUNT_TOKEN` is auto-aliased from `TF_VAR_onepassword_service_account_token` in `.env.shared.example`.)
@@ -236,7 +236,7 @@ The included workflow handles both stages sequentially. You need admin access to
 | `TF_VAR_state_bucket` | `OVH_STATE_BUCKET` |
 | `TF_VAR_cloudflare_api_token` | `CLOUDFLARE_API_TOKEN` |
 | `TF_VAR_onepassword_service_account_token` | `ONEPASSWORD_SERVICE_ACCOUNT_TOKEN` |
-| `TF_VAR_onepassword_infra_vault_id` | `ONEPASSWORD_INFRA_VAULT_ID` |
+| `TF_VAR_onepassword_vault_id` | `ONEPASSWORD_VAULT_ID` |
 
 **3. Add variables** in Settings > Secrets and variables > Actions > Variables:
 

@@ -22,14 +22,14 @@ Terraform creates Kubernetes Secrets and syncs them to 1Password. ESO keeps Kube
 
 Infrastructure items (for Kubernetes Secret sync via ESO):
 
-- `grafana-<cluster>` when `TF_VAR_onepassword_infra_vault_id` is set
-- `loki-s3-<cluster>` when `TF_VAR_onepassword_infra_vault_id` is set and the cluster stage outputs S3 access/secret key credentials for object storage
-- `cnpg-backup-<cluster>` when `TF_VAR_onepassword_infra_vault_id` is set, CNPG is enabled, and the cluster stage outputs S3 credentials
-- `cloudflare-dns-<cluster>` when `TF_VAR_onepassword_infra_vault_id` is set
-- `monitoring-basic-auth-<cluster>` when `TF_VAR_onepassword_infra_vault_id` is set
-- `grafana-oidc-<cluster>` when Grafana OAuth is enabled and `TF_VAR_onepassword_infra_vault_id` is set
-- `argocd-oidc-<cluster>` when ArgoCD OIDC is enabled and `TF_VAR_onepassword_infra_vault_id` is set
-- `database-<cluster>` when the database contract is enabled and `TF_VAR_onepassword_infra_vault_id` is set
+- `grafana-<cluster>` when `TF_VAR_onepassword_vault_id` is set
+- `loki-s3-<cluster>` when `TF_VAR_onepassword_vault_id` is set and the cluster stage outputs S3 access/secret key credentials for object storage
+- `cnpg-backup-<cluster>` when `TF_VAR_onepassword_vault_id` is set, CNPG is enabled, and the cluster stage outputs S3 credentials
+- `cloudflare-dns-<cluster>` when `TF_VAR_onepassword_vault_id` is set
+- `monitoring-basic-auth-<cluster>` when `TF_VAR_onepassword_vault_id` is set
+- `grafana-oidc-<cluster>` when Grafana OAuth is enabled and `TF_VAR_onepassword_vault_id` is set
+- `argocd-oidc-<cluster>` when ArgoCD OIDC is enabled and `TF_VAR_onepassword_vault_id` is set
+- `database-<cluster>` when the database contract is enabled and `TF_VAR_onepassword_vault_id` is set
 
 Terraform creates `grafana-admin` at bootstrap. `grafana-<cluster>` is the ESO sync item; `grafana-admin-<cluster>` is the browser-login item.
 
@@ -67,16 +67,11 @@ export TF_VAR_onepassword_service_account_token="ops.xxxxxxxxxxxxxxxxxxxxxxxxxxx
 # OP_SERVICE_ACCOUNT_TOKEN is set automatically via the alias in .env.shared.example
 ```
 
-Infrastructure vault — ESO uses the vault **name**, Terraform uses the vault **UUID**:
+Infrastructure vault — the UUID is used by both Terraform (to write items) and ESO's ClusterSecretStore (to read them):
 
 ```bash
-export TF_VAR_onepassword_infra_vault="Starter Kit Infra"       # vault name — used by ESO via ClusterSecretStore
-export TF_VAR_onepassword_infra_vault_id="<vault-uuid>"          # vault UUID — used by Terraform to write items
+export TF_VAR_onepassword_vault_id="<vault-uuid>"   # find via: op vault list
 ```
-
-> **Both variables are required for full functionality.** `onepassword_infra_vault` (name) is used by ESO's ClusterSecretStore. `onepassword_infra_vault_id` (UUID) is used by Terraform to write items. Setting only the name means ESO will look for items that Terraform never created.
-
-ESO `ClusterSecretStore` uses the vault **name** (`TF_VAR_onepassword_infra_vault`); Terraform uses the vault **UUID** (`TF_VAR_onepassword_infra_vault_id`). Both must be set.
 
 Optional team browser-login vault:
 
@@ -109,7 +104,7 @@ kubectl get secret -n database cnpg-backup-credentials
 
 ## Common issues
 
-- wrong vault name or vault UUID
+- wrong vault UUID (check with `op vault list`)
 - missing `TF_VAR_onepassword_service_account_token` (also sets `OP_SERVICE_ACCOUNT_TOKEN` via alias)
 - wrong item title or field name in the referenced 1Password item
 - duplicate 1Password items with the same title (e.g. from a partial
