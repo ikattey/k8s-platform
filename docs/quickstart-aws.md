@@ -6,30 +6,88 @@ CNPG, optional RDS, and optional Velero data movement.
 
 ## 1. Prerequisites
 
-You need:
+Install:
 
-- an AWS account with permissions for EKS, VPC, IAM, EBS, S3, and RDS
-- AWS CLI credentials for the target account
-- a Cloudflare zone and API token
-- a 1Password service-account token and infra vault
-- Terraform 1.14+
+- `terraform` (~> 1.14)
+- `kubectl`
+- `helm`
+- `aws` CLI
 
-## 2. Configure Terraform state
+**Required accounts:**
+
+- **AWS** -- an account with permissions for EKS, VPC, IAM, EBS, S3, and RDS (covered in step 2).
+- **Cloudflare** -- a domain managed in Cloudflare for DNS automation. [Create an API token](https://dash.cloudflare.com/profile/api-tokens) using the "Edit zone DNS" template, scoped to your domain's zone.
+- **1Password** -- a service account with read/write access to an infrastructure vault. Create one in your 1Password admin console under Developer > Service Accounts. You need the vault **UUID** (find via `op vault list` or visible in the URL at Settings > Vaults). Also set up a **team logins vault** (can be the same vault or a separate one shared with your team) — Terraform writes browser-login items here for ArgoCD, Grafana, Prometheus, and Alertmanager so your team can log in via 1Password.
+
+## 2. AWS credentials
+
+**Create an IAM user** in the AWS console under IAM > Users > Create user. Attach the `AdministratorAccess` policy, or grant the minimum required permissions: EKS, VPC, IAM, S3, EBS (EKS managed node groups use EC2), and optionally RDS if you plan to use managed PostgreSQL.
+
+**Generate access keys** under the user's Security credentials tab, or via the CLI:
+
+```bash
+aws iam create-access-key --user-name your-iam-user
+```
+
+## 3. Create a Terraform state bucket
+
+AWS uses native S3 for Terraform state:
+
+```bash
+aws s3 mb s3://your-state-bucket --region eu-north-1
+```
+
+Pick a bucket name that is globally unique. The region should match or be close to your cluster region.
+
+## 4. Configure environment
+
+Build your `.env` from the split example files:
+
+```bash
+cp .env.shared.example .env
+cat .env.aws.example >> .env
+```
+
+Optionally append OIDC and extras:
+
+```bash
+cat .env.oidc.example >> .env      # SSO for kubectl, Grafana, ArgoCD
+cat .env.extras.example >> .env    # GHCR, GitHub token for private repos
+```
+
+Fill in the values:
+
+- `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` -- IAM user access keys (from step 2)
+- `TF_VAR_state_bucket` / `TF_VAR_state_region` -- state bucket name and region (from step 3)
+- `TF_VAR_cloudflare_api_token`, `TF_VAR_domain`, `TF_VAR_letsencrypt_email` -- from `.env.shared.example`
+- `TF_VAR_onepassword_service_account_token`, `TF_VAR_onepassword_vault_id` -- from `.env.shared.example`
+
+Then source:
+
+```bash
+source .env
+```
+
+Never commit `.env` to git. Run the `cp`/`cat` steps once. Delete `.env` before re-running.
+
+> The `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` in `.env.shared.example` are used for the Terraform state backend (S3-compatible). For AWS clusters, these are the same IAM credentials — you do not need separate state-backend credentials.
+
+## 5. Configure Terraform state
 
 Edit `terraform/clusters/aws-starter/cluster/backend.tf` and
 `terraform/clusters/aws-starter/addons/backend.tf` to point at your state bucket.
 
-## 3. Create the cluster stage tfvars
+## 6. Create the cluster stage tfvars
 
 Create `terraform/clusters/aws-starter/cluster/terraform.tfvars` from the example.
 
 Minimum example:
 
 ```hcl
-region       = "eu-west-1"
+region       = "eu-north-1"
 cluster_name = "aws-starter"
 environment  = "production"
-availability_zones = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+availability_zones = ["eu-north-1a", "eu-north-1b", "eu-north-1c"]
 ```
 
 Optional managed PostgreSQL:
@@ -40,7 +98,7 @@ rds_instance_class = "db.t4g.small"
 rds_multi_az       = false
 ```
 
-## 4. Apply the cluster stage
+## 7. Apply the cluster stage
 
 ```bash
 cd terraform/clusters/aws-starter/cluster
@@ -52,10 +110,10 @@ terraform apply
 Configure `kubectl` after apply:
 
 ```bash
-aws eks update-kubeconfig   --region eu-west-1   --name aws-starter
+aws eks update-kubeconfig --region eu-north-1 --name aws-starter
 ```
 
-## 5. Create the addons stage tfvars
+## 8. Create the addons stage tfvars
 
 Create `terraform/clusters/aws-starter/addons/terraform.tfvars` from the example.
 
@@ -63,7 +121,7 @@ Typical values:
 
 ```hcl
 state_bucket      = "your-tf-state-bucket"
-state_region      = "eu-west-1"
+state_region      = "eu-north-1"
 cloud_provider    = "aws"
 cluster_name      = "aws-starter"
 domain            = "example.com"
@@ -72,9 +130,9 @@ cnpg_enabled      = true
 cnpg_instances    = 3
 ```
 
-Provide sensitive values through `TF_VAR_...` environment variables.
+Provide sensitive values through `TF_VAR_...` environment variables (already exported via `.env`).
 
-## 6. Apply the addons stage
+## 9. Apply the addons stage
 
 ```bash
 cd ../addons
@@ -90,7 +148,7 @@ This stage bootstraps:
 - portable storage classes `fast-rwo` and `standard-rwo`
 - IRSA-backed service accounts for Loki and Velero
 
-## 7. Enable components in GitOps
+## 10. Enable components in GitOps
 
 Edit `clusters/aws-starter/values.yaml` and enable the components you want.
 
@@ -106,7 +164,7 @@ components:
   typesense: true
 ```
 
-## 8. Verify storage classes and storage nodes
+## 11. Verify storage classes and storage nodes
 
 ```bash
 kubectl get storageclass
@@ -122,7 +180,7 @@ The starter cluster creates a dedicated storage node group labeled
 `k8s-platform/pool-role=storage` and tainted `k8s-platform/pool-role=storage:NoSchedule`
 so CNPG and other stateful workloads land on the intended nodes. See [node-pools.md](node-pools.md).
 
-## 9. Verify ArgoCD and Grafana access
+## 12. Verify ArgoCD and Grafana access
 
 ```bash
 kubectl get ingress -A
@@ -134,7 +192,7 @@ Expected hostnames:
 - `argocd-aws-starter.example.com`
 - `grafana-aws-starter.example.com`
 
-## 10. Managed DB vs CNPG
+## 13. Managed DB vs CNPG
 
 - `database_provider = "cnpg"`: Terraform seeds the demo app’s
   `database-credentials` secret for the in-cluster CNPG cluster.

@@ -9,6 +9,8 @@ Build your `.env` from the split example files:
 | `.env.shared.example` | State backend, 1Password, Cloudflare, ArgoCD — shared across clouds |
 | `.env.ovh.example` | OVH API + OpenStack credentials |
 | `.env.hetzner.example` | Hetzner API + SSH keys |
+| `.env.aws.example` | AWS IAM credentials + region |
+| `.env.gcp.example` | GCP project + region (auth via `gcloud` ADC) |
 | `.env.oidc.example` | OIDC/SSO for kubectl, Grafana, ArgoCD |
 | `.env.extras.example` | GHCR registry, GitHub token for private repos |
 

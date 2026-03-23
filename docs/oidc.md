@@ -18,7 +18,7 @@ Defaults in this repo are tuned for Google, but the flow is provider-agnostic.
 
 ## Setup
 
-1. Create OAuth/OIDC clients using the table above (each needs a different redirect URI).
+1. Create OAuth/OIDC clients using the table above (each needs a different redirect URI). See [Creating Google OAuth clients](#creating-google-oauth-clients) below.
 2. Fill in the OIDC variables in `.env` (append `.env.oidc.example` to your `.env` if you haven't already).
 3. **Hetzner only**: set `enable_oidc = true` and `oidc_client_id` in cluster `terraform.tfvars` **before the first apply** (OIDC flags are baked into k3s at install time).
 4. Apply both stages: cluster then addons.
@@ -28,6 +28,49 @@ Defaults in this repo are tuned for Google, but the flow is provider-agnostic.
 
 See [credential-flow.md](credential-flow.md) for details on which 1Password
 items are created and when.
+
+## Creating Google OAuth clients
+
+The kit defaults to Google as the identity provider. Create three separate OAuth clients — one per auth path.
+
+**1. Configure the OAuth consent screen** (one-time per GCP project)
+
+Go to **Google Cloud Console > APIs & Services > OAuth consent screen** (or Google Auth Platform > Overview).
+
+- User type: **External** (for personal Google accounts). Use **Internal** if your team is on Google Workspace — this restricts login to your org domain automatically.
+- Fill in App name, user support email, and developer contact email.
+- Scopes: add `email`, `profile`, `openid`.
+- For External apps, the app starts in **testing** mode. Add each team member's Google account as a test user under **Audience > Test users** before they log in. Publish the app to remove this restriction (requires OAuth verification for sensitive scopes, but `email`/`profile`/`openid` do not require verification).
+
+**2. Create the clients**
+
+Go to **Google Cloud Console > APIs & Services > Credentials** and create three **OAuth 2.0 Client IDs**, one per row:
+
+| Client name | Application type | Authorized redirect URIs |
+| --- | --- | --- |
+| `oidc-{cluster}-kubectl` | Desktop app | `http://localhost:8000`, `http://localhost:18000` |
+| `oidc-{cluster}-grafana` | Web application | `https://grafana-{cluster}.{domain}/login/generic_oauth` |
+| `oidc-{cluster}-argocd` | Web application | `https://argocd-{cluster}.{domain}/auth/callback` |
+
+Replace `{cluster}` with your cluster name (e.g. `aws-starter`) and `{domain}` with your domain.
+
+For each client, after creation Google shows a dialog with the **Client ID** and **Client secret** — copy both immediately.
+
+**3. Fill in `.env`**
+
+Add the client IDs and secrets to your `.env`:
+
+```bash
+export TF_VAR_kubectl_oidc_client_id="<kubectl-client-id>"
+export TF_VAR_kubectl_oidc_client_secret="<kubectl-client-secret>"
+export TF_VAR_grafana_oauth_client_id="<grafana-client-id>"
+export TF_VAR_grafana_oauth_client_secret="<grafana-client-secret>"
+export TF_VAR_argocd_oidc_client_id="<argocd-client-id>"
+export TF_VAR_argocd_oidc_client_secret="<argocd-client-secret>"
+export TF_VAR_oidc_allowed_domains="your-domain.com"
+```
+
+The `kubectl` client ID is also needed in cluster `terraform.tfvars` (Stage 1) as `oidc_client_id`. For Hetzner, this must be set before the first apply.
 
 ## Environment
 

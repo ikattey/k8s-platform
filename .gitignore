@@ -24,6 +24,8 @@ override.tf.json
 !.env.shared.example
 !.env.ovh.example
 !.env.hetzner.example
+!.env.aws.example
+!.env.gcp.example
 !.env.oidc.example
 !.env.extras.example
 

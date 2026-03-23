@@ -6,26 +6,98 @@ OIDC, CNPG, and optional Velero data movement.
 
 ## 1. Prerequisites
 
-You need:
+Install:
 
-- a GCP project with billing enabled
-- `gcloud` authenticated as a project admin
-- a Cloudflare zone and API token
-- a 1Password service-account token and an infra vault for bootstrap secrets
-- Terraform 1.14+
+- `terraform` (~> 1.14)
+- `kubectl`
+- `helm`
+- `gcloud` CLI ([install guide](https://cloud.google.com/sdk/docs/install))
 
-Enable the APIs used by the platform if they are not already enabled:
+**Required accounts:**
+
+- **GCP** -- a project with billing enabled (covered in steps 2--4).
+- **Cloudflare** -- a domain managed in Cloudflare for DNS automation. [Create an API token](https://dash.cloudflare.com/profile/api-tokens) using the "Edit zone DNS" template, scoped to your domain's zone.
+- **1Password** -- a service account with read/write access to an infrastructure vault. Create one in your 1Password admin console under Developer > Service Accounts. You need the vault **UUID** (find via `op vault list` or visible in the URL at Settings > Vaults). Also set up a **team logins vault** (can be the same vault or a separate one shared with your team) — Terraform writes browser-login items here for ArgoCD, Grafana, Prometheus, and Alertmanager so your team can log in via 1Password.
+
+## 2. GCP authentication
+
+Both commands are required. `auth login` authenticates the `gcloud` CLI; `application-default login` gives Terraform access via Application Default Credentials.
 
 ```bash
-gcloud services enable   container.googleapis.com   compute.googleapis.com   iamcredentials.googleapis.com   sqladmin.googleapis.com   servicenetworking.googleapis.com   storage.googleapis.com   --project YOUR_GCP_PROJECT
+gcloud auth login
+gcloud auth application-default login
 ```
 
-## 2. Configure Terraform state
+Set your active project:
+
+```bash
+gcloud config set project YOUR_GCP_PROJECT
+```
+
+## 3. Enable required APIs
+
+```bash
+gcloud services enable \
+  container.googleapis.com \
+  compute.googleapis.com \
+  iamcredentials.googleapis.com \
+  sqladmin.googleapis.com \
+  servicenetworking.googleapis.com \
+  storage.googleapis.com \
+  --project YOUR_GCP_PROJECT
+```
+
+## 4. Create a Terraform state bucket
+
+GCP uses GCS for Terraform state:
+
+```bash
+gcloud storage buckets create gs://your-state-bucket \
+  --project=your-gcp-project \
+  --location=europe-west2
+```
+
+Pick a bucket name that is globally unique.
+
+## 5. Configure environment
+
+Build your `.env` from the split example files:
+
+```bash
+cp .env.shared.example .env
+cat .env.gcp.example >> .env
+```
+
+Optionally append OIDC and extras:
+
+```bash
+cat .env.oidc.example >> .env      # SSO for kubectl, Grafana, ArgoCD
+cat .env.extras.example >> .env    # GHCR, GitHub token for private repos
+```
+
+Fill in the values:
+
+- `TF_VAR_project_id` -- your GCP project ID
+- `TF_VAR_state_bucket` -- GCS bucket name (from step 4)
+- `TF_VAR_cloudflare_api_token`, `TF_VAR_domain`, `TF_VAR_letsencrypt_email` -- from `.env.shared.example`
+- `TF_VAR_onepassword_service_account_token`, `TF_VAR_onepassword_vault_id` -- from `.env.shared.example`
+
+> GCP uses Application Default Credentials (set via `gcloud auth application-default login`) rather than API keys. The `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` fields in `.env.shared.example` are not used for GCP clusters — leave them empty or omit them.
+
+Then source:
+
+```bash
+source .env
+```
+
+Never commit `.env` to git. Run the `cp`/`cat` steps once. Delete `.env` before re-running.
+
+## 6. Configure Terraform state
 
 Edit `terraform/clusters/gcp-starter/cluster/backend.tf` and
 `terraform/clusters/gcp-starter/addons/backend.tf` to point at your GCS state bucket.
 
-## 3. Create the cluster stage tfvars
+## 7. Create the cluster stage tfvars
 
 Create `terraform/clusters/gcp-starter/cluster/terraform.tfvars` from the example.
 
@@ -34,8 +106,8 @@ Minimum example:
 ```hcl
 project_id   = "your-gcp-project"
 cluster_name = "gcp-starter"
-region       = "europe-west1"
-location     = "europe-west1-b"
+region       = "europe-west2"
+location     = "europe-west2-a"
 environment  = "production"
 ```
 
@@ -50,7 +122,7 @@ Leave `database_provider = "cnpg"` to keep PostgreSQL in-cluster.
 Use `database_provider = "external"` when you will provide the
 `database-credentials` secret by other means.
 
-## 4. Apply the cluster stage
+## 8. Apply the cluster stage
 
 ```bash
 cd terraform/clusters/gcp-starter/cluster
@@ -62,10 +134,12 @@ terraform apply
 After apply, configure `kubectl`:
 
 ```bash
-gcloud container clusters get-credentials gcp-starter   --location europe-west1-b   --project your-gcp-project
+gcloud container clusters get-credentials gcp-starter \
+  --location europe-west2-a \
+  --project your-gcp-project
 ```
 
-## 5. Create the addons stage tfvars
+## 9. Create the addons stage tfvars
 
 Create `terraform/clusters/gcp-starter/addons/terraform.tfvars` from the example.
 
@@ -81,19 +155,12 @@ cnpg_enabled      = true
 cnpg_instances    = 3
 ```
 
-Provide secrets through environment variables:
-
-```bash
-export TF_VAR_onepassword_service_account_token="op://..."
-export TF_VAR_onepassword_vault_id="<vault-uuid>"
-export TF_VAR_cloudflare_api_token="..."
-export TF_VAR_domain="example.com"
-```
+Provide sensitive values through `TF_VAR_...` environment variables (already exported via `.env`).
 
 If you enable OIDC, also set the Grafana / ArgoCD / kubectl client IDs and
 secrets through `TF_VAR_...` variables.
 
-## 6. Apply the addons stage
+## 10. Apply the addons stage
 
 ```bash
 cd ../addons
@@ -109,7 +176,7 @@ This stage bootstraps:
 - portable storage classes `fast-rwo` and `standard-rwo`
 - Workload Identity bindings for Loki, CNPG backups, and Velero
 
-## 7. Enable platform components in GitOps
+## 11. Enable platform components in GitOps
 
 Edit `clusters/gcp-starter/values.yaml` and enable the components you want.
 Example:
@@ -127,7 +194,7 @@ components:
 For production, switch the cluster issuer from staging to production once DNS
 and routing are verified.
 
-## 8. Verify storage classes and storage nodes
+## 12. Verify storage classes and storage nodes
 
 ```bash
 kubectl get storageclass
@@ -143,7 +210,7 @@ The starter cluster creates a dedicated storage node pool labeled
 `k8s-platform/pool-role=storage` and tainted `k8s-platform/pool-role=storage:NoSchedule`
 so CNPG and other stateful workloads can be isolated. See [node-pools.md](node-pools.md).
 
-## 9. Verify ArgoCD and Grafana access
+## 13. Verify ArgoCD and Grafana access
 
 ```bash
 kubectl get ingress -A
@@ -155,7 +222,7 @@ ArgoCD and Grafana hostnames follow this pattern:
 - `argocd-gcp-starter.example.com`
 - `grafana-gcp-starter.example.com`
 
-## 10. Managed DB vs CNPG
+## 14. Managed DB vs CNPG
 
 - `database_provider = "cnpg"`: the demo app consumes the in-cluster
   `database-credentials` secret that Terraform seeds before ArgoCD sync.
