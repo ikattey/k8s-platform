@@ -4,8 +4,8 @@
 # workload namespaces depend on. "apps" scopes workload deployments so
 # they can't accidentally modify cluster-critical namespaces.
 #
-# The "default" project is intentionally unused — keeping it locked down
-# prevents accidental privilege escalation.
+# The "default" project is used only by the root Application (bootstrapped
+# by Terraform). All other apps use the "platform" or "apps" projects.
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject

@@ -1,5 +1,7 @@
 # Security
 
+> **Default posture**: The starter defaults allow unrestricted API server access to simplify initial setup. Before production use, restrict access using the cloud-specific settings below.
+
 This document covers the security features built into the k8s-starter-kit platform.
 
 ## API Server Access Restriction

@@ -73,9 +73,9 @@ variable "spot" {
 }
 
 variable "enable_storage_node_pool" {
-  description = "Create a dedicated storage node pool"
+  description = "Create a dedicated storage node pool. Enable when running CNPG or other stateful workloads that need dedicated storage nodes."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "storage_node_count" {

@@ -22,6 +22,10 @@ backup:
 
 `ScheduledBackup.spec.schedule` is six-field cron (seconds first). The example runs daily at 02:00 UTC. Use a frequent schedule during validation (e.g. `"0 */5 * * * *"`), then adjust to production schedule.
 
+## Backup retention
+
+**Retention**: AWS and GCP backup buckets expire objects after `backup_retention_days` (default: 30 days). Hetzner and OVH S3-compatible storage does not have automatic lifecycle expiry — monitor bucket growth and implement manual cleanup if needed.
+
 ## Backup credentials
 
 For the public OVH and Hetzner starter paths, CNPG backups use static
