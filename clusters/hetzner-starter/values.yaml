@@ -12,6 +12,7 @@ clusterIssuer: "letsencrypt-production"
 
 components:
   demoApp: true
+  monitoring: false  # Requires object storage (enable_object_storage = true in cluster terraform.tfvars). Enable after configuring object storage.
   # cnpg: true  # Requires enable_object_storage + enable_storage_nodes (cluster) and enable_storage_class_aliases (addons)
 
 # `demoApp` is on here so a fresh bootstrap exercises ingress, TLS, and app
