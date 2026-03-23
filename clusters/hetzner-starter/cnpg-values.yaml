@@ -18,9 +18,9 @@ cluster:
   walStorage:
     storageClass: fast-rwo
   nodeSelector:
-    server-usage: storage
+    k8s-platform/pool-role: storage
   tolerations:
-    - key: storage
+    - key: k8s-platform/pool-role
       operator: Equal
-      value: "true"
+      value: storage
       effect: NoSchedule

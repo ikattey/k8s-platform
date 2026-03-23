@@ -110,7 +110,7 @@ components:
 
 ```bash
 kubectl get storageclass
-kubectl get nodes -L server-usage
+kubectl get nodes -L k8s-platform/pool-role
 ```
 
 Expected portable aliases:
@@ -119,8 +119,8 @@ Expected portable aliases:
 - `standard-rwo` -> baseline `gp3`
 
 The starter cluster creates a dedicated storage node group labeled
-`server-usage=storage` and tainted `storage=true:NoSchedule` so CNPG and other
-stateful workloads land on the intended nodes.
+`k8s-platform/pool-role=storage` and tainted `k8s-platform/pool-role=storage:NoSchedule`
+so CNPG and other stateful workloads land on the intended nodes. See [node-pools.md](node-pools.md).
 
 ## 9. Verify ArgoCD and Grafana access
 

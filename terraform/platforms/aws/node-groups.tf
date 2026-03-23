@@ -50,13 +50,12 @@ resource "aws_eks_node_group" "storage" {
   }
 
   labels = {
-    role           = "storage"
-    "server-usage" = "storage"
+    "k8s-platform/pool-role" = "storage"
   }
 
   taint {
-    key    = "storage"
-    value  = "true"
+    key    = "k8s-platform/pool-role"
+    value  = "storage"
     effect = "NO_SCHEDULE"
   }
 

@@ -221,9 +221,9 @@ storage_server_type  = "cax41"
 storage_node_count   = 2
 ```
 
-Storage nodes are labeled `server-usage=storage` and tainted
-`storage=true:NoSchedule`. Longhorn is automatically enabled when storage nodes
-are present.
+Storage nodes are labeled `k8s-platform/pool-role=storage` and tainted
+`k8s-platform/pool-role=storage:NoSchedule`. Longhorn is automatically enabled
+when storage nodes are present. See [node-pools.md](node-pools.md).
 
 For advanced Longhorn tuning (replica count, encryption, backup targets), see the [kube-hetzner storage documentation](https://github.com/mysticaltech/terraform-hcloud-kube-hetzner#storage).
 

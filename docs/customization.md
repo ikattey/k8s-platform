@@ -4,7 +4,9 @@
 
 - `argocd/values.yaml`: shared defaults
 - `clusters/<cluster>/values.yaml`: per-cluster overrides
-- `clusters/<cluster>/cnpg-values.yaml`: per-cluster CNPG overrides (database name, storage size, replicas, backup schedule, pooler settings)
+- `clusters/<cluster>/cnpg-values.yaml`: per-cluster CNPG overrides (database name, storage size, replicas, backup schedule, pooler settings, node targeting)
+- `clusters/<cluster>/typesense-values.yaml`: per-cluster Typesense overrides (storage class, node targeting)
+- `clusters/<cluster>/nats-values.yaml`: per-cluster NATS overrides (storage class, node targeting)
 - `values/<component>/values.yaml`: component-specific Helm values
 - `values/<component>/values-<cloud>.yaml`: cloud-specific component overrides
 - `terraform/clusters/<cluster>/cluster/terraform.tfvars`: cloud and cluster infrastructure
@@ -248,38 +250,38 @@ storage:
 
 Aliases work across all clouds. On Hetzner with dedicated storage nodes, `fast-rwo` maps to Longhorn (local NVMe) and `standard-rwo` maps to Hetzner CSI.
 
-## Running CNPG on dedicated storage nodes
+## Running workloads on dedicated storage nodes
 
-When Hetzner storage nodes are enabled, you can pin PostgreSQL to local
-NVMe for better I/O performance:
+Clouds with dedicated storage node pools (Hetzner, AWS, GCP) use the `k8s-platform/pool-role` label and taint to isolate stateful workloads:
 
-1. Enable storage nodes in `terraform.tfvars`:
+```
+Label:  k8s-platform/pool-role=storage
+Taint:  k8s-platform/pool-role=storage:NoSchedule
+```
 
-   ```hcl
-   enable_storage_nodes         = true
-   enable_storage_class_aliases = true
-   ```
+Workload targeting is configured in per-cluster overlay files, not cloud-level overlays. Example for CNPG:
 
-2. Configure CNPG in `values/cnpg/cluster/values-hetzner.yaml`:
+```yaml
+# clusters/<cluster>/cnpg-values.yaml
+cluster:
+  storage:
+    storageClass: fast-rwo
+  walStorage:
+    storageClass: fast-rwo
+  nodeSelector:
+    k8s-platform/pool-role: storage
+  tolerations:
+    - key: k8s-platform/pool-role
+      operator: Equal
+      value: storage
+      effect: NoSchedule
+```
 
-   ```yaml
-   cluster:
-     storage:
-       storageClass: fast-rwo
-     walStorage:
-       storageClass: fast-rwo
-     nodeSelector:
-       server-usage: storage
-     tolerations:
-       - key: storage
-         operator: Equal
-         value: "true"
-         effect: NoSchedule
-   ```
+Both `nodeSelector` and `tolerations` are required — storage nodes are tainted. Omitting either causes pods to schedule on regular worker nodes.
 
-Both `nodeSelector` and `tolerations` are required — storage nodes are tainted. Omitting either causes CNPG to schedule on regular worker nodes.
+The same pattern applies to Typesense (`typesense-values.yaml`) and NATS (`nats-values.yaml`). OVH does not support node pool labels or taints — all workloads run on general-purpose nodes.
 
-The same pattern applies to Typesense and NATS — add matching `nodeSelector` and `tolerations` in their `values-hetzner.yaml` overlays.
+See [node-pools.md](node-pools.md) for full details on the convention, per-cloud tradeoffs, and component-specific guidance.
 
 ## Hetzner firewall rules
 
