@@ -95,9 +95,9 @@ variable "general_instance_types" {
 }
 
 variable "storage_enabled" {
-  description = "Create a dedicated storage node group"
+  description = "Create a dedicated storage node group. Enable when running CNPG or other stateful workloads that need dedicated storage nodes."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "storage_min_size" {
@@ -125,9 +125,9 @@ variable "storage_instance_types" {
 }
 
 variable "enable_spot_instances" {
-  description = "Use Spot instances for the general node pool"
+  description = "Use Spot instances for the general node pool. Enable for cost savings. Not recommended for platform-layer nodes."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "create_backup_bucket" {
