@@ -85,7 +85,7 @@ Provide secrets through environment variables:
 
 ```bash
 export TF_VAR_onepassword_service_account_token="op://..."
-export TF_VAR_onepassword_infra_vault="k8s-infra"
+export TF_VAR_onepassword_vault_id="<vault-uuid>"
 export TF_VAR_cloudflare_api_token="..."
 export TF_VAR_domain="example.com"
 ```

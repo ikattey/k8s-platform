@@ -13,9 +13,8 @@ letsencrypt_email = "ops@example.com"
 
 # Recommended: set sensitive values via TF_VAR_ env vars
 # onepassword_service_account_token = ""
-# onepassword_infra_vault          = ""
-# onepassword_infra_vault_id       = ""
+# onepassword_vault_id             = ""   # Vault UUID — find via: op vault list
 # cloudflare_api_token             = ""
 
-cnpg_enabled   = true
-cnpg_instances = 3
+# cnpg_enabled   = true   # Also enable components.cnpg in clusters/aws-starter/values.yaml
+# cnpg_instances = 3

@@ -253,22 +253,16 @@ variable "monitoring_basic_auth_password" {
   default     = ""
 }
 
-# --- 1Password Dual-Vault ---
+# --- 1Password Vault ---
 
-variable "onepassword_infra_vault_id" {
-  description = "1Password vault UUID for Terraform to write infrastructure items. Required alongside onepassword_infra_vault for full secret sync. Leave empty to skip 1Password item creation."
-  type        = string
-  default     = ""
-}
-
-variable "onepassword_infra_vault" {
-  description = "1Password vault name used by ESO's 1Password SDK ClusterSecretStore (e.g. -infra). If empty, Terraform will look up the name from onepassword_infra_vault_id."
+variable "onepassword_vault_id" {
+  description = "1Password vault UUID used by both Terraform to write infrastructure items and ESO's ClusterSecretStore. Leave empty to skip 1Password item creation."
   type        = string
   default     = ""
 
   validation {
-    condition     = !var.enable_onepassword_bootstrap || var.onepassword_infra_vault != "" || var.onepassword_infra_vault_id != ""
-    error_message = "Both onepassword_infra_vault (name for ESO) and onepassword_infra_vault_id (UUID for Terraform) should be set when enable_onepassword_bootstrap is true. Setting only the name will prevent Terraform from writing 1Password items."
+    condition     = !var.enable_onepassword_bootstrap || var.onepassword_vault_id != ""
+    error_message = "onepassword_vault_id must be set when enable_onepassword_bootstrap is true. Find your vault UUID via: op vault list"
   }
 }
 

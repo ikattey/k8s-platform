@@ -1,16 +1,7 @@
-# --- Cluster name resolution ---
-
-data "onepassword_vault" "infra" {
-  count = var.onepassword_infra_vault == "" && var.onepassword_infra_vault_id != "" ? 1 : 0
-  uuid  = var.onepassword_infra_vault_id
-}
+# --- Locals ---
 
 locals {
   cluster_name = var.cluster_name
-
-  onepassword_infra_vault_name = var.onepassword_infra_vault != "" ? var.onepassword_infra_vault : (
-    var.onepassword_infra_vault_id != "" ? data.onepassword_vault.infra[0].name : ""
-  )
 
   enable_grafana_oauth = var.grafana_oauth_client_id != ""
   enable_argocd_oidc   = var.argocd_oidc_client_id != ""
@@ -483,7 +474,7 @@ module "argocd" {
   letsencrypt_email                     = var.letsencrypt_email
   cloud_provider                        = var.cloud_provider
   cluster_name                          = local.cluster_name
-  onepassword_vault_id                  = local.onepassword_infra_vault_name
+  onepassword_vault_id                  = var.onepassword_vault_id
   onepassword_grafana_item_uuid         = try(onepassword_item.grafana_k8s_secret[0].uuid, "")
   onepassword_grafana_oauth_item_uuid   = try(onepassword_item.grafana_oauth[0].uuid, "")
   onepassword_cloudflare_item_uuid      = try(onepassword_item.cloudflare_dns[0].uuid, "")
@@ -532,9 +523,9 @@ module "argocd" {
 # --- 1Password: Infrastructure Secrets (for ESO sync) ---
 
 resource "onepassword_item" "grafana_k8s_secret" {
-  count = var.onepassword_infra_vault_id != "" ? 1 : 0
+  count = var.onepassword_vault_id != "" ? 1 : 0
 
-  vault    = var.onepassword_infra_vault_id
+  vault    = var.onepassword_vault_id
   title    = "grafana-${local.cluster_name}"
   category = "secure_note"
 
@@ -556,9 +547,9 @@ resource "onepassword_item" "grafana_k8s_secret" {
 }
 
 resource "onepassword_item" "cloudflare_dns" {
-  count = var.onepassword_infra_vault_id != "" ? 1 : 0
+  count = var.onepassword_vault_id != "" ? 1 : 0
 
-  vault    = var.onepassword_infra_vault_id
+  vault    = var.onepassword_vault_id
   title    = "cloudflare-dns-${local.cluster_name}"
   category = "secure_note"
 
@@ -575,9 +566,9 @@ resource "onepassword_item" "cloudflare_dns" {
 }
 
 resource "onepassword_item" "grafana_oauth" {
-  count = var.onepassword_infra_vault_id != "" && local.enable_grafana_oauth ? 1 : 0
+  count = var.onepassword_vault_id != "" && local.enable_grafana_oauth ? 1 : 0
 
-  vault    = var.onepassword_infra_vault_id
+  vault    = var.onepassword_vault_id
   title    = "grafana-oidc-${local.cluster_name}"
   category = "secure_note"
 
@@ -599,9 +590,9 @@ resource "onepassword_item" "grafana_oauth" {
 }
 
 resource "onepassword_item" "argocd_oidc" {
-  count = var.onepassword_infra_vault_id != "" && local.enable_argocd_oidc ? 1 : 0
+  count = var.onepassword_vault_id != "" && local.enable_argocd_oidc ? 1 : 0
 
-  vault    = var.onepassword_infra_vault_id
+  vault    = var.onepassword_vault_id
   title    = "argocd-oidc-${local.cluster_name}"
   category = "secure_note"
 
@@ -624,12 +615,12 @@ resource "onepassword_item" "argocd_oidc" {
 
 resource "onepassword_item" "loki_s3_credentials" {
   count = (
-    var.onepassword_infra_vault_id != "" &&
+    var.onepassword_vault_id != "" &&
     try(data.terraform_remote_state.cluster.outputs.object_storage_access_key, "") != "" &&
     try(data.terraform_remote_state.cluster.outputs.object_storage_secret_key, "") != ""
   ) ? 1 : 0
 
-  vault    = var.onepassword_infra_vault_id
+  vault    = var.onepassword_vault_id
   title    = "loki-s3-${local.cluster_name}"
   category = "secure_note"
 
@@ -657,13 +648,13 @@ resource "onepassword_item" "loki_s3_credentials" {
 
 resource "onepassword_item" "cnpg_backup_credentials" {
   count = (
-    var.onepassword_infra_vault_id != "" &&
+    var.onepassword_vault_id != "" &&
     var.cnpg_enabled &&
     try(data.terraform_remote_state.cluster.outputs.object_storage_access_key, "") != "" &&
     try(data.terraform_remote_state.cluster.outputs.object_storage_secret_key, "") != ""
   ) ? 1 : 0
 
-  vault    = var.onepassword_infra_vault_id
+  vault    = var.onepassword_vault_id
   title    = "cnpg-backup-${local.cluster_name}"
   category = "secure_note"
 
@@ -690,9 +681,9 @@ resource "onepassword_item" "cnpg_backup_credentials" {
 }
 
 resource "onepassword_item" "database_credentials" {
-  count = var.onepassword_infra_vault_id != "" && local.database_contract_enabled ? 1 : 0
+  count = var.onepassword_vault_id != "" && local.database_contract_enabled ? 1 : 0
 
-  vault    = var.onepassword_infra_vault_id
+  vault    = var.onepassword_vault_id
   title    = "database-${local.cluster_name}"
   category = "secure_note"
 
@@ -745,7 +736,7 @@ resource "onepassword_item" "database_credentials" {
 resource "onepassword_item" "argocd_browser_login" {
   count = var.onepassword_team_logins_vault_id != "" ? 1 : 0
 
-  vault    = local.enable_argocd_oidc && var.onepassword_infra_vault_id != "" ? var.onepassword_infra_vault_id : var.onepassword_team_logins_vault_id
+  vault    = local.enable_argocd_oidc && var.onepassword_vault_id != "" ? var.onepassword_vault_id : var.onepassword_team_logins_vault_id
   title    = "argocd-${local.cluster_name}"
   category = "login"
   username = "admin"
@@ -758,7 +749,7 @@ resource "onepassword_item" "argocd_browser_login" {
 resource "onepassword_item" "grafana_browser_login" {
   count = var.onepassword_team_logins_vault_id != "" ? 1 : 0
 
-  vault    = local.enable_grafana_oauth && var.onepassword_infra_vault_id != "" ? var.onepassword_infra_vault_id : var.onepassword_team_logins_vault_id
+  vault    = local.enable_grafana_oauth && var.onepassword_vault_id != "" ? var.onepassword_vault_id : var.onepassword_team_logins_vault_id
   title    = "grafana-admin-${local.cluster_name}"
   category = "login"
   username = "admin"
@@ -782,9 +773,9 @@ resource "onepassword_item" "oidc_kubeconfig" {
 # --- 1Password: Monitoring basicAuth (for ESO sync) ---
 
 resource "onepassword_item" "monitoring_basic_auth" {
-  count = var.onepassword_infra_vault_id != "" ? 1 : 0
+  count = var.onepassword_vault_id != "" ? 1 : 0
 
-  vault    = var.onepassword_infra_vault_id
+  vault    = var.onepassword_vault_id
   title    = "monitoring-basic-auth-${local.cluster_name}"
   category = "secure_note"
 
@@ -811,7 +802,7 @@ resource "onepassword_item" "monitoring_basic_auth" {
 resource "onepassword_item" "prometheus_browser_login" {
   count = var.onepassword_team_logins_vault_id != "" ? 1 : 0
 
-  vault    = local.enable_any_oidc && var.onepassword_infra_vault_id != "" ? var.onepassword_infra_vault_id : var.onepassword_team_logins_vault_id
+  vault    = local.enable_any_oidc && var.onepassword_vault_id != "" ? var.onepassword_vault_id : var.onepassword_team_logins_vault_id
   title    = "prometheus-${local.cluster_name}"
   category = "login"
   username = local.monitoring_username
@@ -824,7 +815,7 @@ resource "onepassword_item" "prometheus_browser_login" {
 resource "onepassword_item" "alertmanager_browser_login" {
   count = var.onepassword_team_logins_vault_id != "" ? 1 : 0
 
-  vault    = local.enable_any_oidc && var.onepassword_infra_vault_id != "" ? var.onepassword_infra_vault_id : var.onepassword_team_logins_vault_id
+  vault    = local.enable_any_oidc && var.onepassword_vault_id != "" ? var.onepassword_vault_id : var.onepassword_team_logins_vault_id
   title    = "alertmanager-${local.cluster_name}"
   category = "login"
   username = local.monitoring_username
