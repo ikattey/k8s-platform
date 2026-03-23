@@ -3,7 +3,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 7.19"
+      version = "~> 7.0"
     }
     helm = {
       source  = "hashicorp/helm"
@@ -23,7 +23,7 @@ terraform {
     }
     random = {
       source  = "hashicorp/random"
-      version = "~> 3.8"
+      version = "~> 3.6"
     }
     time = {
       source  = "hashicorp/time"
@@ -36,7 +36,7 @@ data "terraform_remote_state" "cluster" {
   backend = "gcs"
   config = {
     bucket = var.state_bucket
-    prefix = var.state_prefix != "" ? var.state_prefix : "k8s-platform/clusters/gcp-starter/cluster"
+    prefix = var.state_key != "" ? var.state_key : "k8s-platform/clusters/gcp-starter/cluster"
   }
 }
 

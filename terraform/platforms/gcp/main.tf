@@ -63,11 +63,26 @@ resource "google_container_cluster" "cluster" {
     }
   }
 
+  datapath_provider = "ADVANCED_DATAPATH"
+
+  dynamic "master_authorized_networks_config" {
+    for_each = length(var.master_authorized_cidr_blocks) > 0 ? [1] : []
+    content {
+      dynamic "cidr_blocks" {
+        for_each = var.master_authorized_cidr_blocks
+        content {
+          cidr_block   = cidr_blocks.value.cidr_block
+          display_name = cidr_blocks.value.display_name
+        }
+      }
+    }
+  }
+
   maintenance_policy {
     recurring_window {
       recurrence = "FREQ=WEEKLY;BYDAY=SU"
-      start_time = "2026-01-01T02:00:00Z"
-      end_time   = "2026-01-01T06:00:00Z"
+      start_time = "2024-01-01T02:00:00Z"
+      end_time   = "2024-01-01T06:00:00Z"
     }
   }
 
@@ -103,8 +118,8 @@ resource "google_container_node_pool" "general" {
     oauth_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
 
     labels = {
-      environment = var.environment
-      role        = "general"
+      environment              = var.environment
+      "k8s-platform/pool-role" = "general"
     }
   }
 }
@@ -140,7 +155,7 @@ resource "google_container_node_pool" "storage" {
     oauth_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
 
     labels = {
-      environment                = var.environment
+      environment              = var.environment
       "k8s-platform/pool-role" = "storage"
     }
 

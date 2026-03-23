@@ -33,6 +33,12 @@ variable "cluster_name" {
   type        = string
 }
 
+variable "environment" {
+  description = "Environment name"
+  type        = string
+  default     = "production"
+}
+
 variable "domain" {
   description = "Base domain used to derive globally-unique object storage bucket names when Hetzner object storage is enabled."
   type        = string

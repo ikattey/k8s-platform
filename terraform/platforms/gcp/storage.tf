@@ -1,12 +1,21 @@
 resource "random_id" "bucket_suffix" {
-  count       = var.create_backup_bucket && var.backup_bucket_name == "" ? 1 : 0
+  count       = var.create_backup_bucket ? 1 : 0
   byte_length = 4
+}
+
+locals {
+  bucket_suffix = var.create_backup_bucket ? random_id.bucket_suffix[0].hex : ""
+  bucket_labels = {
+    environment = var.environment
+    cluster     = var.cluster_name
+    managed_by  = "terraform"
+  }
 }
 
 resource "google_storage_bucket" "backups" {
   count    = var.create_backup_bucket ? 1 : 0
   project  = var.project_id
-  name     = var.backup_bucket_name != "" ? var.backup_bucket_name : "${var.cluster_name}-backups-${random_id.bucket_suffix[0].hex}"
+  name     = var.backup_bucket_name != "" ? var.backup_bucket_name : "${var.cluster_name}-backups-${local.bucket_suffix}"
   location = var.region
 
   storage_class               = "STANDARD"
@@ -26,12 +35,7 @@ resource "google_storage_bucket" "backups" {
     }
   }
 
-  labels = {
-    environment = var.environment
-    cluster     = var.cluster_name
-    managed_by  = "terraform"
-    purpose     = "platform-backups"
-  }
+  labels = local.bucket_labels
 }
 
 resource "google_service_account" "cnpg" {

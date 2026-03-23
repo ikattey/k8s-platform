@@ -21,9 +21,9 @@ variable "vpc_cidr" {
 }
 
 variable "availability_zones" {
-  description = "Availability zones used by the cluster"
+  description = "Explicit availability zones. If empty, az_count zones are selected automatically."
   type        = list(string)
-  default     = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+  default     = []
 }
 
 variable "single_nat_gateway" {
@@ -142,6 +142,36 @@ variable "access_entries" {
     })), {})
   }))
   default = {}
+}
+
+variable "enable_spot_instances" {
+  description = "Use Spot instances for the general node pool"
+  type        = bool
+  default     = true
+}
+
+variable "az_count" {
+  description = "Number of availability zones to use when availability_zones is not set"
+  type        = number
+  default     = 2
+}
+
+variable "enable_cloudwatch_logging" {
+  description = "Send EKS control plane logs to CloudWatch. Off by default (use Loki). Enable for audit compliance."
+  type        = bool
+  default     = false
+}
+
+variable "force_destroy_backup_bucket" {
+  description = "Allow Terraform to destroy the backup bucket even when non-empty"
+  type        = bool
+  default     = true
+}
+
+variable "enable_vpc_cni_prefix_delegation" {
+  description = "Enable VPC CNI prefix delegation for higher pod density"
+  type        = bool
+  default     = false
 }
 
 variable "tags" {

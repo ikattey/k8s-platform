@@ -833,3 +833,4 @@ resource "onepassword_item" "alertmanager_browser_login" {
 
   tags = ["terraform-managed", "monitoring", "browser-login", local.cluster_name]
 }
+

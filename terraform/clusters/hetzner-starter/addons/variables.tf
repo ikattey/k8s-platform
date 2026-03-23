@@ -52,6 +52,19 @@ variable "github_token" {
   default     = ""
 }
 
+variable "ghcr_username" {
+  description = "GitHub username for pulling private images from GHCR. Leave empty to skip."
+  type        = string
+  default     = ""
+}
+
+variable "ghcr_token" {
+  description = "GitHub PAT with read:packages scope for GHCR pull access. Falls back to github_token if empty."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "letsencrypt_email" {
   description = "Email address for Let's Encrypt certificate notifications"
   type        = string
@@ -106,8 +119,8 @@ variable "cloud_provider" {
   default     = "hetzner"
 
   validation {
-    condition     = contains(["ovh", "hetzner"], var.cloud_provider)
-    error_message = "cloud_provider must be one of: ovh, hetzner"
+    condition     = contains(["ovh", "hetzner", "gcp", "aws"], var.cloud_provider)
+    error_message = "cloud_provider must be one of: ovh, hetzner, gcp, aws"
   }
 }
 
@@ -134,7 +147,7 @@ variable "cloudflare_api_token" {
 # --- 1Password Dual-Vault ---
 
 variable "onepassword_infra_vault_id" {
-  description = "1Password vault UUID used by Terraform to write infrastructure items (grafana-*, cloudflare-dns-*). Leave empty to skip writing items."
+  description = "1Password vault UUID for Terraform to write infrastructure items. Required alongside onepassword_infra_vault for full secret sync. Leave empty to skip 1Password item creation."
   type        = string
   default     = ""
 }
@@ -146,7 +159,7 @@ variable "onepassword_infra_vault" {
 
   validation {
     condition     = !var.enable_onepassword_bootstrap || var.onepassword_infra_vault != "" || var.onepassword_infra_vault_id != ""
-    error_message = "Either onepassword_infra_vault (name) or onepassword_infra_vault_id (UUID) must be set when enable_onepassword_bootstrap is true."
+    error_message = "Both onepassword_infra_vault (name for ESO) and onepassword_infra_vault_id (UUID for Terraform) should be set when enable_onepassword_bootstrap is true. Setting only the name will prevent Terraform from writing 1Password items."
   }
 }
 
@@ -282,21 +295,6 @@ variable "monitoring_basic_auth_username" {
 
 variable "monitoring_basic_auth_password" {
   description = "Password for monitoring basicAuth. Leave empty to auto-generate a 32-character password."
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-# --- GHCR (GitHub Container Registry) ---
-
-variable "ghcr_username" {
-  description = "GitHub username for pulling private images from GHCR. Leave empty to skip."
-  type        = string
-  default     = ""
-}
-
-variable "ghcr_token" {
-  description = "GitHub PAT with read:packages scope for GHCR pull access. Falls back to github_token if empty."
   type        = string
   sensitive   = true
   default     = ""

@@ -6,62 +6,33 @@ locals {
   })
 }
 
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "5.8.1"
-
-  name = "${var.cluster_name}-vpc"
-  cidr = var.vpc_cidr
-
-  azs             = var.availability_zones
-  private_subnets = [for idx, _ in var.availability_zones : cidrsubnet(var.vpc_cidr, 4, idx)]
-  public_subnets  = [for idx, _ in var.availability_zones : cidrsubnet(var.vpc_cidr, 8, idx + 48)]
-  intra_subnets   = [for idx, _ in var.availability_zones : cidrsubnet(var.vpc_cidr, 8, idx + 52)]
-
-  enable_nat_gateway   = true
-  single_nat_gateway   = var.single_nat_gateway
-  enable_dns_hostnames = true
-
-  public_subnet_tags = {
-    "kubernetes.io/role/elb" = 1
-  }
-
-  private_subnet_tags = {
-    "kubernetes.io/role/internal-elb" = 1
-  }
-
-  tags = local.tags
-}
-
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 20.0"
+  version = "~> 21.0"
 
-  cluster_name    = var.cluster_name
-  cluster_version = var.kubernetes_version
+  name               = var.cluster_name
+  kubernetes_version = var.kubernetes_version
 
-  vpc_id     = module.vpc.vpc_id
-  subnet_ids = module.vpc.private_subnets
+  vpc_id                   = module.vpc.vpc_id
+  subnet_ids               = module.vpc.private_subnets
+  control_plane_subnet_ids = module.vpc.intra_subnets
 
-  cluster_endpoint_public_access       = var.cluster_endpoint_public_access
-  cluster_endpoint_private_access      = var.cluster_endpoint_private_access
-  cluster_endpoint_public_access_cidrs = var.cluster_endpoint_public_access_cidrs
+  endpoint_public_access       = var.cluster_endpoint_public_access
+  endpoint_private_access      = var.cluster_endpoint_private_access
+  endpoint_public_access_cidrs = var.cluster_endpoint_public_access_cidrs
 
-  enable_cluster_creator_admin_permissions = false
+  enable_cluster_creator_admin_permissions = true
   access_entries                           = var.access_entries
 
-  create_cloudwatch_log_group = false
+  create_cloudwatch_log_group            = var.enable_cloudwatch_logging
+  cloudwatch_log_group_retention_in_days = 30
+  enabled_log_types                      = var.enable_cloudwatch_logging ? ["api", "audit", "authenticator", "controllerManager", "scheduler"] : []
 
   enable_irsa = true
 
-  cluster_addons = {
-    coredns    = {}
-    kube-proxy = {}
-    vpc-cni    = {}
-    aws-ebs-csi-driver = {
-      service_account_role_arn = aws_iam_role.ebs_csi_driver.arn
-    }
-  }
+  addons = local.cluster_addons
+
+  eks_managed_node_groups = local.eks_managed_node_groups
 
   tags = local.tags
 }
