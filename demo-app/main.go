@@ -26,6 +26,9 @@ type healthResponse struct {
 type app struct {
 	startTime time.Time
 	db        *database
+	dragonfly *dragonflyClient
+	typesense *typesenseClient
+	nats      *natsClient
 }
 
 func main() {
@@ -36,6 +39,7 @@ func main() {
 
 	a := &app{startTime: time.Now()}
 
+	// PostgreSQL (optional)
 	if cfg.DB.WriteDSN != "" {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		db, err := newDatabase(ctx, cfg.DB.WriteDSN, cfg.DB.ReadDSN)
@@ -52,6 +56,39 @@ func main() {
 		logCtx, logCancel = context.WithTimeout(context.Background(), 3*time.Second)
 		log.Printf("read pool connected: %s", poolHost(logCtx, db.ReadPool))
 		logCancel()
+	}
+
+	// Dragonfly (optional)
+	if cfg.Dragonfly.Addr != "" {
+		df, err := newDragonfly(cfg.Dragonfly.Addr)
+		if err != nil {
+			log.Printf("WARNING: dragonfly not available: %v", err)
+		} else {
+			a.dragonfly = df
+			log.Printf("dragonfly connected: %s", cfg.Dragonfly.Addr)
+		}
+	}
+
+	// Typesense (optional)
+	if cfg.Typesense.Addr != "" {
+		ts, err := newTypesense(cfg.Typesense.Addr, cfg.Typesense.APIKey)
+		if err != nil {
+			log.Printf("WARNING: typesense not available: %v", err)
+		} else {
+			a.typesense = ts
+			log.Printf("typesense connected: %s", cfg.Typesense.Addr)
+		}
+	}
+
+	// NATS (optional)
+	if cfg.NATS.URL != "" {
+		nc, err := newNATS(cfg.NATS.URL)
+		if err != nil {
+			log.Printf("WARNING: nats not available: %v", err)
+		} else {
+			a.nats = nc
+			log.Printf("nats connected: %s", cfg.NATS.URL)
+		}
 	}
 
 	mux := http.NewServeMux()
@@ -90,19 +127,23 @@ func main() {
 	if a.db != nil {
 		a.db.Close()
 	}
+	if a.dragonfly != nil {
+		a.dragonfly.Close()
+	}
+	if a.nats != nil {
+		a.nats.Close()
+	}
 	log.Println("stopped")
 }
 
-// handleHealth returns a JSON health report with the status of all configured services.
 func (a *app) handleHealth(w http.ResponseWriter, r *http.Request) {
 	resp := healthResponse{
-		Status: "up",
-		Uptime: time.Since(a.startTime).Round(time.Second).String(),
+		Status:   "up",
+		Uptime:   time.Since(a.startTime).Round(time.Second).String(),
+		Services: make(map[string]serviceStatus),
 	}
 
 	if a.db != nil {
-		resp.Services = make(map[string]serviceStatus)
-
 		ws := checkPool(r.Context(), a.db.WritePool)
 		resp.Services["postgres-write"] = ws
 		if ws.Status != "up" {
@@ -116,6 +157,35 @@ func (a *app) handleHealth(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if a.dragonfly != nil {
+		ds := a.dragonfly.Check(r.Context())
+		resp.Services["dragonfly"] = ds
+		if ds.Status != "up" {
+			resp.Status = "degraded"
+		}
+	}
+
+	if a.typesense != nil {
+		ts := a.typesense.Check(r.Context())
+		resp.Services["typesense"] = ts
+		if ts.Status != "up" {
+			resp.Status = "degraded"
+		}
+	}
+
+	if a.nats != nil {
+		ns := a.nats.Check(r.Context())
+		resp.Services["nats"] = ns
+		if ns.Status != "up" {
+			resp.Status = "degraded"
+		}
+	}
+
+	// If no services configured, omit the map
+	if len(resp.Services) == 0 {
+		resp.Services = nil
+	}
+
 	code := http.StatusOK
 	if resp.Status != "up" {
 		code = http.StatusServiceUnavailable
@@ -126,13 +196,11 @@ func (a *app) handleHealth(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-// handleHealthz is a lightweight liveness probe (no dependency checks).
 func (a *app) handleHealthz(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, "ok")
 }
 
-// handleReady is the readiness probe — checks write DB connectivity.
 func (a *app) handleReady(w http.ResponseWriter, r *http.Request) {
 	if a.db != nil {
 		ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)

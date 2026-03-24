@@ -25,8 +25,8 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.containerPort }}
-          {{- if .Values.databaseSecret.enabled }}
           env:
+          {{- if .Values.databaseSecret.enabled }}
             - name: DATABASE_WRITE_URL
               valueFrom:
                 secretKeyRef:
@@ -37,6 +37,22 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.databaseSecret.name }}
                   key: DATABASE_READ_URL
+          {{- end }}
+          {{- if .Values.dragonfly.enabled }}
+            - name: DRAGONFLY_ADDR
+              value: {{ .Values.dragonfly.addr | quote }}
+          {{- end }}
+          {{- if .Values.typesense.enabled }}
+            - name: TYPESENSE_ADDR
+              value: {{ .Values.typesense.addr | quote }}
+            {{- if .Values.typesense.apiKey }}
+            - name: TYPESENSE_API_KEY
+              value: {{ .Values.typesense.apiKey | quote }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.nats.enabled }}
+            - name: NATS_URL
+              value: {{ .Values.nats.url | quote }}
           {{- end }}
           livenessProbe:
             httpGet:

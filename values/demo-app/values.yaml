@@ -35,6 +35,20 @@ databaseSecret:
   enabled: false
   name: database-credentials
 
+# Data layer services (all optional, disabled by default)
+dragonfly:
+  enabled: false
+  addr: "dragonfly.database:6379"
+
+typesense:
+  enabled: false
+  addr: "typesense.database:8108"
+  apiKey: ""
+
+nats:
+  enabled: false
+  url: "nats://nats.database:4222"
+
 resources:
   requests:
     cpu: 10m
