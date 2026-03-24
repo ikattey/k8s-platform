@@ -45,14 +45,24 @@ spec:
           {{- if .Values.typesense.enabled }}
             - name: TYPESENSE_ADDR
               value: {{ .Values.typesense.addr | quote }}
-            {{- if .Values.typesense.apiKey }}
+            {{- if .Values.typesense.secretName }}
             - name: TYPESENSE_API_KEY
-              value: {{ .Values.typesense.apiKey | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.typesense.secretName }}
+                  key: TYPESENSE_API_KEY
             {{- end }}
           {{- end }}
           {{- if .Values.nats.enabled }}
             - name: NATS_URL
+              {{- if .Values.nats.secretName }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.nats.secretName }}
+                  key: NATS_URL
+              {{- else }}
               value: {{ .Values.nats.url | quote }}
+              {{- end }}
           {{- end }}
           livenessProbe:
             httpGet:

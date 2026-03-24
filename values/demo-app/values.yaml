@@ -43,11 +43,12 @@ dragonfly:
 typesense:
   enabled: false
   addr: "typesense.database:8108"
-  apiKey: ""
+  secretName: ""       # K8s secret containing TYPESENSE_API_KEY
 
 nats:
   enabled: false
   url: "nats://nats.database:4222"
+  secretName: ""  # secret containing NATS_URL; set when URL includes auth credentials
 
 resources:
   requests:

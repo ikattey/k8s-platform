@@ -88,7 +88,7 @@ func main() {
 			log.Printf("WARNING: nats not available: %v", err)
 		} else {
 			a.nats = nc
-			log.Printf("nats connected: %s", cfg.NATS.URL)
+			log.Printf("nats connected: %s", nc.conn.ConnectedUrlRedacted())
 		}
 	}
 
@@ -147,47 +147,42 @@ func (a *app) handleHealth(w http.ResponseWriter, r *http.Request) {
 		Services: make(map[string]serviceStatus),
 	}
 
+	check := func(name string, s serviceStatus) {
+		resp.Services[name] = s
+		if s.Status != "up" {
+			resp.Status = "degraded"
+		}
+	}
+
+	notConfigured := serviceStatus{Status: "not configured"}
+
+	// PostgreSQL
 	if a.db != nil {
-		ws := checkPool(r.Context(), a.db.WritePool)
-		resp.Services["postgres-write"] = ws
-		if ws.Status != "up" {
-			resp.Status = "degraded"
-		}
-
-		rs := checkPool(r.Context(), a.db.ReadPool)
-		resp.Services["postgres-read"] = rs
-		if rs.Status != "up" {
-			resp.Status = "degraded"
-		}
+		check("postgres-write", checkPool(r.Context(), a.db.WritePool))
+		check("postgres-read", checkPool(r.Context(), a.db.ReadPool))
+	} else {
+		resp.Services["postgres"] = notConfigured
 	}
 
+	// Dragonfly
 	if a.dragonfly != nil {
-		ds := a.dragonfly.Check(r.Context())
-		resp.Services["dragonfly"] = ds
-		if ds.Status != "up" {
-			resp.Status = "degraded"
-		}
+		check("dragonfly", a.dragonfly.Check(r.Context()))
+	} else {
+		resp.Services["dragonfly"] = notConfigured
 	}
 
+	// Typesense
 	if a.typesense != nil {
-		ts := a.typesense.Check(r.Context())
-		resp.Services["typesense"] = ts
-		if ts.Status != "up" {
-			resp.Status = "degraded"
-		}
+		check("typesense", a.typesense.Check(r.Context()))
+	} else {
+		resp.Services["typesense"] = notConfigured
 	}
 
+	// NATS
 	if a.nats != nil {
-		ns := a.nats.Check(r.Context())
-		resp.Services["nats"] = ns
-		if ns.Status != "up" {
-			resp.Status = "degraded"
-		}
-	}
-
-	// If no services configured, omit the map
-	if len(resp.Services) == 0 {
-		resp.Services = nil
+		check("nats", a.nats.Check(r.Context()))
+	} else {
+		resp.Services["nats"] = notConfigured
 	}
 
 	code := http.StatusOK
