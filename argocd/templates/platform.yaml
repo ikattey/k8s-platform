@@ -370,6 +370,7 @@ spec:
                 default: true
                 accessMode: ReadWrite
                 {{- if eq .Values.cloudProvider "gcp" }}
+                prefix: velero
                 {{- if .Values.veleroGcpServiceAccount }}
                 config:
                   serviceAccount: {{ .Values.veleroGcpServiceAccount | quote }}

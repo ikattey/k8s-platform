@@ -17,6 +17,7 @@ configuration:
     - name: default
       provider: gcp
       bucket: velero-backups
+      prefix: velero
       default: true
       accessMode: ReadWrite
       # serviceAccount set by Terraform via ArgoCD valuesObject (Workload Identity)
