@@ -31,6 +31,9 @@ resource "kubernetes_storage_class_v1" "standard_rwo" {
       "app.kubernetes.io/managed-by" = "terraform-bootstrap"
       "k8s-platform/storage-tier"    = "standard"
     }
+    annotations = {
+      "storageclass.kubernetes.io/is-default-class" = "true"
+    }
   }
 
   storage_provisioner    = "ebs.csi.aws.com"

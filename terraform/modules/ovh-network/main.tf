@@ -19,9 +19,11 @@ resource "openstack_networking_subnet_v2" "private" {
   dns_nameservers = ["213.186.33.99"]
   enable_dhcp     = true
 
+  no_gateway = false
+
   allocation_pool {
     start = cidrhost(var.subnet_cidr, 10)
-    end   = cidrhost(var.subnet_cidr, 254)
+    end   = cidrhost(var.subnet_cidr, 250)
   }
 }
 
@@ -36,4 +38,10 @@ resource "openstack_networking_router_interface_v2" "router_interface" {
   region    = var.region
   router_id = openstack_networking_router_v2.router.id
   subnet_id = openstack_networking_subnet_v2.private.id
+
+  # Pin the router's interface IP so gateway_ip output is deterministic.
+  # Without this, OpenStack may assign any free IP from the subnet.
+  fixed_ip {
+    ip_address = cidrhost(var.subnet_cidr, 1)
+  }
 }

@@ -13,6 +13,7 @@ module "kubernetes" {
   cluster_name         = var.cluster_name
   region               = var.region
   openstack_network_id = module.network.network_id
+  gateway_ip           = module.network.gateway_ip
 
   enable_oidc          = var.enable_oidc
   oidc_client_id       = var.oidc_client_id
