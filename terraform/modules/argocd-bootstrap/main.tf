@@ -71,6 +71,12 @@ resource "time_sleep" "argocd_destroy_grace_period" {
 
 # Create the root Application that manages all other apps (App-of-Apps)
 resource "kubectl_manifest" "root_application" {
+  # force_conflicts prevents ArgoCD's application-controller from taking field
+  # ownership of spec.sources. Without this, ArgoCD's selfHeal continuously reverts
+  # Terraform's parameters (e.g. cloudProvider) back to stale cached values after
+  # cluster recreation, causing the wrong cloud provider config to be applied.
+  force_conflicts   = true
+  server_side_apply = true
   yaml_body = yamlencode({
     apiVersion = "argoproj.io/v1alpha1"
     kind       = "Application"
