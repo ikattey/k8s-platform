@@ -56,7 +56,7 @@ singleBinary:
   replicas: 2
   persistence:
     enabled: true
-    storageClass: ""
+    # Omit storageClass to use cluster default. Override in per-cluster values if needed.
     size: 10Gi
   resources:
     requests:

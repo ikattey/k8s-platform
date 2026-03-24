@@ -2,6 +2,10 @@
 secretStoreName: onepassword
 secretStoreKind: ClusterSecretStore
 
+# 1Password vault UUID or name. Used to construct op://vault/item references
+# for the onepasswordSDK provider. Set by ArgoCD from Terraform output.
+onepasswordVaultId: ""
+
 # How often ESO should refresh these secrets.
 # Keep this relatively short so initial bootstrap converges quickly.
 refreshInterval: 5m

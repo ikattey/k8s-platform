@@ -83,6 +83,7 @@ spec:
       helm:
         valuesObject:
           onepasswordItemName: {{ printf "monitoring-basic-auth-%s" .Values.clusterName | quote }}
+          onepasswordVaultId: {{ .Values.onepasswordVaultId | quote }}
     - repoURL: {{ .Values.repoURL }}
       targetRevision: {{ .Values.targetRevision }}
       ref: values

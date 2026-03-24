@@ -43,19 +43,19 @@ spec:
     storageClass: {{ .Values.cluster.walStorage.storageClass | default .Values.cluster.storage.storageClass }}
     {{- end }}
 
-  {{- if .Values.cluster.nodeSelector }}
-  nodeSelector:
-    {{- toYaml .Values.cluster.nodeSelector | nindent 4 }}
-  {{- end }}
-
-  {{- if .Values.cluster.tolerations }}
-  tolerations:
-    {{- toYaml .Values.cluster.tolerations | nindent 4 }}
-  {{- end }}
-
-  {{- if .Values.cluster.affinity }}
+  {{- if or .Values.cluster.nodeSelector .Values.cluster.tolerations .Values.cluster.affinity }}
   affinity:
-    {{- toYaml .Values.cluster.affinity | nindent 4 }}
+    {{- with .Values.cluster.nodeSelector }}
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.cluster.tolerations }}
+    tolerations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.cluster.affinity }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   {{- end }}
 
   {{- if .Values.cluster.serviceAccountAnnotations }}

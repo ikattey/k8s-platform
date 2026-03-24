@@ -28,7 +28,10 @@ cluster:
     size: 5Gi
     storageClass: ""  # Defaults to same as storage.storageClass if empty
 
-  # Node scheduling (overridden by cloud overlays or per-cluster values)
+  # Node scheduling — all rendered under spec.affinity in the CNPG CRD.
+  # Use nodeSelector/tolerations for storage pool targeting.
+  # Use affinity for additional CNPG-specific fields (enablePodAntiAffinity, topologyKey).
+  # Do NOT put nodeSelector or tolerations inside affinity — use the dedicated fields above.
   nodeSelector: {}
   tolerations: []
   affinity: {}
