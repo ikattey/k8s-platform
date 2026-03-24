@@ -44,7 +44,7 @@ spec:
             - sh
             - -c
             - |
-              printf '%s' "{{- $replicas := int .Values.typesense.replicas }}{{- $name := .Values.typesense.name }}{{- $peeringPort := int .Values.typesense.peering_port }}{{- $apiPort := int .Values.typesense.port }}{{- $nodes := list }}{{- range $i := until $replicas }}{{- $nodes = append $nodes (printf "%s-%d.%s:%d:%d" $name $i $name $peeringPort $apiPort) }}{{- end }}{{ join "," $nodes }}" > /etc/typesense/nodes
+              printf '%s' "{{- $replicas := int .Values.typesense.replicas }}{{- $name := .Values.typesense.name }}{{- $ns := .Release.Namespace }}{{- $peeringPort := int .Values.typesense.peering_port }}{{- $apiPort := int .Values.typesense.port }}{{- $nodes := list }}{{- range $i := until $replicas }}{{- $nodes = append $nodes (printf "%s-%d.%s.%s.svc.cluster.local:%d:%d" $name $i $name $ns $peeringPort $apiPort) }}{{- end }}{{ join "," $nodes }}" > /etc/typesense/nodes
           volumeMounts:
             - name: nodesconfig
               mountPath: /etc/typesense
