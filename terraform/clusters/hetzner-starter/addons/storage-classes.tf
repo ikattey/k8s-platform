@@ -28,7 +28,6 @@ resource "kubernetes_storage_class_v1" "fast_rwo" {
     numberOfReplicas    = var.longhorn_replica_count
     staleReplicaTimeout = "30"
     fsType              = "ext4"
-    nodeSelector        = "k8s-platform/pool-role:storage"
   }
 }
 

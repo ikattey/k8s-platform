@@ -36,8 +36,12 @@ spec:
       containers:
         - name: nats
           image: {{ .Values.nats.image }}
-          {{- if .Values.nats.auth.enabled }}
           env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          {{- if .Values.nats.auth.enabled }}
             - name: NATS_TOKEN
               valueFrom:
                 secretKeyRef:

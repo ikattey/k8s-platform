@@ -5,7 +5,7 @@
 typesense:
   name: typesense
   replicas: 3
-  image: typesense/typesense:30.1
+  image: typesense/typesense:29.0
 
   resources:
     requests:

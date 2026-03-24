@@ -63,4 +63,9 @@ nodeAgent:
   tolerations:
     - operator: Exists
 
+kubectl:
+  image:
+    repository: docker.io/bitnami/kubectl
+    tag: "1.32"
+
 schedules: {}
