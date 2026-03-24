@@ -136,19 +136,19 @@ spec:
             description: 'Last backup for CNPG cluster {{ `{{ $labels.cluster }}` }} failed.'
     {{- end }}
 
-    {{- if .Values.services.dragonfly }}
-    - name: critical.dragonfly
+    {{- if .Values.services.valkey }}
+    - name: critical.valkey
       interval: 30s
       rules:
-        - alert: DragonflyDBDown
-          expr: up{job=~".*dragonfly.*"} == 0
+        - alert: ValkeyDown
+          expr: up{job=~".*valkey.*"} == 0
           for: 2m
           labels:
             severity: critical
             component: cache
           annotations:
-            summary: 'DragonflyDB instance is down'
-            description: 'DragonflyDB {{ `{{ $labels.instance }}` }} has been unreachable for 2 minutes.'
+            summary: 'Valkey instance is down'
+            description: 'Valkey {{ `{{ $labels.instance }}` }} has been unreachable for 2 minutes.'
     {{- end }}
 
     {{- if .Values.services.nats }}

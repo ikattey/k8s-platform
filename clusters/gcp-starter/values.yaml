@@ -6,7 +6,7 @@ clusterIssuer: "letsencrypt-production"
 components:
   demoApp: true
   cnpg: true
-  dragonfly: true
+  valkey: true
   nats: true
   typesense: true
   velero: true

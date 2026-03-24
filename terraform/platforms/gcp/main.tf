@@ -36,6 +36,16 @@ resource "google_container_cluster" "cluster" {
   remove_default_node_pool = true
   initial_node_count       = 1
 
+  # Bootstrap node config — this node is immediately removed after cluster creation.
+  # Explicitly set disk_type to avoid relying on the regional default (pd-balanced)
+  # which counts against the SSD_TOTAL_GB quota.
+  node_config {
+    disk_type    = var.disk_type
+    disk_size_gb = 30
+    machine_type = "e2-small"
+    oauth_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
+  }
+
   network    = google_compute_network.vpc.id
   subnetwork = google_compute_subnetwork.subnet.id
 
@@ -80,10 +90,17 @@ resource "google_container_cluster" "cluster" {
 
   maintenance_policy {
     recurring_window {
-      recurrence = "FREQ=WEEKLY;BYDAY=SU"
-      start_time = "2024-01-01T02:00:00Z"
-      end_time   = "2024-01-01T06:00:00Z"
+      recurrence = var.maintenance_recurrence
+      start_time = var.maintenance_start_time
+      end_time   = var.maintenance_end_time
     }
+  }
+
+  lifecycle {
+    # The cluster-level node_config is only used for the temporary bootstrap node
+    # (initial_node_count = 1 + remove_default_node_pool = true). GKE deletes this
+    # pool immediately, so updates to disk_type/machine_type are rejected.
+    ignore_changes = [node_config]
   }
 
   depends_on = [google_project_service.required]
@@ -115,6 +132,7 @@ resource "google_container_node_pool" "general" {
     machine_type = var.machine_type
     spot         = var.spot
     disk_size_gb = var.disk_size_gb
+    disk_type    = var.disk_type
     oauth_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
 
     labels = {
@@ -152,6 +170,7 @@ resource "google_container_node_pool" "storage" {
     machine_type = var.storage_machine_type
     spot         = var.storage_spot
     disk_size_gb = var.storage_disk_size_gb
+    disk_type    = var.storage_disk_type
     oauth_scopes = ["https://www.googleapis.com/auth/cloud-platform"]
 
     labels = {

@@ -36,9 +36,9 @@ databaseSecret:
   name: database-credentials
 
 # Data layer services (all optional, disabled by default)
-dragonfly:
+valkey:
   enabled: false
-  addr: "dragonfly.database:6379"
+  addr: "valkey.cache:6379"
 
 typesense:
   enabled: false

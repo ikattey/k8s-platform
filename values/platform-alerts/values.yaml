@@ -18,6 +18,6 @@ thresholds:
 # Data layer toggles (match argocd/values.yaml components)
 services:
   cnpg: false
-  dragonfly: false
+  valkey: false
   nats: false
   typesense: false

@@ -24,13 +24,13 @@ ArgoCD sync waves control deployment order. Lower waves deploy first.
 | -5 | cert-manager | Webhook + CRDs must be ready before any Certificate request |
 | -4 | cert-manager-issuers | ClusterIssuer depends on cert-manager CRDs |
 | -3 | external-secrets | ESO operator must be ready before any ExternalSecret |
-| -2 | platform-secrets, cnpg-operator, dragonfly-operator | ClusterSecretStore needs ESO; operators need CRDs before instances |
+| -2 | platform-secrets, cnpg-operator | ClusterSecretStore needs ESO; operators need CRDs before instances |
 | -1 | bootstrap-secrets, traefik | ExternalSecrets need the store; ingress controller before routes |
 | 0 | argocd-ingress, monitoring-middleware, external-dns, kube-prometheus-stack | Core platform services — no ordering dependency between them |
 | 1 | loki | Log aggregation — needs Prometheus for ServiceMonitors |
 | 2 | alloy | Collector — needs loki-gateway endpoint to exist |
 | 3 | (reserved) | Custom applications go here |
-| 4 | cnpg-cluster, dragonfly, typesense-cluster, nats | Data layer instances — operators must be at -2 |
+| 4 | cnpg-cluster, valkey, typesense-cluster, nats | Data layer instances |
 | 5 | platform-alerts, demo-app | Last — exercises the full stack |
 
 Verify the live order:

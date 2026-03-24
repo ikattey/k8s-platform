@@ -28,7 +28,7 @@ Current toggles live under `components:` in `argocd/values.yaml`:
 - `argocdIngress`
 - `demoApp`
 - `cnpg`
-- `dragonfly`
+- `valkey`
 - `typesense`
 - `nats`
 - `platformAlerts`

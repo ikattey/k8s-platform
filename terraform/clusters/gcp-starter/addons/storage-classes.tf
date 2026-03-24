@@ -40,4 +40,10 @@ resource "kubernetes_storage_class_v1" "standard_rwo" {
     type   = "pd-balanced"
     fstype = "ext4"
   }
+
+  lifecycle {
+    # GKE auto-creates standard-rwo without fstype; ignore parameter drift
+    # to avoid destroy/recreate cycles on the cluster default StorageClass.
+    ignore_changes = [parameters]
+  }
 }

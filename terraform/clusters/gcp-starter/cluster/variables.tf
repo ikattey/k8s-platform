@@ -105,6 +105,18 @@ variable "storage_spot" {
   default     = false
 }
 
+variable "disk_type" {
+  description = "Boot disk type for general nodes (pd-standard, pd-balanced, pd-ssd)"
+  type        = string
+  default     = "pd-balanced"
+}
+
+variable "storage_disk_type" {
+  description = "Boot disk type for storage nodes (pd-standard, pd-balanced, pd-ssd)"
+  type        = string
+  default     = "pd-balanced"
+}
+
 variable "storage_disk_size_gb" {
   description = "Boot disk size for the storage node pool"
   type        = number
@@ -142,6 +154,24 @@ variable "master_authorized_cidr_blocks" {
     display_name = string
   }))
   default = []
+}
+
+variable "maintenance_recurrence" {
+  description = "RFC5545 RRULE for the maintenance window recurrence. Daily 4h windows satisfy GKE's 48h/32d requirement."
+  type        = string
+  default     = "FREQ=DAILY"
+}
+
+variable "maintenance_start_time" {
+  description = "RFC3339 start time for the maintenance window (time-of-day is used for recurrence)"
+  type        = string
+  default     = "2026-01-01T02:00:00Z"
+}
+
+variable "maintenance_end_time" {
+  description = "RFC3339 end time for the maintenance window (time-of-day is used for recurrence)"
+  type        = string
+  default     = "2026-01-01T06:00:00Z"
 }
 
 variable "database_provider" {

@@ -428,8 +428,8 @@ spec:
         parameters:
           - name: services.cnpg
             value: {{ .Values.components.cnpg | quote }}
-          - name: services.dragonfly
-            value: {{ .Values.components.dragonfly | quote }}
+          - name: services.valkey
+            value: {{ .Values.components.valkey | quote }}
           - name: services.nats
             value: {{ .Values.components.nats | quote }}
           - name: services.typesense

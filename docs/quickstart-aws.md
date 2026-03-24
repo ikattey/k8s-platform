@@ -159,7 +159,7 @@ components:
   demoApp: true
   cnpg: true
   velero: true
-  dragonfly: true
+  valkey: true
   nats: true
   typesense: true
 ```

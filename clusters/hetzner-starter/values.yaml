@@ -7,6 +7,6 @@ components:
   demoApp: true
   monitoring: true
   cnpg: true
-  dragonfly: true
+  valkey: true
   nats: true
   typesense: true

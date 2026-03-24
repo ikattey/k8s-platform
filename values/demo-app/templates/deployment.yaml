@@ -38,9 +38,9 @@ spec:
                   name: {{ .Values.databaseSecret.name }}
                   key: DATABASE_READ_URL
           {{- end }}
-          {{- if .Values.dragonfly.enabled }}
-            - name: DRAGONFLY_ADDR
-              value: {{ .Values.dragonfly.addr | quote }}
+          {{- if .Values.valkey.enabled }}
+            - name: REDIS_ADDR
+              value: {{ .Values.valkey.addr | quote }}
           {{- end }}
           {{- if .Values.typesense.enabled }}
             - name: TYPESENSE_ADDR

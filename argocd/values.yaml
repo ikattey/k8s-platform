@@ -70,7 +70,7 @@ versions:
   loki: "6.53.0"
   alloy: "1.6.1"
   cnpgOperator: "0.27.1"
-  dragonflyOperator: "v1.4.0"
+  valkey: "0.9.3"
   velero: "8.4.0"
 
 # Toggle components on/off
@@ -90,7 +90,7 @@ components:
   velero: false
   # Data layer (enable per-service as needed)
   cnpg: false
-  dragonfly: false
+  valkey: false
   typesense: false
   nats: false
 

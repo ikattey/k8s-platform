@@ -42,7 +42,7 @@ spec:
     - server: https://kubernetes.default.svc
       namespace: database
     - server: https://kubernetes.default.svc
-      namespace: dragonfly-operator-system
+      namespace: velero
     - server: https://kubernetes.default.svc
       namespace: demo
   clusterResourceWhitelist:
@@ -72,8 +72,6 @@ spec:
     - group: ""
       kind: Namespace
     - group: postgresql.cnpg.io
-      kind: "*"
-    - group: dragonflydb.io
       kind: "*"
   namespaceResourceWhitelist:
     - group: "*"

@@ -26,7 +26,7 @@ type healthResponse struct {
 type app struct {
 	startTime time.Time
 	db        *database
-	dragonfly *dragonflyClient
+	valkey    *valkeyClient
 	typesense *typesenseClient
 	nats      *natsClient
 }
@@ -40,7 +40,7 @@ func main() {
 	a := &app{startTime: time.Now()}
 
 	// PostgreSQL is the primary data store — fatal on connection failure.
-	// Data layer services (Dragonfly, Typesense, NATS) are auxiliary — warn and continue.
+	// Data layer services (Valkey, Typesense, NATS) are auxiliary — warn and continue.
 	if cfg.DB.WriteDSN != "" {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		db, err := newDatabase(ctx, cfg.DB.WriteDSN, cfg.DB.ReadDSN)
@@ -59,14 +59,14 @@ func main() {
 		logCancel()
 	}
 
-	// Dragonfly (optional)
-	if cfg.Dragonfly.Addr != "" {
-		df, err := newDragonfly(cfg.Dragonfly.Addr)
+	// Valkey (optional)
+	if cfg.Valkey.Addr != "" {
+		vk, err := newValkey(cfg.Valkey.Addr)
 		if err != nil {
-			log.Printf("WARNING: dragonfly not available: %v", err)
+			log.Printf("WARNING: valkey not available: %v", err)
 		} else {
-			a.dragonfly = df
-			log.Printf("dragonfly connected: %s", cfg.Dragonfly.Addr)
+			a.valkey = vk
+			log.Printf("valkey connected: %s", cfg.Valkey.Addr)
 		}
 	}
 
@@ -128,8 +128,8 @@ func main() {
 	if a.db != nil {
 		a.db.Close()
 	}
-	if a.dragonfly != nil {
-		a.dragonfly.Close()
+	if a.valkey != nil {
+		a.valkey.Close()
 	}
 	if a.typesense != nil {
 		a.typesense.Close()
@@ -164,11 +164,11 @@ func (a *app) handleHealth(w http.ResponseWriter, r *http.Request) {
 		resp.Services["postgres"] = notConfigured
 	}
 
-	// Dragonfly
-	if a.dragonfly != nil {
-		check("dragonfly", a.dragonfly.Check(r.Context()))
+	// Valkey
+	if a.valkey != nil {
+		check("valkey", a.valkey.Check(r.Context()))
 	} else {
-		resp.Services["dragonfly"] = notConfigured
+		resp.Services["valkey"] = notConfigured
 	}
 
 	// Typesense

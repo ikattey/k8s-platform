@@ -52,7 +52,7 @@ The kit ships with `platform-alerts`, a set of PrometheusRule alert rules enable
 | NodePIDPressure | Node condition true | 5m |
 | CPUThrottlingHigh | > 50% throttling | 15m |
 
-Data layer alerts (DragonflyDB, NATS, Typesense) activate when the corresponding service is enabled in `clusters/<cluster>/values.yaml`.
+Data layer alerts (Valkey, NATS, Typesense) activate when the corresponding service is enabled in `clusters/<cluster>/values.yaml`.
 
 ### Tuning thresholds
 

@@ -67,11 +67,11 @@ spec:
         maxDuration: 5m
 {{- end }}
 ---
-{{- if .Values.components.dragonfly }}
+{{- if .Values.components.valkey }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: dragonfly
+  name: valkey
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "4"
@@ -80,13 +80,16 @@ metadata:
 spec:
   project: apps
   sources:
-    - repoURL: {{ .Values.repoURL }}
-      targetRevision: {{ .Values.targetRevision }}
-      path: values/dragonfly
+    - repoURL: https://valkey.io/valkey-helm/
+      chart: valkey
+      targetRevision: {{ .Values.versions.valkey | default "0.9.3" }}
       helm:
+        releaseName: valkey
+        ignoreMissingValueFiles: true
         valueFiles:
-          - values.yaml
-          - values-{{ .Values.cloudProvider }}.yaml
+          - $values/values/valkey/values.yaml
+          - $values/values/valkey/values-{{ .Values.cloudProvider }}.yaml
+          - $values/clusters/{{ .Values.clusterName }}/valkey-values.yaml
     - repoURL: {{ .Values.repoURL }}
       targetRevision: {{ .Values.targetRevision }}
       ref: values

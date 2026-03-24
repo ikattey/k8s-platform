@@ -24,7 +24,7 @@ Terraform + ArgoCD starter kit for production Kubernetes. Fork this repo, follow
 - **GitOps** — ArgoCD polls your fork and syncs the cluster state via the app-of-apps pattern.
 - **Demo app** — verifies ingress, DNS, and TLS end-to-end.
 
-An optional data layer (CloudNativePG, DragonflyDB, Typesense, NATS) is included but disabled by default. See [customization.md](docs/customization.md).
+An optional data layer (CloudNativePG, Valkey, Typesense, NATS) is included but disabled by default. See [customization.md](docs/customization.md).
 
 ## Architecture decisions
 

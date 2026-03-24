@@ -10,13 +10,13 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// --- Dragonfly (Redis-compatible) ---
+// --- Valkey (Redis-compatible) ---
 
-type dragonflyClient struct {
+type valkeyClient struct {
 	client *redis.Client
 }
 
-func newDragonfly(addr string) (*dragonflyClient, error) {
+func newValkey(addr string) (*valkeyClient, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:         addr,
 		DialTimeout:  5 * time.Second,
@@ -29,22 +29,22 @@ func newDragonfly(addr string) (*dragonflyClient, error) {
 
 	if err := client.Ping(ctx).Err(); err != nil {
 		client.Close()
-		return nil, fmt.Errorf("dragonfly ping: %w", err)
+		return nil, fmt.Errorf("valkey ping: %w", err)
 	}
-	return &dragonflyClient{client: client}, nil
+	return &valkeyClient{client: client}, nil
 }
 
-func (d *dragonflyClient) Check(ctx context.Context) serviceStatus {
+func (v *valkeyClient) Check(ctx context.Context) serviceStatus {
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
-	if err := d.client.Ping(ctx).Err(); err != nil {
+	if err := v.client.Ping(ctx).Err(); err != nil {
 		return serviceStatus{Status: "down", Error: err.Error()}
 	}
-	return serviceStatus{Status: "up", Host: d.client.Options().Addr}
+	return serviceStatus{Status: "up", Host: v.client.Options().Addr}
 }
 
-func (d *dragonflyClient) Close() { d.client.Close() }
+func (v *valkeyClient) Close() { v.client.Close() }
 
 // --- Typesense ---
 

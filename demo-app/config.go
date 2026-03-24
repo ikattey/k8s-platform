@@ -3,11 +3,11 @@ package main
 import "github.com/kelseyhightower/envconfig"
 
 type config struct {
-	Port       string          `envconfig:"PORT" default:"8080"`
-	DB         dbConfig
-	Dragonfly  dragonflyConfig
-	Typesense  typesenseConfig
-	NATS       natsConfig
+	Port      string        `envconfig:"PORT" default:"8080"`
+	DB        dbConfig
+	Valkey    valkeyConfig
+	Typesense typesenseConfig
+	NATS      natsConfig
 }
 
 type dbConfig struct {
@@ -15,8 +15,8 @@ type dbConfig struct {
 	ReadDSN  string `envconfig:"DATABASE_READ_URL"`
 }
 
-type dragonflyConfig struct {
-	Addr string `envconfig:"DRAGONFLY_ADDR"` // e.g. dragonfly.database:6379
+type valkeyConfig struct {
+	Addr string `envconfig:"REDIS_ADDR"` // e.g. valkey.cache:6379
 }
 
 type typesenseConfig struct {

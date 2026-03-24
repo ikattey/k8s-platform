@@ -16,10 +16,10 @@ locals {
       before_compute           = true
       service_account_role_arn = module.vpc_cni_irsa.iam_role_arn
       configuration_values = jsonencode({
+        enableNetworkPolicy = "true"
         env = {
           ENABLE_PREFIX_DELEGATION = tostring(var.enable_vpc_cni_prefix_delegation)
           WARM_PREFIX_TARGET       = "1"
-          ENABLE_NETWORK_POLICY    = "true"
         }
       })
     }
@@ -55,6 +55,7 @@ module "vpc_cni_irsa" {
 
   role_name             = "${var.cluster_name}-vpc-cni"
   attach_vpc_cni_policy = true
+  vpc_cni_enable_ipv4   = true
 
   oidc_providers = {
     main = {

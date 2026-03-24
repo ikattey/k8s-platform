@@ -70,9 +70,9 @@ Optional. Runs well on general-purpose nodes with default storage. Pin to storag
 
 Optional. Runs well on general-purpose nodes. JetStream persistence is modest — it doesn't need NVMe-level IOPS for most workloads.
 
-### Dragonfly
+### Valkey
 
-Not recommended. Dragonfly is an ephemeral in-memory cache — there's no persistence benefit from dedicated storage nodes.
+Not recommended. Valkey is an in-memory cache — there's no persistence benefit from dedicated storage nodes.
 
 ## Extending to other pool roles
 

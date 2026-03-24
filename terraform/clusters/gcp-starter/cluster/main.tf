@@ -31,6 +31,13 @@ module "platform" {
 
   deletion_protection           = var.deletion_protection
   master_authorized_cidr_blocks = var.master_authorized_cidr_blocks
+
+  maintenance_recurrence = var.maintenance_recurrence
+  maintenance_start_time = var.maintenance_start_time
+  maintenance_end_time   = var.maintenance_end_time
+
+  disk_type         = var.disk_type
+  storage_disk_type = var.storage_disk_type
 }
 
 module "database" {

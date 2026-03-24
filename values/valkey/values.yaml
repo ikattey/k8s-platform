@@ -1,0 +1,23 @@
+# Valkey — Redis-compatible in-memory cache
+# Official Helm chart: https://valkey.io/valkey-helm/
+# Chart version: 0.9.3 (set in argocd/values.yaml)
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
+# Cache mode — no persistence, auto-eviction
+valkeyConfig: |
+  maxmemory 400mb
+  maxmemory-policy allkeys-lru
+  save ""
+
+auth:
+  enabled: false  # Starter default — enable in production
+
+# Standalone mode — no replication
+replica:
+  enabled: false
