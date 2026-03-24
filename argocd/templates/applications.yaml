@@ -30,6 +30,22 @@ spec:
             value: "demo-app-tls"
           - name: ingress.tls[0].hosts[0]
             value: {{ printf "demo-%s.%s" .Values.clusterName .Values.domain | quote }}
+          {{- if .Values.components.cnpg }}
+          - name: databaseSecret.enabled
+            value: "true"
+          {{- end }}
+          {{- if .Values.components.valkey }}
+          - name: valkey.enabled
+            value: "true"
+          {{- end }}
+          {{- if .Values.components.typesense }}
+          - name: typesense.enabled
+            value: "true"
+          {{- end }}
+          {{- if .Values.components.nats }}
+          - name: nats.enabled
+            value: "true"
+          {{- end }}
     - repoURL: {{ .Values.repoURL }}
       targetRevision: {{ .Values.targetRevision }}
       ref: values

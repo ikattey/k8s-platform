@@ -17,7 +17,7 @@ ingress:
   enabled: false
   className: traefik
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-staging
+    cert-manager.io/cluster-issuer: letsencrypt-production
   hosts:
     - host: demo.your-domain.com
       paths:
@@ -42,12 +42,12 @@ valkey:
 
 typesense:
   enabled: false
-  addr: "typesense.database:8108"
+  addr: "typesense.search:8108"
   secretName: ""       # K8s secret containing TYPESENSE_API_KEY
 
 nats:
   enabled: false
-  url: "nats://nats.database:4222"
+  url: "nats://nats.messaging:4222"
   secretName: ""  # secret containing NATS_URL; set when URL includes auth credentials
 
 resources:

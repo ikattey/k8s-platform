@@ -124,6 +124,10 @@ spec:
         valueFiles:
           - $values/values/external-dns/values.yaml
           - $values/values/external-dns/values-{{ .Values.cloudProvider }}.yaml
+        valuesObject:
+          txtOwnerId: {{ printf "k8s-platform-%s" .Values.clusterName | quote }}
+          domainFilters:
+            - {{ .Values.domain | quote }}
     - repoURL: {{ .Values.repoURL }}
       targetRevision: {{ .Values.targetRevision }}
       ref: values
