@@ -4,13 +4,12 @@ metadata:
   name: {{ .Values.nats.name }}-config
 data:
   nats.conf: |
-    server_name: $$POD_NAME
     listen: 0.0.0.0:{{ .Values.nats.port }}
     http: 0.0.0.0:{{ .Values.nats.monitorPort }}
 
     {{- if .Values.nats.auth.enabled }}
     authorization {
-      token: $$NATS_TOKEN
+      token: $NATS_TOKEN
     }
     {{- end }}
 

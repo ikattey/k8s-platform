@@ -36,12 +36,8 @@ spec:
       containers:
         - name: nats
           image: {{ .Values.nats.image }}
-          env:
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
           {{- if .Values.nats.auth.enabled }}
+          env:
             - name: NATS_TOKEN
               valueFrom:
                 secretKeyRef:
@@ -55,9 +51,9 @@ spec:
               containerPort: {{ .Values.nats.clusterPort }}
             - name: monitor
               containerPort: {{ .Values.nats.monitorPort }}
+          command: ["/bin/sh", "-c"]
           args:
-            - "-c"
-            - "/etc/nats/nats.conf"
+            - "exec nats-server -n $(hostname) -c /etc/nats/nats.conf"
           resources:
             requests:
               cpu: {{ .Values.nats.resources.requests.cpu }}
