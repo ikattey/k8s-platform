@@ -5,6 +5,7 @@ metadata:
 spec:
   serviceName: {{ .Values.typesense.name }}
   replicas: {{ .Values.typesense.replicas }}
+  podManagementPolicy: Parallel
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ .Values.typesense.name }}
