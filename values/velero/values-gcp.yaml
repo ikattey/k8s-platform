@@ -13,20 +13,17 @@ initContainers:
         name: plugins
 
 configuration:
-  backupStorageLocations:
+  backupStorageLocation:
     - name: default
-      spec:
-        provider: gcp
-        default: true
-        objectStorage:
-          bucket: velero-backups
-        accessMode: ReadWrite
-  volumeSnapshotLocations:
+      provider: gcp
+      bucket: velero-backups
+      default: true
+      accessMode: ReadWrite
+  volumeSnapshotLocation:
     - name: default
-      spec:
-        provider: gcp
-        config:
-          project: ""
-          snapshotLocation: ""
+      provider: gcp
+      config:
+        project: ""
+        snapshotLocation: ""
 
 defaultVolumesToFsBackup: false

@@ -33,15 +33,15 @@ deployNodeAgent: true
 initContainers: []
 
 configuration:
-  backupStorageLocations:
+  # velero chart 8.x uses singular keys: backupStorageLocation / volumeSnapshotLocation
+  # Fields are flat (no spec: nesting). Cloud overlays override provider, bucket, config.
+  backupStorageLocation:
     - name: default
-      spec:
-        provider: aws
-        default: true
-        objectStorage:
-          bucket: CHANGEME
-        accessMode: ReadWrite
-  volumeSnapshotLocations: []
+      provider: aws
+      bucket: CHANGEME
+      default: true
+      accessMode: ReadWrite
+  volumeSnapshotLocation: []
 
 server:
   resources:

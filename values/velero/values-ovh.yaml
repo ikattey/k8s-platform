@@ -14,19 +14,17 @@ initContainers:
         name: plugins
 
 configuration:
-  backupStorageLocations:
+  backupStorageLocation:
     - name: default
-      spec:
-        provider: aws
-        default: true
-        objectStorage:
-          bucket: velero-backups
-        accessMode: ReadWrite
-        config:
-          region: gra
-          s3Url: https://s3.gra.io.cloud.ovh.net
-          s3ForcePathStyle: "true"
-          checksumAlgorithm: ""
-  volumeSnapshotLocations: []
+      provider: aws
+      bucket: velero-backups
+      default: true
+      accessMode: ReadWrite
+      config:
+        region: gra
+        s3Url: https://s3.gra.io.cloud.ovh.net
+        s3ForcePathStyle: "true"
+        checksumAlgorithm: ""
+  volumeSnapshotLocation: []
 
 defaultVolumesToFsBackup: true

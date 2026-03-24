@@ -359,40 +359,38 @@ spec:
 {{- if .Values.veleroBucketName }}
         valuesObject:
           configuration:
-            backupStorageLocations:
+            backupStorageLocation:
               - name: default
-                spec:
-                  objectStorage:
-                    bucket: {{ .Values.veleroBucketName | quote }}
-                  {{- if eq .Values.cloudProvider "gcp" }}
-                  provider: gcp
-                  {{- else }}
-                  provider: aws
+                {{- if eq .Values.cloudProvider "gcp" }}
+                provider: gcp
+                {{- else }}
+                provider: aws
+                {{- end }}
+                bucket: {{ .Values.veleroBucketName | quote }}
+                default: true
+                accessMode: ReadWrite
+                {{- if and (eq .Values.objectStorage.provider "s3") .Values.objectStorage.region }}
+                config:
+                  region: {{ .Values.objectStorage.region | quote }}
+                  {{- if .Values.objectStorage.endpoint }}
+                  s3Url: {{ .Values.objectStorage.endpoint | quote }}
+                  s3ForcePathStyle: {{ ternary "true" "false" (ne .Values.cloudProvider "aws") | quote }}
+                  checksumAlgorithm: ""
                   {{- end }}
-                  {{- if and (eq .Values.objectStorage.provider "s3") .Values.objectStorage.region }}
-                  config:
-                    region: {{ .Values.objectStorage.region | quote }}
-                    {{- if .Values.objectStorage.endpoint }}
-                    s3Url: {{ .Values.objectStorage.endpoint | quote }}
-                    s3ForcePathStyle: {{ ternary "true" "false" (ne .Values.cloudProvider "aws") | quote }}
-                    checksumAlgorithm: ""
-                    {{- end }}
-                  {{- end }}
+                {{- end }}
             {{- if eq .Values.cloudProvider "aws" }}
-            volumeSnapshotLocations:
+            volumeSnapshotLocation:
               - name: default
-                spec:
-                  provider: aws
-                  config:
-                    region: {{ .Values.objectStorage.region | quote }}
+                provider: aws
+                config:
+                  region: {{ .Values.objectStorage.region | quote }}
             {{- else if eq .Values.cloudProvider "gcp" }}
-            volumeSnapshotLocations:
+            volumeSnapshotLocation:
               - name: default
-                spec:
-                  provider: gcp
-                  config:
-                    project: {{ .Values.gcpProjectId | quote }}
-                    snapshotLocation: {{ .Values.objectStorage.region | quote }}
+                provider: gcp
+                config:
+                  project: {{ .Values.gcpProjectId | quote }}
+                  snapshotLocation: {{ .Values.objectStorage.region | quote }}
             {{- end }}
 {{- end }}
     - repoURL: {{ .Values.repoURL }}
