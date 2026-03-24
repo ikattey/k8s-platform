@@ -72,6 +72,9 @@ func newTypesense(addr, apiKey string) (*typesenseClient, error) {
 }
 
 func (t *typesenseClient) Check(ctx context.Context) serviceStatus {
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
 	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("http://%s/health", t.addr), nil)
 	if err != nil {
 		return serviceStatus{Status: "down", Error: err.Error()}
@@ -92,6 +95,8 @@ func (t *typesenseClient) Check(ctx context.Context) serviceStatus {
 	return serviceStatus{Status: "down", Error: fmt.Sprintf("status %d", resp.StatusCode)}
 }
 
+func (t *typesenseClient) Close() { t.http.CloseIdleConnections() }
+
 // --- NATS ---
 
 type natsClient struct {
@@ -101,7 +106,7 @@ type natsClient struct {
 func newNATS(url string) (*natsClient, error) {
 	nc, err := nats.Connect(url,
 		nats.Timeout(5*time.Second),
-		nats.MaxReconnects(3),
+		nats.MaxReconnects(-1), // infinite reconnects — K8s pods restart
 		nats.ReconnectWait(time.Second),
 	)
 	if err != nil {
@@ -112,7 +117,7 @@ func newNATS(url string) (*natsClient, error) {
 
 func (n *natsClient) Check(_ context.Context) serviceStatus {
 	if n.conn.IsConnected() {
-		return serviceStatus{Status: "up", Host: n.conn.ConnectedUrl()}
+		return serviceStatus{Status: "up", Host: n.conn.ConnectedUrlRedacted()}
 	}
 	return serviceStatus{Status: "down", Error: "not connected"}
 }

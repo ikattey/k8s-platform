@@ -39,7 +39,8 @@ func main() {
 
 	a := &app{startTime: time.Now()}
 
-	// PostgreSQL (optional)
+	// PostgreSQL is the primary data store — fatal on connection failure.
+	// Data layer services (Dragonfly, Typesense, NATS) are auxiliary — warn and continue.
 	if cfg.DB.WriteDSN != "" {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		db, err := newDatabase(ctx, cfg.DB.WriteDSN, cfg.DB.ReadDSN)
@@ -129,6 +130,9 @@ func main() {
 	}
 	if a.dragonfly != nil {
 		a.dragonfly.Close()
+	}
+	if a.typesense != nil {
+		a.typesense.Close()
 	}
 	if a.nats != nil {
 		a.nats.Close()
