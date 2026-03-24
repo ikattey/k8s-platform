@@ -1,21 +1,19 @@
 # Per-cluster CNPG overrides for gcp-starter.
+# Storage nodes enabled for E2E test.
 
 backup:
   enabled: true
   schedule: "0 0 2 * * *"
 
-# Uncomment for fast storage (requires storage class aliases, created by default on GCP):
-# cluster:
-#   storage:
-#     storageClass: fast-rwo
-#   walStorage:
-#     storageClass: fast-rwo
-
-# Uncomment when enable_storage_node_pool = true:
-#   nodeSelector:
-#     k8s-platform/pool-role: storage
-#   tolerations:
-#     - key: k8s-platform/pool-role
-#       operator: Equal
-#       value: storage
-#       effect: NoSchedule
+cluster:
+  storage:
+    storageClass: fast-rwo
+  walStorage:
+    storageClass: fast-rwo
+  nodeSelector:
+    k8s-platform/pool-role: storage
+  tolerations:
+    - key: k8s-platform/pool-role
+      operator: Equal
+      value: storage
+      effect: NoSchedule

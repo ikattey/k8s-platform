@@ -5,8 +5,8 @@ clusterIssuer: "letsencrypt-production"
 
 components:
   demoApp: true
-  # cnpg: true    # Also requires cnpg_enabled = true in addons terraform.tfvars
-  # dragonfly: true
-  # typesense: true
-  # nats: true
-  # velero: true
+  cnpg: true
+  dragonfly: true
+  nats: true
+  typesense: true
+  velero: true

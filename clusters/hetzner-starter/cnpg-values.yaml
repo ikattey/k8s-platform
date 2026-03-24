@@ -1,21 +1,19 @@
 # Per-cluster CNPG overrides for hetzner-starter.
+# Storage nodes + storage class aliases enabled for E2E test.
 
 backup:
   enabled: true
   schedule: "0 0 2 * * *"
 
-# Uncomment for fast storage (requires enable_storage_class_aliases = true in addons tfvars):
-# cluster:
-#   storage:
-#     storageClass: fast-rwo
-#   walStorage:
-#     storageClass: fast-rwo
-
-# Uncomment when enable_storage_nodes = true:
-#   nodeSelector:
-#     k8s-platform/pool-role: storage
-#   tolerations:
-#     - key: k8s-platform/pool-role
-#       operator: Equal
-#       value: storage
-#       effect: NoSchedule
+cluster:
+  storage:
+    storageClass: fast-rwo
+  walStorage:
+    storageClass: fast-rwo
+  nodeSelector:
+    k8s-platform/pool-role: storage
+  tolerations:
+    - key: k8s-platform/pool-role
+      operator: Equal
+      value: storage
+      effect: NoSchedule
