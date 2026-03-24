@@ -63,9 +63,9 @@ nodeAgent:
   tolerations:
     - operator: Exists
 
-kubectl:
-  image:
-    repository: docker.io/bitnami/kubectl
-    tag: "1.32"
+# Disable the CRD upgrade job — bitnami/kubectl tags use full patch versions
+# (e.g. 1.31.3) not minor-only tags, so the chart's auto-detected tag fails.
+# CRDs are managed by Helm's native crds/ mechanism on fresh installs.
+upgradeCRDs: false
 
 schedules: {}
