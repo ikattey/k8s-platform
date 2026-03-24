@@ -43,3 +43,19 @@ variable "autoscale" {
   type        = bool
   default     = true
 }
+
+variable "labels" {
+  description = "Labels to apply to nodes in this pool"
+  type        = map(string)
+  default     = {}
+}
+
+variable "taints" {
+  description = "Taints to apply to nodes in this pool"
+  type = list(object({
+    key    = string
+    value  = optional(string, "")
+    effect = string
+  }))
+  default = []
+}

@@ -80,7 +80,7 @@ cnpg_enabled = true
 
 CNPG backups require object storage. Set `enable_object_storage = true` in your cluster `terraform.tfvars` if it isn't already. See [backups.md](backups.md) for backup configuration.
 
-On Hetzner, CNPG defaults to the `fast-rwo` storage class for database and WAL volumes. This requires `enable_storage_class_aliases = true` in your addons `terraform.tfvars` — see [Storage classes](#storage-classes) below.
+CNPG uses the cluster's default storage class. For higher I/O performance, opt in to `fast-rwo` in your per-cluster `cnpg-values.yaml` — see [Storage classes](#storage-classes) below. On Hetzner, this requires `enable_storage_class_aliases = true` in your addons `terraform.tfvars`; on AWS/GCP the aliases are always available.
 
 ### Change Traefik or monitoring values
 
@@ -240,46 +240,47 @@ enable_storage_class_aliases = true
 longhorn_replica_count       = 2    # Match your storage_node_count for redundancy
 ```
 
-Then set the storage class in per-cloud value overlays:
+Then opt in to fast storage in per-cluster overlays:
 
 ```yaml
-# clusters/<cluster>/cnpg-values.yaml
-storage:
-  storageClass: fast-rwo
+# clusters/<cluster>/cnpg-values.yaml (uncomment to enable)
+# cluster:
+#   storage:
+#     storageClass: fast-rwo
+#   walStorage:
+#     storageClass: fast-rwo
 ```
 
-Aliases work across all clouds. On Hetzner with dedicated storage nodes, `fast-rwo` maps to Longhorn (local NVMe) and `standard-rwo` maps to Hetzner CSI.
+Aliases work across all clouds. On Hetzner with dedicated storage nodes, `fast-rwo` maps to Longhorn (local NVMe) and `standard-rwo` maps to Hetzner CSI. On AWS/GCP, aliases are always available.
 
 ## Running workloads on dedicated storage nodes
 
-Clouds with dedicated storage node pools (Hetzner, AWS, GCP) use the `k8s-platform/pool-role` label and taint to isolate stateful workloads:
+All clouds use the `k8s-platform/pool-role` label and taint to isolate stateful workloads on dedicated storage node pools:
 
 ```
 Label:  k8s-platform/pool-role=storage
 Taint:  k8s-platform/pool-role=storage:NoSchedule
 ```
 
-Workload targeting is configured in per-cluster overlay files, not cloud-level overlays. Example for CNPG:
+Workload targeting is configured in per-cluster overlay files, not cloud-level overlays. By default, all data layer components run on general nodes. To pin CNPG to storage nodes:
 
 ```yaml
-# clusters/<cluster>/cnpg-values.yaml
-cluster:
-  storage:
-    storageClass: fast-rwo
-  walStorage:
-    storageClass: fast-rwo
-  nodeSelector:
-    k8s-platform/pool-role: storage
-  tolerations:
-    - key: k8s-platform/pool-role
-      operator: Equal
-      value: storage
-      effect: NoSchedule
+# clusters/<cluster>/cnpg-values.yaml (uncomment to enable)
+# cluster:
+#   storage:
+#     storageClass: fast-rwo
+#   walStorage:
+#     storageClass: fast-rwo
+#   nodeSelector:
+#     k8s-platform/pool-role: storage
+#   tolerations:
+#     - key: k8s-platform/pool-role
+#       operator: Equal
+#       value: storage
+#       effect: NoSchedule
 ```
 
-Both `nodeSelector` and `tolerations` are required — storage nodes are tainted. Omitting either causes pods to schedule on regular worker nodes.
-
-The same pattern applies to Typesense (`typesense-values.yaml`) and NATS (`nats-values.yaml`). OVH does not support node pool labels or taints — all workloads run on general-purpose nodes.
+Both `nodeSelector` and `tolerations` are required — storage nodes are tainted. The same pattern applies to Typesense and NATS if needed.
 
 See [node-pools.md](node-pools.md) for full details on the convention, per-cloud tradeoffs, and component-specific guidance.
 

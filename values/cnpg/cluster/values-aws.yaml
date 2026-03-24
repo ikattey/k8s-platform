@@ -6,9 +6,3 @@ backup:
   provider: s3
   inheritFromIAMRole: true
   destinationPath: "s3://cnpg-backups/postgres/"
-
-cluster:
-  storage:
-    storageClass: fast-rwo
-  walStorage:
-    storageClass: fast-rwo

@@ -1,4 +1,11 @@
 # Per-cluster Typesense overrides for ovh-starter.
-#
-# OVH does not support node pool labels or taints, so all workloads
-# run on general-purpose nodes. No nodeSelector or tolerations needed.
+
+# Uncomment when enable_storage_pool = true:
+# typesense:
+#   nodeSelector:
+#     k8s-platform/pool-role: storage
+#   tolerations:
+#     - key: k8s-platform/pool-role
+#       operator: Equal
+#       value: storage
+#       effect: NoSchedule

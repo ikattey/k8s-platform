@@ -57,6 +57,37 @@ variable "autoscale" {
   default     = true
 }
 
+# Storage Node Pool
+variable "enable_storage_pool" {
+  description = "Create a dedicated storage node pool with labels and taints"
+  type        = bool
+  default     = false
+}
+
+variable "storage_flavor" {
+  description = "OVH instance flavor for storage nodes"
+  type        = string
+  default     = "b3-8"
+}
+
+variable "storage_desired_nodes" {
+  description = "Desired number of storage nodes"
+  type        = number
+  default     = 1
+}
+
+variable "storage_min_nodes" {
+  description = "Minimum number of storage nodes"
+  type        = number
+  default     = 1
+}
+
+variable "storage_max_nodes" {
+  description = "Maximum number of storage nodes"
+  type        = number
+  default     = 2
+}
+
 # OIDC Configuration
 variable "enable_oidc" {
   description = "Enable OIDC authentication for the cluster"

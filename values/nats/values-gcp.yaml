@@ -1,6 +1,2 @@
 # GCP cloud overlay for NATS JetStream
-
-nats:
-  jetstream:
-    storage:
-      storageClass: standard-rwo
+# No cloud-specific overrides needed. Uses cluster default storage class.

@@ -5,9 +5,3 @@
 backup:
   provider: gcs
   destinationPath: "gs://cnpg-backups/postgres/"
-
-cluster:
-  storage:
-    storageClass: fast-rwo
-  walStorage:
-    storageClass: fast-rwo

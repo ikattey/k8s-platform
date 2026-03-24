@@ -1,18 +1,13 @@
 # Per-cluster Typesense overrides for hetzner-starter.
 #
-# Pins Typesense to dedicated storage nodes with local NVMe.
-# Requires enable_storage_nodes = true and enable_storage_class_aliases = true.
-#
-# If you don't use storage nodes, empty this file. Typesense will
-# schedule on any node and use the default storage class.
+# Typesense runs on general-purpose nodes by default. If you enable a dedicated
+# storage node pool, uncomment the nodeSelector and tolerations below.
 
-typesense:
-  storage:
-    storageClass: fast-rwo
-  nodeSelector:
-    k8s-platform/pool-role: storage
-  tolerations:
-    - key: k8s-platform/pool-role
-      operator: Equal
-      value: storage
-      effect: NoSchedule
+# typesense:
+#   nodeSelector:
+#     k8s-platform/pool-role: storage
+#   tolerations:
+#     - key: k8s-platform/pool-role
+#       operator: Equal
+#       value: storage
+#       effect: NoSchedule

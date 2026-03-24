@@ -206,9 +206,9 @@ Expected portable aliases:
 - `fast-rwo` -> `pd-ssd`
 - `standard-rwo` -> `pd-balanced`
 
-The starter cluster creates a dedicated storage node pool labeled
-`k8s-platform/pool-role=storage` and tainted `k8s-platform/pool-role=storage:NoSchedule`
-so CNPG and other stateful workloads can be isolated. See [node-pools.md](node-pools.md).
+If you enabled `enable_storage_node_pool = true` in Stage 1, you'll also see nodes labeled
+`k8s-platform/pool-role=storage` and tainted `k8s-platform/pool-role=storage:NoSchedule`.
+By default, all workloads run on general nodes. See [node-pools.md](node-pools.md) for opt-in storage targeting.
 
 ## 13. Verify ArgoCD and Grafana access
 

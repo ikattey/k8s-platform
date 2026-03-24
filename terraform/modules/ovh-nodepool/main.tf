@@ -17,6 +17,21 @@ resource "ovh_cloud_project_kube_nodepool" "pool" {
   monthly_billed = false
   autoscale      = var.autoscale
 
+  dynamic "template" {
+    for_each = length(var.labels) > 0 || length(var.taints) > 0 ? [1] : []
+    content {
+      metadata {
+        annotations = {}
+        finalizers  = []
+        labels      = var.labels
+      }
+      spec {
+        taints        = var.taints
+        unschedulable = false
+      }
+    }
+  }
+
   lifecycle {
     create_before_destroy = true
   }

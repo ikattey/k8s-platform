@@ -34,6 +34,11 @@ max_nodes     = 5
 # database_flavor   = "db1-4"
 # database_ip_restrictions defaults to the cluster subnet if left unset.
 
+# Storage node pool (optional)
+# enable_storage_pool   = true
+# storage_flavor        = "b3-8"
+# storage_desired_nodes = 1
+
 # Optional: restrict API server access to specific CIDR blocks.
 # When set, only these IPs can reach the Kubernetes API. Leave empty for unrestricted access.
 # With ArgoCD handling deployments via GitOps, CI/CD runners don't need API access for

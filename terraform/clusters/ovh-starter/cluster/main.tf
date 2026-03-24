@@ -22,6 +22,12 @@ module "platform" {
   max_nodes     = var.max_nodes
   autoscale     = var.autoscale
 
+  enable_storage_pool   = var.enable_storage_pool
+  storage_flavor        = var.storage_flavor
+  storage_desired_nodes = var.storage_desired_nodes
+  storage_min_nodes     = var.storage_min_nodes
+  storage_max_nodes     = var.storage_max_nodes
+
   enable_oidc          = var.enable_oidc
   oidc_client_id       = var.oidc_client_id
   oidc_client_secret   = var.oidc_client_secret

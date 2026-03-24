@@ -35,6 +35,33 @@ module "nodepool" {
   min_nodes     = var.min_nodes
   max_nodes     = var.max_nodes
   autoscale     = var.autoscale
+
+  labels = {
+    "k8s-platform/pool-role" = "general"
+  }
+}
+
+module "storage_nodepool" {
+  count  = var.enable_storage_pool ? 1 : 0
+  source = "../../modules/ovh-nodepool"
+
+  project_id    = var.project_id
+  cluster_id    = module.kubernetes.cluster_id
+  pool_name     = "storage"
+  flavor        = var.storage_flavor
+  desired_nodes = var.storage_desired_nodes
+  min_nodes     = var.storage_min_nodes
+  max_nodes     = var.storage_max_nodes
+  autoscale     = true
+
+  labels = {
+    "k8s-platform/pool-role" = "storage"
+  }
+  taints = [{
+    key    = "k8s-platform/pool-role"
+    value  = "storage"
+    effect = "NoSchedule"
+  }]
 }
 
 module "postgresql" {

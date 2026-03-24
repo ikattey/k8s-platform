@@ -10,10 +10,11 @@ node_count     = 3
 max_node_count = 6
 machine_type   = "e2-standard-4"
 
-enable_storage_node_pool = true
-storage_node_count       = 1
-storage_max_node_count   = 2
-storage_machine_type     = "n2-standard-2"
+# Storage node pool (optional)
+# enable_storage_node_pool = true
+# storage_node_count       = 1
+# storage_max_node_count   = 2
+# storage_machine_type     = "n2-standard-2"
 
 # Managed database options
 # database_provider          = "managed"  # or cnpg (default) or external

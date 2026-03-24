@@ -5,3 +5,13 @@
 backup:
   enabled: true
   schedule: "0 0 2 * * *"
+
+# Uncomment when enable_storage_pool = true:
+# cluster:
+#   nodeSelector:
+#     k8s-platform/pool-role: storage
+#   tolerations:
+#     - key: k8s-platform/pool-role
+#       operator: Equal
+#       value: storage
+#       effect: NoSchedule
