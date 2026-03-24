@@ -38,10 +38,4 @@ resource "openstack_networking_router_interface_v2" "router_interface" {
   region    = var.region
   router_id = openstack_networking_router_v2.router.id
   subnet_id = openstack_networking_subnet_v2.private.id
-
-  # Pin the router's interface IP so gateway_ip output is deterministic.
-  # Without this, OpenStack may assign any free IP from the subnet.
-  fixed_ip {
-    ip_address = cidrhost(var.subnet_cidr, 1)
-  }
 }

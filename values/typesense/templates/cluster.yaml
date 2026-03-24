@@ -47,8 +47,9 @@ spec:
               {{- $name := .Values.typesense.name }}
               {{- $peeringPort := int .Values.typesense.peering_port }}
               {
+              {{- $apiPort := int $.Values.typesense.port }}
               {{- range $i := until $replicas }}
-              echo "{{ printf "%s-%d.%s:%d" $name $i $name $peeringPort }}"
+              echo "{{ printf "%s-%d.%s:%d:%d" $name $i $name $peeringPort $apiPort }}"
               {{- end }}
               } > /etc/typesense/nodes
           volumeMounts:
