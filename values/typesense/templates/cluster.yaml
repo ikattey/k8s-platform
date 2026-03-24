@@ -114,6 +114,7 @@ metadata:
   name: {{ .Values.typesense.name }}
 spec:
   clusterIP: None
+  publishNotReadyAddresses: true
   selector:
     app.kubernetes.io/name: {{ .Values.typesense.name }}
   ports:
