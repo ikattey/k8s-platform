@@ -19,6 +19,7 @@ configuration:
       bucket: velero-backups
       default: true
       accessMode: ReadWrite
+      # serviceAccount set by Terraform via ArgoCD valuesObject (Workload Identity)
   volumeSnapshotLocation:
     - name: default
       provider: gcp

@@ -216,3 +216,9 @@ variable "cnpg_service_account_annotation_value" {
   type        = string
   default     = ""
 }
+
+variable "velero_gcp_service_account" {
+  description = "GCP service account email for Velero Workload Identity (used in BackupStorageLocation config.serviceAccount)."
+  type        = string
+  default     = ""
+}

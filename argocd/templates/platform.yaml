@@ -369,7 +369,12 @@ spec:
                 bucket: {{ .Values.veleroBucketName | quote }}
                 default: true
                 accessMode: ReadWrite
-                {{- if and (eq .Values.objectStorage.provider "s3") .Values.objectStorage.region }}
+                {{- if eq .Values.cloudProvider "gcp" }}
+                {{- if .Values.veleroGcpServiceAccount }}
+                config:
+                  serviceAccount: {{ .Values.veleroGcpServiceAccount | quote }}
+                {{- end }}
+                {{- else if and (eq .Values.objectStorage.provider "s3") .Values.objectStorage.region }}
                 config:
                   region: {{ .Values.objectStorage.region | quote }}
                   {{- if .Values.objectStorage.endpoint }}

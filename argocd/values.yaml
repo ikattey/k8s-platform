@@ -41,6 +41,9 @@ cnpgBackupBucketName: ""
 # GCP project ID (used for GCS- and snapshot-backed integrations such as Velero)
 gcpProjectId: ""
 
+# GCP service account email for Velero Workload Identity (set by Terraform for GCP clusters)
+veleroGcpServiceAccount: ""
+
 # Optional cloud-identity annotation value for the CNPG instance manager service account.
 cnpgServiceAccountAnnotationValue: ""
 
