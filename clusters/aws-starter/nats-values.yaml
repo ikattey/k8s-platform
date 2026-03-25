@@ -3,6 +3,12 @@
 # NATS runs on general-purpose nodes by default. If you enable a dedicated
 # storage node pool, uncomment the nodeSelector and tolerations below.
 
+nats:
+  # The AWS starter E2E cluster only has two small worker nodes, so a 3-node
+  # JetStream quorum does not schedule reliably. Keep this at one replica for
+  # fresh-cluster smoke tests.
+  replicas: 1
+
 # nats:
 #   nodeSelector:
 #     k8s-platform/pool-role: storage

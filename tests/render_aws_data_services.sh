@@ -10,6 +10,7 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 
 ARGOCD_RENDER="$TMP_DIR/argocd.yaml"
 DEMO_RENDER="$TMP_DIR/demo-app.yaml"
+NATS_RENDER="$TMP_DIR/nats.yaml"
 
 helm template root argocd/ \
   -f argocd/values.yaml \
@@ -42,3 +43,9 @@ helm template demo-app values/demo-app/ \
 
 grep -q 'name: TYPESENSE_API_KEY' "$DEMO_RENDER"
 grep -q 'value: "aws-starter-e2e-typesense-key"' "$DEMO_RENDER"
+
+helm template nats values/nats/ \
+  -f clusters/aws-starter/nats-values.yaml \
+  > "$NATS_RENDER"
+
+grep -q 'replicas: 1' "$NATS_RENDER"
