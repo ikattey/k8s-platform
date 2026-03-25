@@ -1,8 +1,8 @@
 replicaCount: 2
 
 image:
-  repository: ghcr.io/masena-dev/k8s-platform-demo-app
-  tag: "main-bb58242"
+  repository: ghcr.io/ikattey/k8s-platform-demo-app
+  tag: "main-056306d"
   pullPolicy: IfNotPresent
 
 containerPort: 8080
