@@ -6,19 +6,15 @@ locals {
       }
       cm = var.enable_argocd_oidc ? {
         url = "https://argocd-${var.cluster_name}.${var.domain}"
-        "oidc.config" = join("\n", concat([
-          "name: SSO",
-          "issuer: ${var.oidc_issuer_url}",
-          "clientID: ${var.argocd_oidc_client_id}",
-          "clientSecret: $argocd-oidc-secret:clientSecret",
-          "requestedScopes:",
-          "  - openid",
-          "  - email",
-          "  - profile",
-        ], var.oidc_allowed_domains != "" ? [
-          "allowedDomains:",
-          "  - ${var.oidc_allowed_domains}",
-        ] : []))
+        "oidc.config" = yamlencode(merge({
+          name           = "SSO"
+          issuer         = var.oidc_issuer_url
+          clientID       = var.argocd_oidc_client_id
+          clientSecret   = "$argocd-oidc-secret:clientSecret"
+          requestedScopes = ["openid", "email", "profile"]
+        }, var.oidc_allowed_domains != "" ? {
+          allowedDomains = [var.oidc_allowed_domains]
+        } : {}))
       } : {}
       rbac = var.enable_argocd_oidc ? {
         "policy.default" = "role:readonly"
