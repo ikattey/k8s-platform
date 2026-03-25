@@ -6,7 +6,7 @@ locals {
       }
       cm = var.enable_argocd_oidc ? {
         url = "https://argocd-${var.cluster_name}.${var.domain}"
-        "oidc.config" = join("\n", [
+        "oidc.config" = join("\n", concat([
           "name: SSO",
           "issuer: ${var.oidc_issuer_url}",
           "clientID: ${var.argocd_oidc_client_id}",
@@ -15,7 +15,10 @@ locals {
           "  - openid",
           "  - email",
           "  - profile",
-        ])
+        ], var.oidc_allowed_domains != "" ? [
+          "allowedDomains:",
+          "  - ${var.oidc_allowed_domains}",
+        ] : []))
       } : {}
       rbac = var.enable_argocd_oidc ? {
         "policy.default" = "role:readonly"

@@ -170,7 +170,7 @@ variable "enable_grafana_oauth" {
 }
 
 variable "oidc_allowed_domains" {
-  description = "Comma-separated email domains allowed to log in via OIDC/OAuth. Enforced by Grafana; ArgoCD access is controlled via RBAC."
+  description = "Email domain allowed to log in via OIDC/OAuth. Enforced by both ArgoCD (allowedDomains) and Grafana (allowed_domains)."
   type        = string
   default     = ""
 }
