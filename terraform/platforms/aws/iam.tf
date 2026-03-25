@@ -90,7 +90,8 @@ data "aws_iam_policy_document" "monitoring_storage" {
     ]
     resources = [
       "${aws_s3_bucket.backups[0].arn}/loki/*",
-      "${aws_s3_bucket.backups[0].arn}/ruler/*"
+      "${aws_s3_bucket.backups[0].arn}/ruler/*",
+      "${aws_s3_bucket.backups[0].arn}/index/*"
     ]
   }
 }
