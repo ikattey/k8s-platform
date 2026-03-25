@@ -51,7 +51,7 @@ output "object_storage_endpoint" {
 
 output "object_storage_region" {
   description = "Object storage region"
-  value       = var.region
+  value       = var.create_backup_bucket ? var.region : null
 }
 
 output "object_storage_bucket_names" {

@@ -72,15 +72,7 @@ spec:
       {{- if and (eq .Values.backup.provider "s3") .Values.backup.endpointURL }}
       endpointURL: {{ .Values.backup.endpointURL | quote }}
       {{- end }}
-      {{- if eq .Values.backup.provider "gcs" }}
-      {{- if .Values.backup.googleCredentials }}
-      googleCredentials:
-        {{- toYaml .Values.backup.googleCredentials | nindent 8 }}
-      {{- end }}
-      {{- else if .Values.backup.inheritFromIAMRole }}
-      s3Credentials:
-        inheritFromIAMRole: true
-      {{- else if .Values.backup.s3.region }}
+      {{- if .Values.backup.s3.region }}
       s3Credentials:
         region:
           name: cnpg-backup-credentials

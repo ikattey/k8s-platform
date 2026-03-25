@@ -168,17 +168,6 @@ variable "create_backup_bucket" {
   default     = false
 }
 
-variable "database_provider" {
-  description = "Database provider: cnpg (default) or external. Hetzner does not provision a managed PostgreSQL service in this starter."
-  type        = string
-  default     = "cnpg"
-
-  validation {
-    condition     = contains(["cnpg", "external"], var.database_provider)
-    error_message = "database_provider must be one of: cnpg, external"
-  }
-}
-
 variable "object_storage_access_key" {
   description = "Access key for Hetzner Object Storage (generated in Hetzner Cloud Console)."
   type        = string

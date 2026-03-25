@@ -255,14 +255,14 @@ locals {
 }
 
 locals {
-  cnpg_backup_access_key_id = coalesce(
+  cnpg_backup_access_key_id = try(coalesce(
     try(data.terraform_remote_state.cluster.outputs.cnpg_backup_access_key_id, ""),
     try(data.terraform_remote_state.cluster.outputs.object_storage_access_key, "")
-  )
-  cnpg_backup_secret_access_key = coalesce(
+  ), "")
+  cnpg_backup_secret_access_key = try(coalesce(
     try(data.terraform_remote_state.cluster.outputs.cnpg_backup_secret_access_key, ""),
     try(data.terraform_remote_state.cluster.outputs.object_storage_secret_key, "")
-  )
+  ), "")
 }
 
 locals {

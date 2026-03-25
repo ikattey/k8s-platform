@@ -74,8 +74,6 @@ backup:
   compression: "bzip2"
   immediate: false
   suspend: false
-  inheritFromIAMRole: false  # IRSA / IMDS-backed AWS credentials
-  googleCredentials: {}      # Optional explicit SecretKeySelector map for JSON credentials
   destinationPath: ""
   endpointURL: ""
   # AWS S3 / S3-compatible

@@ -213,6 +213,20 @@ terraform -chdir=terraform/clusters/aws-starter/addons destroy -auto-approve
 terraform -chdir=terraform/clusters/aws-starter/cluster destroy -auto-approve
 ```
 
+> **RDS deletion protection**: If you provisioned RDS (`database_provider = "managed"`), the
+> instance is protected against accidental deletion by default. Before running `terraform destroy`
+> on the cluster stage, set `deletion_protection = false` in your `terraform.tfvars` and apply
+> the cluster stage once to remove the protection:
+>
+> ```bash
+> # In terraform/clusters/aws-starter/cluster/terraform.tfvars, add:
+> deletion_protection = false
+>
+> terraform -chdir=terraform/clusters/aws-starter/cluster apply -auto-approve
+> # Then destroy:
+> terraform -chdir=terraform/clusters/aws-starter/cluster destroy -auto-approve
+> ```
+
 Destroy includes intentional pauses (60s for external-secrets cleanup, 180s for ArgoCD) -- expect it to take several minutes. If destroy fails with a timeout after the pauses, re-run the same command -- transient API errors are common.
 
 If you enabled RDS deletion protection manually, set `deletion_protection = false`
