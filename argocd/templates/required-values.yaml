@@ -8,7 +8,61 @@ so misconfigurations show up immediately during initial sync.
 {{- $clusterName := required "clusterName is required (set by Terraform argocd-bootstrap)" .Values.clusterName -}}
 {{- $domain := required "domain is required (set TF_VAR_domain; used for ingress hostnames)" .Values.domain -}}
 {{- $email := required "letsencryptEmail is required (set by Terraform argocd-bootstrap)" .Values.letsencryptEmail -}}
-{{- if and .Values.components.monitoring (or .Values.lokiBucketNames.chunks .Values.lokiBucketNames.ruler) -}}
-{{- $lokiChunks := required "lokiBucketNames.chunks is required when bucket names are provided (set by Terraform from object storage outputs)" .Values.lokiBucketNames.chunks -}}
-{{- $lokiRuler := required "lokiBucketNames.ruler is required when bucket names are provided (set by Terraform from object storage outputs)" .Values.lokiBucketNames.ruler -}}
+{{- if and .Values.components.platformSecrets (not .Values.components.externalSecrets) -}}
+{{- fail "components.platformSecrets requires components.externalSecrets=true" -}}
+{{- end -}}
+{{- if and .Values.components.bootstrapSecrets (not .Values.components.externalSecrets) -}}
+{{- fail "components.bootstrapSecrets requires components.externalSecrets=true" -}}
+{{- end -}}
+{{- if and .Values.components.monitoringMiddleware (not .Values.components.externalSecrets) -}}
+{{- fail "components.monitoringMiddleware requires components.externalSecrets=true" -}}
+{{- end -}}
+{{- if and .Values.components.externalDns (not .Values.components.bootstrapSecrets) -}}
+{{- fail "components.externalDns requires components.bootstrapSecrets=true so the Cloudflare API token is synced before external-dns starts" -}}
+{{- end -}}
+{{- if and .Values.components.monitoring (not .Values.components.bootstrapSecrets) -}}
+{{- fail "components.monitoring requires components.bootstrapSecrets=true so Grafana and Loki secrets are synced before the monitoring stack starts" -}}
+{{- end -}}
+{{- if and .Values.components.cnpg (not .Values.components.bootstrapSecrets) -}}
+{{- fail "components.cnpg requires components.bootstrapSecrets=true so cnpg-backup-credentials is synced before CNPG scheduled backups run" -}}
+{{- end -}}
+{{- if and .Values.databaseEnabled (not .Values.components.bootstrapSecrets) -}}
+{{- fail "databaseEnabled requires components.bootstrapSecrets=true so database-credentials is synced before the demo app starts" -}}
+{{- end -}}
+{{- if and .Values.components.grafanaOAuth (not .Values.components.bootstrapSecrets) -}}
+{{- fail "components.grafanaOAuth requires components.bootstrapSecrets=true so the Grafana OAuth client secret is synced before Grafana starts" -}}
+{{- end -}}
+{{- if and (not (empty .Values.onepasswordItemUuids.argocdOidc)) (not .Values.components.bootstrapSecrets) -}}
+{{- fail "ArgoCD OIDC secret sync requires components.bootstrapSecrets=true" -}}
+{{- end -}}
+{{- if and .Values.components.argocdIngress (not .Values.components.traefik) -}}
+{{- fail "components.argocdIngress requires components.traefik=true" -}}
+{{- end -}}
+{{- if and .Values.components.argocdIngress (not .Values.components.certManager) -}}
+{{- fail "components.argocdIngress requires components.certManager=true" -}}
+{{- end -}}
+{{- if and .Values.components.demoApp (not .Values.components.traefik) -}}
+{{- fail "components.demoApp requires components.traefik=true" -}}
+{{- end -}}
+{{- if and .Values.components.demoApp (not .Values.components.certManager) -}}
+{{- fail "components.demoApp requires components.certManager=true" -}}
+{{- end -}}
+{{- if and .Values.components.monitoring (not .Values.components.traefik) -}}
+{{- fail "components.monitoring requires components.traefik=true because Grafana, Prometheus, and Alertmanager are exposed through Traefik ingresses" -}}
+{{- end -}}
+{{- if and .Values.components.monitoring (not .Values.components.certManager) -}}
+{{- fail "components.monitoring requires components.certManager=true because Grafana, Prometheus, and Alertmanager use TLS ingresses" -}}
+{{- end -}}
+{{- if and .Values.components.monitoringMiddleware (not .Values.components.monitoring) -}}
+{{- fail "components.monitoringMiddleware requires components.monitoring=true" -}}
+{{- end -}}
+{{- if and .Values.components.platformAlerts (not .Values.components.monitoring) -}}
+{{- fail "components.platformAlerts requires components.monitoring=true" -}}
+{{- end -}}
+{{- if .Values.components.monitoring -}}
+{{- $lokiChunks := required "lokiBucketNames.chunks is required when components.monitoring=true. Set create_backup_bucket=true in Stage 1 or disable monitoring." .Values.lokiBucketNames.chunks -}}
+{{- $lokiRuler := required "lokiBucketNames.ruler is required when components.monitoring=true. Set create_backup_bucket=true in Stage 1 or disable monitoring." .Values.lokiBucketNames.ruler -}}
+{{- end -}}
+{{- if .Values.components.cnpg -}}
+{{- $cnpgBackupBucketName := required "cnpgBackupBucketName is required when components.cnpg=true. Set create_backup_bucket=true in Stage 1 or disable CNPG." .Values.cnpgBackupBucketName -}}
 {{- end -}}
