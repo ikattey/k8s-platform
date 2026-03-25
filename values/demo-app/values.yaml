@@ -44,6 +44,7 @@ typesense:
   enabled: false
   addr: "typesense.search:8108"
   secretName: ""       # K8s secret containing TYPESENSE_API_KEY
+  secretKey: "api-key"
 
 nats:
   enabled: false

@@ -50,7 +50,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.typesense.secretName }}
-                  key: TYPESENSE_API_KEY
+                  key: {{ .Values.typesense.secretKey | quote }}
             {{- end }}
           {{- end }}
           {{- if .Values.nats.enabled }}
