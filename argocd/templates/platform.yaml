@@ -252,7 +252,7 @@ metadata:
 spec:
   project: platform
   sources:
-    - repoURL: https://grafana-community.github.io/helm-charts
+    - repoURL: https://grafana.github.io/helm-charts
       chart: loki
       targetRevision: {{ .Values.versions.loki }}
       helm:

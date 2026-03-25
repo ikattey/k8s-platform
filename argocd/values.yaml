@@ -62,8 +62,8 @@ versions:
   externalDns: "1.20.0"
   prometheusOperatorCrds: "27.0.0"
   kubePrometheusStack: "82.9.0"
-  # Loki chart moved to grafana-community/helm-charts (March 16, 2026).
-  # repoURL updated in platform.yaml. https://github.com/grafana/loki/issues/20705
+  # NOTE: Loki chart may migrate from grafana/helm-charts to grafana-community/helm-charts.
+  # Track: https://github.com/grafana/loki/issues/20705
   loki: "6.53.0"
   alloy: "1.6.1"
   cnpgOperator: "0.27.1"
