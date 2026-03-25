@@ -2,6 +2,7 @@
 
 cloudProvider: "ovh"
 clusterIssuer: "letsencrypt-production"
+issuerSolver: "dns01-cloudflare"
 
 components:
   demoApp: true

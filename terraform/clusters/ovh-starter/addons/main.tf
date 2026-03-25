@@ -312,6 +312,21 @@ locals {
 
 # --- Bootstrap Secrets: External DNS ---
 
+resource "kubernetes_namespace_v1" "cert_manager" {
+  metadata {
+    name = "cert-manager"
+    labels = {
+      "app.kubernetes.io/managed-by" = "terraform-bootstrap"
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [metadata[0].annotations]
+  }
+
+  depends_on = [time_sleep.external_secrets_destroy_grace_period]
+}
+
 resource "kubernetes_namespace_v1" "external_dns" {
   metadata {
     name = "external-dns"
@@ -345,6 +360,26 @@ resource "kubernetes_secret_v1" "cloudflare_api_token" {
   }
 
   depends_on = [kubernetes_namespace_v1.external_dns]
+}
+
+resource "kubernetes_secret_v1" "cert_manager_cloudflare_api_token" {
+  metadata {
+    name      = "cloudflare-api-token"
+    namespace = "cert-manager"
+    labels = {
+      "app.kubernetes.io/managed-by" = "terraform-bootstrap"
+    }
+  }
+
+  data = {
+    cloudflare_api_token = var.cloudflare_api_token
+  }
+
+  lifecycle {
+    ignore_changes = [metadata[0].annotations, metadata[0].labels]
+  }
+
+  depends_on = [kubernetes_namespace_v1.cert_manager]
 }
 
 # --- Bootstrap Secrets: Container Registry (private images) ---
@@ -493,6 +528,7 @@ module "argocd" {
   onepassword_cloudflare_item_uuid      = try(onepassword_item.cloudflare_dns[0].uuid, "")
   onepassword_argocd_oidc_item_uuid     = try(onepassword_item.argocd_oidc[0].uuid, "")
   onepassword_monitoring_auth_item_uuid = try(onepassword_item.monitoring_basic_auth[0].uuid, "")
+  onepassword_database_item_uuid        = try(onepassword_item.database_credentials[0].uuid, "")
   domain                                = var.domain
   loki_bucket_chunks                    = try(data.terraform_remote_state.cluster.outputs.object_storage_bucket_names["loki-chunks"], "")
   loki_bucket_ruler                     = try(data.terraform_remote_state.cluster.outputs.object_storage_bucket_names["loki-ruler"], "")
@@ -521,6 +557,7 @@ module "argocd" {
     kubernetes_secret_v1.grafana_oauth,
     kubernetes_secret_v1.argocd_oidc_secret,
     kubernetes_secret_v1.cloudflare_api_token,
+    kubernetes_secret_v1.cert_manager_cloudflare_api_token,
     kubernetes_secret_v1.cnpg_bootstrap_credentials,
     kubernetes_secret_v1.database_credentials,
     onepassword_item.grafana_k8s_secret,

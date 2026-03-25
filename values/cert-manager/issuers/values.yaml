@@ -1,1 +1,4 @@
 letsencryptEmail: "ops@your-company.com"
+solver: "http01"
+cloudflareApiTokenSecretName: "cloudflare-api-token"
+cloudflareApiTokenSecretKey: "cloudflare_api_token"

@@ -50,6 +50,9 @@ spec:
     helm:
       values: |
         letsencryptEmail: {{ .Values.letsencryptEmail | quote }}
+        solver: {{ .Values.issuerSolver | quote }}
+        cloudflareApiTokenSecretName: {{ .Values.issuerCloudflareApiTokenSecretName | quote }}
+        cloudflareApiTokenSecretKey: {{ .Values.issuerCloudflareApiTokenSecretKey | quote }}
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
