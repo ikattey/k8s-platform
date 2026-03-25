@@ -307,13 +307,7 @@ database_flavor   = "db1-4"      # db1-4 (4 GB RAM) is the smallest
 
 The database connects to your cluster's private network. Stage 1 provisions the instance and exports credentials; Stage 2 creates the `database-credentials` Secret in the `demo` namespace and writes a `database-{cluster}` item to 1Password.
 
-To wire up the demo app's database connection:
-
-```yaml
-# clusters/ovh-starter/demo-app-values.yaml
-databaseSecret:
-  enabled: true
-```
+To wire up the demo app's database connection, set `components.cnpg: true` in your cluster values file (`clusters/ovh-starter/values.yaml`). The ArgoCD application template automatically enables `databaseSecret.enabled` when CNPG is active.
 
 ```yaml
 # clusters/ovh-starter/bootstrap-secrets.yaml

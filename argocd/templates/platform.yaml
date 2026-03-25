@@ -15,6 +15,7 @@ spec:
       chart: traefik
       targetRevision: {{ .Values.versions.traefik }}
       helm:
+        ignoreMissingValueFiles: true
         valueFiles:
           - $values/values/traefik/values.yaml
           - $values/values/traefik/values-{{ .Values.cloudProvider }}.yaml
@@ -255,6 +256,7 @@ spec:
       chart: loki
       targetRevision: {{ .Values.versions.loki }}
       helm:
+        ignoreMissingValueFiles: true
         valueFiles:
           - $values/values/loki/values.yaml
           - $values/values/loki/values-{{ .Values.cloudProvider }}.yaml

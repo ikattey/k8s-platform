@@ -17,7 +17,7 @@ The kit ships:
 
 > Loki requires S3 object storage. Set `enable_object_storage = true` in Stage 1 cluster `terraform.tfvars` before the first apply.
 >
-> Loki resolves bucket names at bootstrap time. On both OVH and Hetzner, Terraform injects the bucket name and endpoint into the ArgoCD application values automatically — no manual editing is needed when `enable_object_storage = true`. The `clusters/<cluster>/loki-values.yaml` file is a static fallback for manual setups where Terraform injection is not used; in that case, populate the bucket names in that file by hand after Stage 1 before deploying Loki.
+> Loki resolves bucket names at bootstrap time. On both OVH and Hetzner, Terraform injects the bucket name and endpoint into the ArgoCD application values automatically — no manual editing is needed when `enable_object_storage = true`. For Hetzner, a `clusters/<cluster>/loki-values.yaml` file with real bucket name overrides is kept in the repo; for other clouds that use Terraform injection, this file is optional and omitted (ArgoCD uses `ignoreMissingValueFiles: true`).
 
 ## Alerts
 
