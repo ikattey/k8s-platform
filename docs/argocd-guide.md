@@ -20,7 +20,7 @@
 
 **Loki and Traefik** — use `ignoreMissingValueFiles: true` so cloud-specific overlay files (e.g. `values-ovh.yaml`) are optional and silently skipped when absent.
 
-**External-DNS** — `txtOwnerId` and `domainFilters` are injected from `clusterName` and `domain` values in `clusters/<cluster>/values.yaml`. No manual configuration in the external-dns values files.
+**External-DNS** — `txtOwnerId` and `domainFilters` are injected from `clusterName` and `domain` values in `clusters/<cluster>/values.yaml`. Clusters can override `externalDns.txtOwnerId` when they must adopt legacy TXT ownership. No manual configuration in the external-dns values files.
 
 **Cert issuer** — the cluster issuer (`clusterIssuer`) is read from `clusters/<cluster>/values.yaml` and injected into all ingress annotations by the template. Change it there, not in individual component values.
 

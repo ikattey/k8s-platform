@@ -151,7 +151,8 @@ Check the [Typesense changelog](https://typesense.org/docs/guide/updating-typese
 
 `txtOwnerId` and `domainFilters` are injected automatically per cluster by the ArgoCD template:
 
-- `txtOwnerId` is set to `k8s-platform-<clusterName>` — prevents DNS record conflicts when multiple clusters share the same Cloudflare account.
+- `txtOwnerId` defaults to `k8s-platform-<clusterName>` — prevents DNS record conflicts when multiple clusters share the same Cloudflare account.
+- `externalDns.txtOwnerId` can override that default for clusters that must adopt pre-existing TXT ownership.
 - `domainFilters` is scoped to `<domain>` from your cluster values — prevents one cluster from deleting DNS records owned by another cluster.
 
 These are not set in `values/external-dns/values.yaml`. Do not add them there; they are always overridden by the template.

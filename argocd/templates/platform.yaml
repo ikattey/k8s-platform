@@ -127,9 +127,7 @@ spec:
           - $values/values/external-dns/values.yaml
           - $values/values/external-dns/values-{{ .Values.cloudProvider }}.yaml
         valuesObject:
-          txtOwnerId: {{ printf "k8s-platform-%s" .Values.clusterName | quote }}
-          extraArgs:
-            txt-owner-id-old: k8s-platform
+          txtOwnerId: {{ default (printf "k8s-platform-%s" .Values.clusterName) .Values.externalDns.txtOwnerId | quote }}
           domainFilters:
             - {{ .Values.domain | quote }}
     - repoURL: {{ .Values.repoURL }}

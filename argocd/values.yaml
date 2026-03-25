@@ -64,6 +64,11 @@ onepasswordItemUuids:
   grafanaOAuth: ""
   argocdOidc: ""
 
+externalDns:
+  # Override only when a cluster must adopt pre-existing TXT ownership, e.g.
+  # when reusing historical Cloudflare records during a fresh bootstrap.
+  txtOwnerId: ""
+
 # Pinned chart versions
 versions:
   certManager: "v1.19.4"

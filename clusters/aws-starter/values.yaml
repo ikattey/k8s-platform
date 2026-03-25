@@ -3,5 +3,8 @@
 cloudProvider: "aws"
 clusterIssuer: "letsencrypt-production"
 
+externalDns:
+  txtOwnerId: "k8s-platform"
+
 components:
   demoApp: true
