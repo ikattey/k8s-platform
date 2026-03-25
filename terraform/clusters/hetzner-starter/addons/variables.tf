@@ -270,6 +270,11 @@ variable "kubectl_oidc_client_id" {
   description = "OIDC client ID for kubectl/kubelogin. Leave empty to skip kubeconfig generation."
   type        = string
   default     = ""
+
+  validation {
+    condition     = var.kubectl_oidc_client_id == "" || length(var.oidc_viewers) + length(var.oidc_admins) > 0
+    error_message = "kubectl OIDC requires at least one oidc_viewers or oidc_admins principal, otherwise authentication will succeed but all kubectl requests will be forbidden."
+  }
 }
 
 variable "kubectl_oidc_client_secret" {
