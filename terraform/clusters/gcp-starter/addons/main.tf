@@ -510,6 +510,7 @@ module "argocd" {
   grafana_oauth_api_url                 = var.grafana_oauth_api_url
   grafana_oauth_scopes                  = var.grafana_oauth_scopes
   cnpg_enabled                          = var.cnpg_enabled
+  database_enabled                      = local.database_contract_enabled
 
   depends_on = [
     kubernetes_secret_v1.onepassword_token,

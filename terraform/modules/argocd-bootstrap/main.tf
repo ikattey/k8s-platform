@@ -204,6 +204,10 @@ resource "kubectl_manifest" "root_application" {
               {
                 name  = "components.cnpg"
                 value = tostring(var.cnpg_enabled)
+              },
+              {
+                name  = "databaseEnabled"
+                value = tostring(var.database_enabled)
               }
             ]
           }

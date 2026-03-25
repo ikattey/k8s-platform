@@ -29,7 +29,7 @@ spec:
               - secretName: demo-app-tls
                 hosts:
                   - {{ printf "demo-%s.%s" .Values.clusterName .Values.domain | quote }}
-          {{- if .Values.components.cnpg }}
+          {{- if .Values.databaseEnabled }}
           databaseSecret:
             enabled: true
           {{- end }}

@@ -199,6 +199,12 @@ variable "cnpg_enabled" {
   default     = false
 }
 
+variable "database_enabled" {
+  description = "Enable the shared database contract for apps that consume database-credentials."
+  type        = bool
+  default     = false
+}
+
 variable "gcp_project_id" {
   description = "Optional GCP project ID passed into the root ArgoCD values for GCS / snapshot integrations."
   type        = string

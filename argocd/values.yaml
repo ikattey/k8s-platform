@@ -35,6 +35,10 @@ objectStorage:
 # CNPG backup bucket name (set by Terraform when object storage is provisioned)
 cnpgBackupBucketName: ""
 
+# Shared app database contract. Terraform enables this when either CNPG or a
+# managed platform database is available.
+databaseEnabled: false
+
 # GCP project ID (used for GCS-backed integrations)
 gcpProjectId: ""
 
