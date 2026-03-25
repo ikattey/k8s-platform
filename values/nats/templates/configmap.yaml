@@ -13,6 +13,7 @@ data:
     }
     {{- end }}
 
+    {{- if gt (int .Values.nats.replicas) 1 }}
     cluster {
       name: {{ .Values.nats.name }}
       listen: 0.0.0.0:{{ .Values.nats.clusterPort }}
@@ -26,6 +27,7 @@ data:
       {{- end }}
       routes = [{{ join ", " $routes }}]
     }
+    {{- end }}
 
     {{- if .Values.nats.jetstream.enabled }}
     jetstream {
