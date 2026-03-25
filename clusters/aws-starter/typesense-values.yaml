@@ -11,3 +11,8 @@
 #       operator: Equal
 #       value: storage
 #       effect: NoSchedule
+
+typesense:
+  auth:
+    createSecret: true
+    apiKey: "aws-starter-e2e-typesense-key"

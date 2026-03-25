@@ -8,3 +8,6 @@ externalDns:
 
 components:
   demoApp: true
+  valkey: true
+  typesense: true
+  nats: true

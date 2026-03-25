@@ -40,6 +40,7 @@ spec:
           {{- if .Values.components.typesense }}
           typesense:
             enabled: true
+            secretName: "typesense-admin-key"
           {{- end }}
           {{- if .Values.components.nats }}
           nats:
