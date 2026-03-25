@@ -15,6 +15,9 @@ spec:
       targetRevision: {{ .Values.targetRevision }}
       path: values/demo-app
       helm:
+        ignoreMissingValueFiles: true
+        valueFiles:
+          - $values/clusters/{{ .Values.clusterName }}/demo-app-values.yaml
         valuesObject:
           ingress:
             enabled: true
@@ -40,7 +43,6 @@ spec:
           {{- if .Values.components.typesense }}
           typesense:
             enabled: true
-            secretName: "typesense-admin-key"
           {{- end }}
           {{- if .Values.components.nats }}
           nats:

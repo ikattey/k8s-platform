@@ -30,15 +30,15 @@ grep -q 'name: nats' "$ARGOCD_RENDER"
 grep -q 'valkey:' "$ARGOCD_RENDER"
 grep -q 'typesense:' "$ARGOCD_RENDER"
 grep -q 'nats:' "$ARGOCD_RENDER"
-grep -q 'secretName: "typesense-admin-key"' "$ARGOCD_RENDER"
+grep -q '\$values/clusters/aws-starter/demo-app-values.yaml' "$ARGOCD_RENDER"
 
 helm template demo-app values/demo-app/ \
+  -f clusters/aws-starter/demo-app-values.yaml \
   --set databaseSecret.enabled=true \
   --set valkey.enabled=true \
   --set typesense.enabled=true \
-  --set typesense.secretName="typesense-admin-key" \
   --set nats.enabled=true \
   > "$DEMO_RENDER"
 
 grep -q 'name: TYPESENSE_API_KEY' "$DEMO_RENDER"
-grep -q 'key: "api-key"' "$DEMO_RENDER"
+grep -q 'value: "aws-starter-e2e-typesense-key"' "$DEMO_RENDER"

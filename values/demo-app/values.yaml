@@ -43,6 +43,7 @@ valkey:
 typesense:
   enabled: false
   addr: "typesense.search:8108"
+  apiKey: ""
   secretName: ""       # K8s secret containing TYPESENSE_API_KEY
   secretKey: "api-key"
 

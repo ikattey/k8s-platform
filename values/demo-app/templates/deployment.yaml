@@ -45,12 +45,17 @@ spec:
           {{- if .Values.typesense.enabled }}
             - name: TYPESENSE_ADDR
               value: {{ .Values.typesense.addr | quote }}
+            {{- if .Values.typesense.apiKey }}
+            - name: TYPESENSE_API_KEY
+              value: {{ .Values.typesense.apiKey | quote }}
+            {{- else if .Values.typesense.secretName }}
             {{- if .Values.typesense.secretName }}
             - name: TYPESENSE_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.typesense.secretName }}
                   key: {{ .Values.typesense.secretKey | quote }}
+            {{- end }}
             {{- end }}
           {{- end }}
           {{- if .Values.nats.enabled }}

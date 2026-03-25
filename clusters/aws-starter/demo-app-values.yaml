@@ -1,0 +1,2 @@
+typesense:
+  apiKey: "aws-starter-e2e-typesense-key"
