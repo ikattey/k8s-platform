@@ -7,3 +7,9 @@ tokenSecret:
   name: "onepassword-token"
   namespace: "external-secrets"
   key: "token"
+
+# 1Password SDK client-side cache
+cache:
+  enabled: true
+  ttl: "5m"
+  maxSize: 100
