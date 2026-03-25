@@ -33,7 +33,7 @@ Build your `.env` from the split example files:
 
 `OP_SERVICE_ACCOUNT_TOKEN` is auto-aliased from `TF_VAR_onepassword_service_account_token`; set the value once.
 
-> **Multi-cluster note:** If you run multiple clusters, use a separate 1Password service account per cluster. The 1Password SDK has daily rate limits, and sharing a single service account across clusters causes ExternalSecret sync failures when the combined refresh traffic exceeds the quota.
+> **Multi-cluster note:** 1Password enforces organization-level API rate limits. Running multiple clusters with ESO refreshing secrets every 5 minutes can exhaust this quota, causing `rate limit exceeded` errors on the ClusterSecretStore. If you hit this, scale down ESO (`kubectl scale deployment external-secrets -n external-secrets --replicas=0`) on all clusters, wait for the limit to reset, then bring them back up one at a time. Using separate service accounts per cluster is good practice but does not bypass the org-level limit.
 
 ### Bootstrap
 
