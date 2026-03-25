@@ -199,3 +199,25 @@ Expected hostnames:
   connection details.
 - `database_provider = "external"`: keep the same secret contract, but create
   it yourself or sync it through External Secrets.
+
+## Teardown
+
+Destroy in reverse order -- addons first, then cluster:
+
+```bash
+# 1. Destroy addons (ArgoCD, platform components)
+terraform -chdir=terraform/clusters/aws-starter/addons destroy -auto-approve
+
+# 2. Destroy cluster infrastructure
+terraform -chdir=terraform/clusters/aws-starter/cluster destroy -auto-approve
+```
+
+Destroy includes intentional pauses (60s for external-secrets cleanup, 180s for ArgoCD) -- expect it to take several minutes. If destroy fails with a timeout after the pauses, re-run the same command -- transient API errors are common.
+
+Delete stale `heritage=external-dns` TXT records in your Cloudflare dashboard before redeploying to the same domain.
+
+EBS volumes created by PersistentVolumeClaims are not always removed by Terraform destroy. Check the EC2 console under Elastic Block Store > Volumes and delete any orphaned volumes tagged with your cluster name.
+
+IAM roles and policies created by the EKS module (for IRSA) are destroyed with the cluster stage. If you attached custom policies manually, remove them before running destroy to avoid dependency errors.
+
+The CI workflow does not include a destroy action. Run teardown locally.

@@ -62,7 +62,7 @@ Each guide covers accounts, credentials, configuration, and deployment.
 
 **Accounts:**
 
-- A cloud provider account (Hetzner or OVH)
+- A cloud provider account (Hetzner, OVH, GCP, or AWS)
 - **Cloudflare** — a domain managed in Cloudflare for DNS automation
 - **1Password** — a service account with an infrastructure vault
 - **S3-compatible bucket** — for Terraform state (each quickstart covers which backend to use)
@@ -105,6 +105,8 @@ docs/              # Setup guides, reference, troubleshooting
 |-------|-------|
 | OVH deployment | [quickstart-ovh.md](docs/quickstart-ovh.md) |
 | Hetzner deployment | [quickstart-hetzner.md](docs/quickstart-hetzner.md) |
+| GCP deployment | [quickstart-gcp.md](docs/quickstart-gcp.md) |
+| AWS deployment | [quickstart-aws.md](docs/quickstart-aws.md) |
 | CI workflows | [ci.md](docs/ci.md) |
 | Environment and variables | [configuration.md](docs/configuration.md) |
 | OIDC / SSO | [oidc.md](docs/oidc.md) |

@@ -229,3 +229,27 @@ ArgoCD and Grafana hostnames follow this pattern:
   contract, but Terraform fills it with Cloud SQL connection details.
 - `database_provider = "external"`: keep the same secret contract, but create
   `database-credentials` yourself or sync it through External Secrets.
+
+## Teardown
+
+Destroy in reverse order -- addons first, then cluster:
+
+```bash
+# 1. Destroy addons (ArgoCD, platform components)
+terraform -chdir=terraform/clusters/gcp-starter/addons destroy -auto-approve
+
+# 2. Destroy cluster infrastructure
+terraform -chdir=terraform/clusters/gcp-starter/cluster destroy -auto-approve
+```
+
+Destroy includes intentional pauses (60s for external-secrets cleanup, 180s for ArgoCD) -- expect it to take several minutes. If destroy fails with a timeout after the pauses, re-run the same command -- transient API errors are common.
+
+Delete stale `heritage=external-dns` TXT records in your Cloudflare dashboard before redeploying to the same domain.
+
+The GCS state bucket (`gs://your-state-bucket`) is not managed by Terraform and must be deleted manually if you no longer need it:
+
+```bash
+gcloud storage rm --recursive gs://your-state-bucket
+```
+
+The CI workflow does not include a destroy action. Run teardown locally.

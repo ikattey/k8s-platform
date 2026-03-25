@@ -5,4 +5,4 @@ clusterIssuer: "letsencrypt-production"
 
 components:
   demoApp: true
-  monitoring: true
+  monitoring: true  # Requires enable_object_storage = true in Stage 1 for Loki
