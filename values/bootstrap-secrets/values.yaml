@@ -136,6 +136,30 @@ secrets:
         remoteRef:
           property: password
 
+  natsAuthToken:
+    enabled: false
+    name: nats-auth-token
+    namespace: messaging
+    onepasswordItem: ""  # Set per-cluster, e.g., "nats-auth-ovh-starter"
+    onepasswordItemUuid: "" # Optional: use item UUID to avoid duplicate-title ambiguity
+    targetLabels: {}
+    data:
+      - secretKey: token
+        remoteRef:
+          property: token
+
+  typesenseAdminKey:
+    enabled: false
+    name: typesense-admin-key
+    namespace: search
+    onepasswordItem: ""  # Set per-cluster, e.g., "typesense-admin-ovh-starter"
+    onepasswordItemUuid: "" # Optional: use item UUID to avoid duplicate-title ambiguity
+    targetLabels: {}
+    data:
+      - secretKey: api-key
+        remoteRef:
+          property: api_key
+
   alertmanagerSlackWebhook:
     enabled: false
     name: alertmanager-slack-webhook

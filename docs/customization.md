@@ -14,6 +14,8 @@
 
 The demo app does not use per-cluster values files. Its ingress, TLS, cluster issuer, and data-layer flags are injected by the ArgoCD template from `clusters/<cluster>/values.yaml` via `components:` flags. There is no `demo-app-values.yaml` per cluster.
 
+Data-layer services are opt-in on every cloud. The starter defaults to `demoApp: true` and keeps `cnpg`, `valkey`, `nats`, and `typesense` disabled until you explicitly enable and configure them.
+
 ## Component toggles
 
 Current toggles live under `components:` in `argocd/values.yaml`:
@@ -100,7 +102,39 @@ nats:
       key: token
 ```
 
-Create a 1Password item with the token, add it to `clusters/<cluster>/bootstrap-secrets.yaml`, and ESO will sync it to `messaging/nats-auth-token`.
+Add this to `clusters/<cluster>/bootstrap-secrets.yaml`:
+
+```yaml
+secrets:
+  natsAuthToken:
+    enabled: true
+    onepasswordItem: "nats-auth-<cluster>"
+```
+
+Create the matching 1Password item with a `token` field, and ESO will sync it to `messaging/nats-auth-token`.
+
+### Typesense admin key
+
+Typesense requires an admin key. The starter now fails fast if the chart is still using the placeholder value.
+
+For the 1Password/ESO path, disable the inline Secret and add this to `clusters/<cluster>/typesense-values.yaml`:
+
+```yaml
+typesense:
+  auth:
+    createSecret: false
+```
+
+Then add this to `clusters/<cluster>/bootstrap-secrets.yaml`:
+
+```yaml
+secrets:
+  typesenseAdminKey:
+    enabled: true
+    onepasswordItem: "typesense-admin-<cluster>"
+```
+
+Create the matching 1Password item with an `api_key` field, and ESO will sync it to `search/typesense-admin-key`.
 
 ### Typesense version
 

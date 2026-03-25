@@ -23,6 +23,8 @@ typesense:
 
   # Authentication
   auth:
+    createSecret: true
+    apiKey: "CHANGE-ME-use-external-secrets"
     apiKeySecretRef:
       name: typesense-admin-key
       key: api-key

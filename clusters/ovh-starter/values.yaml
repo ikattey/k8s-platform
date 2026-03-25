@@ -5,7 +5,7 @@ clusterIssuer: "letsencrypt-production"
 
 components:
   demoApp: true
-  cnpg: true
-  valkey: true
-  nats: true
-  typesense: true
+  cnpg: false
+  valkey: false
+  nats: false
+  typesense: false
