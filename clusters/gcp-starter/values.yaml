@@ -5,8 +5,3 @@ clusterIssuer: "letsencrypt-production"
 
 components:
   demoApp: true
-  cnpg: true
-  valkey: true
-  nats: true
-  typesense: true
-  velero: true

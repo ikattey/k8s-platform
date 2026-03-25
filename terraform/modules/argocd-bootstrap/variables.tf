@@ -170,7 +170,7 @@ variable "enable_grafana_oauth" {
 }
 
 variable "oidc_allowed_domains" {
-  description = "Email domain allowed to log in via OIDC/OAuth. Enforced by both ArgoCD (allowedDomains) and Grafana (allowed_domains)."
+  description = "Email domain for Grafana allowed_domains (safety net). ArgoCD does not support domain filtering — restrict access at the identity provider level instead."
   type        = string
   default     = ""
 }

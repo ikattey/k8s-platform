@@ -6,15 +6,16 @@ locals {
       }
       cm = var.enable_argocd_oidc ? {
         url = "https://argocd-${var.cluster_name}.${var.domain}"
-        "oidc.config" = yamlencode(merge({
-          name           = "SSO"
-          issuer         = var.oidc_issuer_url
-          clientID       = var.argocd_oidc_client_id
-          clientSecret   = "$argocd-oidc-secret:clientSecret"
+        # Note: ArgoCD's OIDC config does NOT support allowedDomains.
+        # Domain restriction must be enforced at the identity provider level
+        # (e.g., Google OAuth consent screen set to "Internal" for Workspace).
+        "oidc.config" = yamlencode({
+          name            = "SSO"
+          issuer          = var.oidc_issuer_url
+          clientID        = var.argocd_oidc_client_id
+          clientSecret    = "$argocd-oidc-secret:clientSecret"
           requestedScopes = ["openid", "email", "profile"]
-        }, var.oidc_allowed_domains != "" ? {
-          allowedDomains = [var.oidc_allowed_domains]
-        } : {}))
+        })
       } : {}
       rbac = var.enable_argocd_oidc ? {
         "policy.default" = "role:readonly"

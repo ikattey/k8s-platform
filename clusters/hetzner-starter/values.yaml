@@ -6,11 +6,3 @@ clusterIssuer: "letsencrypt-production"
 components:
   demoApp: true
   monitoring: true
-  grafanaOAuth: true
-  cnpg: true
-  valkey: true
-  nats: true
-  typesense: true
-
-grafanaOAuth:
-  allowedDomains: "masena.com"

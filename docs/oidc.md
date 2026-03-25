@@ -37,7 +37,9 @@ The kit defaults to Google as the identity provider. Create three separate OAuth
 
 Go to **Google Cloud Console > APIs & Services > OAuth consent screen** (or Google Auth Platform > Overview).
 
-- User type: **External** (for personal Google accounts). Use **Internal** if your team is on Google Workspace — this restricts login to your org domain automatically.
+- User type: **Internal** if your team is on Google Workspace — this is the primary security gate that restricts login to your org domain. Use **External** only for personal Google accounts or cross-org teams (requires adding test users manually).
+
+> **Important**: Setting the consent screen to Internal is the only reliable way to restrict which Google accounts can access ArgoCD, Grafana, and kubectl. Neither ArgoCD nor kubectl validate email domains — they trust any token issued by the identity provider. Grafana's `allowed_domains` provides an additional safety net but should not be relied upon as the sole gate.
 - Fill in App name, user support email, and developer contact email.
 - Scopes: add `email`, `profile`, `openid`.
 - For External apps, the app starts in **testing** mode. Add each team member's Google account as a test user under **Audience > Test users** before they log in. Publish the app to remove this restriction (requires OAuth verification for sensitive scopes, but `email`/`profile`/`openid` do not require verification).
@@ -80,7 +82,7 @@ export TF_VAR_oidc_issuer_url="https://accounts.google.com"
 export TF_VAR_kubectl_oidc_client_id=""
 export TF_VAR_kubectl_oidc_client_secret=""
 
-export TF_VAR_oidc_allowed_domains=""                # e.g. "example.com" — shared by ArgoCD + Grafana
+export TF_VAR_oidc_allowed_domains=""                # e.g. "example.com" — used by Grafana as safety net
 
 export TF_VAR_grafana_oauth_client_id=""
 export TF_VAR_grafana_oauth_client_secret=""
@@ -94,14 +96,12 @@ export TF_VAR_argocd_oidc_client_id=""
 export TF_VAR_argocd_oidc_client_secret=""
 ```
 
-`TF_VAR_oidc_allowed_domains` is required when ArgoCD OIDC or Grafana OAuth is
-enabled. It restricts Grafana login to users whose email matches the listed
-domains. For ArgoCD, `allowedDomains` is enforced when configured — it is
-passed through to the OIDC connector and will reject tokens whose email domain
-does not match. ArgoCD access is also controlled via RBAC (`policy.default` and
-`policy.csv` in `argocd-rbac-cm`). The OIDC configuration block is rendered
-using `yamlencode` to ensure correct YAML structure — do not hand-edit the
-`argocd-cm` OIDC field directly after Terraform manages it.
+`TF_VAR_oidc_allowed_domains` is used by Grafana as a safety net — it
+rejects logins from email domains that don't match. ArgoCD does **not**
+support domain filtering; any user who can authenticate with the identity
+provider gets at least `role:readonly` access. The primary domain gate must
+be configured at the identity provider level (e.g., Google OAuth consent
+screen set to "Internal" for Google Workspace). See the setup section above.
 
 ## kubectl OIDC
 
