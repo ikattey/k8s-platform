@@ -175,7 +175,7 @@ Expected portable aliases:
 - `fast-rwo` -> `gp3` with higher IOPS / throughput
 - `standard-rwo` -> baseline `gp3`
 
-If you enabled `storage_enabled = true` in Stage 1, you'll also see nodes labeled
+If you enabled `enable_storage_node_pool = true` in Stage 1, you'll also see nodes labeled
 `k8s-platform/pool-role=storage` and tainted `k8s-platform/pool-role=storage:NoSchedule`.
 By default, all workloads run on general nodes. See [node-pools.md](node-pools.md) for opt-in storage targeting.
 

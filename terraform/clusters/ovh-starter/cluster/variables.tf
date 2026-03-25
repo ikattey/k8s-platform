@@ -64,13 +64,13 @@ variable "cluster_name" {
 }
 
 variable "domain" {
-  description = "Base domain for the cluster. Used to derive globally-unique OVH Object Storage bucket names for Loki when enable_object_storage is true."
+  description = "Base domain for the cluster. Used to derive globally-unique OVH Object Storage bucket names for Loki when create_backup_bucket is true."
   type        = string
   default     = ""
 
   validation {
-    condition     = !var.enable_object_storage || var.domain != ""
-    error_message = "domain must be set when enable_object_storage is true (OVH Object Storage bucket names are globally unique)."
+    condition     = !var.create_backup_bucket || var.domain != ""
+    error_message = "domain must be set when create_backup_bucket is true (OVH Object Storage bucket names are globally unique)."
   }
 }
 
@@ -120,7 +120,7 @@ variable "autoscale" {
 
 # --- Storage Node Pool ---
 
-variable "enable_storage_pool" {
+variable "enable_storage_node_pool" {
   description = "Create a dedicated storage node pool with labels and taints"
   type        = bool
   default     = false
@@ -252,8 +252,8 @@ variable "environment" {
   default     = "production"
 }
 
-variable "enable_object_storage" {
-  description = "Enable OVH Object Storage for Loki"
+variable "create_backup_bucket" {
+  description = "Provision OVH Object Storage buckets for Loki and CNPG backups."
   type        = bool
   default     = true
 }

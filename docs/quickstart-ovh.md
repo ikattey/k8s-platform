@@ -137,7 +137,7 @@ cluster_name = "ovh-starter"
 domain       = "example.com"
 ```
 
-OVH defaults `enable_object_storage` to `true`, which provisions Loki and CNPG backup buckets automatically.
+OVH defaults `create_backup_bucket` to `true`, which provisions Loki and CNPG backup buckets automatically.
 
 ## 8. Push to fork
 

@@ -22,7 +22,7 @@ module "platform" {
   max_nodes     = var.max_nodes
   autoscale     = var.autoscale
 
-  enable_storage_pool   = var.enable_storage_pool
+  enable_storage_pool   = var.enable_storage_node_pool
   storage_flavor        = var.storage_flavor
   storage_desired_nodes = var.storage_desired_nodes
   storage_min_nodes     = var.storage_min_nodes
@@ -45,7 +45,7 @@ module "platform" {
   database_ip_restrictions = local.database_ip_restrictions
   environment              = var.environment
 
-  enable_object_storage = var.enable_object_storage
+  enable_object_storage = var.create_backup_bucket
   storage_region        = var.storage_region
 
   api_server_ip_restrictions = var.api_server_ip_restrictions

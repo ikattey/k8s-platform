@@ -15,10 +15,10 @@ Same key for both — tolerations always mirror `nodeSelector`. Workloads that s
 
 | Cloud | Variable | Where |
 |-------|----------|-------|
-| Hetzner | `enable_storage_nodes = true` | `terraform/clusters/<cluster>/cluster/terraform.tfvars` |
-| AWS | `storage_enabled = true` | `terraform/clusters/<cluster>/cluster/terraform.tfvars` |
+| Hetzner | `enable_storage_node_pool = true` | `terraform/clusters/<cluster>/cluster/terraform.tfvars` |
+| AWS | `enable_storage_node_pool = true` | `terraform/clusters/<cluster>/cluster/terraform.tfvars` |
 | GCP | `enable_storage_node_pool = true` | `terraform/clusters/<cluster>/cluster/terraform.tfvars` |
-| OVH | `enable_storage_pool = true` | `terraform/clusters/<cluster>/cluster/terraform.tfvars` |
+| OVH | `enable_storage_node_pool = true` | `terraform/clusters/<cluster>/cluster/terraform.tfvars` |
 
 ## How workloads target pools
 

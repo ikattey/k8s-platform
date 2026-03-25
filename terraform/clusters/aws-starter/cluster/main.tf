@@ -21,7 +21,7 @@ module "platform" {
   general_desired_size   = var.general_desired_size
   general_instance_types = var.general_instance_types
 
-  storage_enabled        = var.storage_enabled
+  storage_enabled        = var.enable_storage_node_pool
   storage_min_size       = var.storage_min_size
   storage_max_size       = var.storage_max_size
   storage_desired_size   = var.storage_desired_size

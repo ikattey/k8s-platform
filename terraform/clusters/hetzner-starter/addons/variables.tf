@@ -168,7 +168,7 @@ variable "onepassword_team_logins_vault_id" {
 variable "enable_storage_class_aliases" {
   description = "Create cloud-portable storage class aliases (fast-rwo, standard-rwo). Enable when storage nodes are configured."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "longhorn_replica_count" {
@@ -337,5 +337,4 @@ variable "cnpg_database_user" {
   type        = string
   default     = "app"
 }
-
 

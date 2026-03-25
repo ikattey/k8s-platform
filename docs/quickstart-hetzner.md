@@ -178,7 +178,7 @@ desired_nodes = 2
 Object storage is required for monitoring (Loki) and CNPG backups. To enable it, add to `terraform.tfvars`:
 
 ```hcl
-enable_object_storage = true
+create_backup_bucket = true
 ```
 
 Object storage requires two additional environment variables:
@@ -225,9 +225,9 @@ The kit supports dedicated storage nodes for Longhorn. Enable them in
 `terraform.tfvars`:
 
 ```hcl
-enable_storage_nodes = true
-storage_server_type  = "cax41"
-storage_node_count   = 2
+enable_storage_node_pool = true
+storage_server_type      = "cax41"
+storage_node_count       = 2
 ```
 
 Storage nodes are labeled `k8s-platform/pool-role=storage` and tainted
@@ -317,7 +317,7 @@ The included workflow handles both stages sequentially. You need admin access to
 
 > MicroOS snapshots (step 4) must exist in your Hetzner project before CI runs.
 >
-> The CI workflow does not set `TF_VAR_object_storage_access_key` or `TF_VAR_object_storage_secret_key`. If object storage is enabled, add these as GitHub secrets and update the workflow, or set `enable_object_storage = false`.
+> The CI workflow does not set `TF_VAR_object_storage_access_key` or `TF_VAR_object_storage_secret_key`. If `create_backup_bucket = true`, add these as GitHub secrets and update the workflow, or set `create_backup_bucket = false`.
 
 **1. Create a `production` environment** in Settings > Environments. Add required reviewers to gate applies.
 

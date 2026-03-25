@@ -40,13 +40,13 @@ variable "environment" {
 }
 
 variable "domain" {
-  description = "Base domain used to derive globally-unique object storage bucket names when Hetzner object storage is enabled."
+  description = "Base domain used to derive globally-unique object storage bucket names when create_backup_bucket is enabled."
   type        = string
   default     = ""
 
   validation {
-    condition     = !var.enable_object_storage || var.domain != ""
-    error_message = "domain must be set when enable_object_storage is true (e.g. example.com)."
+    condition     = !var.create_backup_bucket || var.domain != ""
+    error_message = "domain must be set when create_backup_bucket is true (e.g. example.com)."
   }
 }
 
@@ -104,7 +104,7 @@ variable "desired_nodes" {
 
 # --- Storage Nodes (optional) ---
 
-variable "enable_storage_nodes" {
+variable "enable_storage_node_pool" {
   description = "Enable dedicated Longhorn storage nodes with labels and taints"
   type        = bool
   default     = false
@@ -162,7 +162,7 @@ variable "oidc_username_prefix" {
 
 # --- Object Storage (Hetzner S3-compatible) ---
 
-variable "enable_object_storage" {
+variable "create_backup_bucket" {
   description = "Provision S3-compatible object storage buckets (Hetzner Object Storage)."
   type        = bool
   default     = false

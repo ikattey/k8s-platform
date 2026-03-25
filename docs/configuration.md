@@ -42,6 +42,15 @@ Build your `.env` from the split example files:
 - `TF_VAR_argocd_target_revision` — Git branch or tag ArgoCD tracks. Defaults to `main`.
 - `TF_VAR_cloud_provider` — required by the addons stage. Set to `ovh`, `hetzner`, `aws`, or `gcp` to match your cluster.
 
+### Common infrastructure toggles
+
+Use the same Stage 1 variable names on every cloud:
+
+- `create_backup_bucket` — provision object storage for Loki and CNPG backups
+- `enable_storage_node_pool` — add a dedicated node pool for stateful workloads
+
+Cloud-specific Terraform modules can still differ behind the scenes, but these are the user-facing knobs across OVH, Hetzner, AWS, and GCP.
+
 ### Team logins vault
 
 `TF_VAR_onepassword_team_logins_vault_id` controls where Terraform writes browser-login items for ArgoCD, Grafana, Prometheus, and Alertmanager. With OIDC enabled, items move to the infra vault as break-glass access; with OIDC disabled, they stay in the team logins vault as the primary login method.

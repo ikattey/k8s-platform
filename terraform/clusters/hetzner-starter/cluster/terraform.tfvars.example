@@ -31,9 +31,14 @@ desired_nodes = 2
 # oidc_client_id = "your-client-id.apps.googleusercontent.com"
 
 # Object Storage (Hetzner S3-compatible)
-# enable_object_storage      = true
+# create_backup_bucket       = true
 # object_storage_access_key  = ""  # Generated in Hetzner Cloud Console
 # object_storage_secret_key  = ""  # Generated in Hetzner Cloud Console
+
+# Storage node pool (optional)
+# enable_storage_node_pool = true
+# storage_server_type      = "cax41"
+# storage_node_count       = 2
 
 # Firewall (Hetzner restricts outbound traffic by default)
 # extra_firewall_rules = [

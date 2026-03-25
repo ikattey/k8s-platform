@@ -16,6 +16,9 @@ machine_type   = "e2-standard-4"
 # storage_max_node_count   = 2
 # storage_machine_type     = "n2-standard-2"
 
+# Backup bucket (optional; enabled by default)
+# create_backup_bucket     = true
+
 # Managed database options
 # database_provider          = "managed"  # or cnpg (default) or external
 # cloud_sql_tier            = "db-custom-2-4096"

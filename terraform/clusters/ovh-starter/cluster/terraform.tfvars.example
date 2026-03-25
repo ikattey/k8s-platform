@@ -34,8 +34,11 @@ max_nodes     = 5
 # database_flavor   = "db1-4"
 # database_ip_restrictions defaults to the cluster subnet if left unset.
 
+# Backup bucket (optional; enabled by default)
+# create_backup_bucket = true
+
 # Storage node pool (optional)
-# enable_storage_pool   = true
+# enable_storage_node_pool = true
 # storage_flavor        = "b3-8"
 # storage_desired_nodes = 1
 
