@@ -158,8 +158,17 @@ cnpg_instances    = 3
 Provide sensitive values through `TF_VAR_...` environment variables (already exported via `.env`).
 
 If you enable OIDC, set the Grafana / ArgoCD client IDs and secrets through
-`TF_VAR_...` variables. kubectl access on GCP uses
-`gcloud container clusters get-credentials`.
+`TF_VAR_...` variables.
+
+On GCP, this starter intentionally splits browser and cluster auth:
+
+- ArgoCD uses OIDC
+- Grafana uses OAuth / OIDC
+- `kubectl` uses `gcloud container clusters get-credentials`
+
+Do not configure `TF_VAR_kubectl_oidc_client_id` or
+`TF_VAR_kubectl_oidc_client_secret` on GCP. Leave them empty and use the GKE
+auth plugin path for `kubectl`.
 
 ## 10. Apply the addons stage
 

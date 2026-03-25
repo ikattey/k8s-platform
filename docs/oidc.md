@@ -32,6 +32,9 @@ Defaults in this repo are tuned for Google, but the flow is provider-agnostic.
 6. For **AWS**: use `aws eks update-kubeconfig --region <region> --name <cluster>`.
 7. For **GCP**: use `gcloud container clusters get-credentials <cluster> --location <location> --project <project>`.
 
+For GCP, OIDC in this starter applies to ArgoCD and Grafana only. `kubectl`
+uses the native GKE auth flow instead of a starter-managed kubectl OIDC client.
+
 See [credential-flow.md](credential-flow.md) for details on which 1Password
 items are created and when.
 
@@ -78,14 +81,17 @@ export TF_VAR_argocd_oidc_client_secret="<argocd-client-secret>"
 export TF_VAR_oidc_allowed_domains="your-domain.com"
 ```
 
-The `kubectl` client values are only used on OVH and Hetzner. The client ID is also needed in cluster `terraform.tfvars` (Stage 1) as `oidc_client_id`. For Hetzner, this must be set before the first apply.
+The `kubectl` client values are only used on OVH and Hetzner. Leave them empty
+on AWS and GCP. The client ID is also needed in cluster `terraform.tfvars`
+(Stage 1) as `oidc_client_id`. For Hetzner, this must be set before the first
+apply.
 
 ## Environment
 
 ```bash
 export TF_VAR_oidc_issuer_url="https://accounts.google.com"
 
-# OVH / Hetzner only:
+# OVH / Hetzner only. Leave empty on AWS / GCP:
 export TF_VAR_kubectl_oidc_client_id=""
 export TF_VAR_kubectl_oidc_client_secret=""
 
@@ -112,7 +118,9 @@ screen set to "Internal" for Google Workspace). See the setup section above.
 
 ## kubectl OIDC
 
-Supported only on OVH and Hetzner. AWS and GCP do not configure API-server OIDC in this starter.
+Supported only on OVH and Hetzner. AWS and GCP do not configure API-server OIDC
+in this starter, so `kubectl` does not use the same OIDC flow as ArgoCD or
+Grafana there.
 
 For OVH and Hetzner, Stage 1 must enable OIDC on the API server:
 
@@ -159,7 +167,9 @@ aws eks update-kubeconfig --region <region> --name <cluster>
 gcloud container clusters get-credentials <cluster> --location <location> --project <project>
 ```
 
-The starter does not publish a kubectl OIDC kubeconfig item for AWS or GCP.
+The starter does not publish a kubectl OIDC kubeconfig item for AWS or GCP. On
+GCP, run `gcloud container clusters get-credentials ...` and use the generated
+kubeconfig context directly.
 
 ## Grafana OAuth
 
