@@ -6,7 +6,7 @@ variable "bucket_prefix" {
 variable "bucket_names" {
   description = "Logical bucket names to create. Each gets prefixed with bucket_prefix."
   type        = list(string)
-  default     = ["loki-chunks", "loki-ruler", "cnpg-backups", "velero-backups"]
+  default     = ["loki-chunks", "loki-ruler", "cnpg-backups"]
 }
 
 variable "force_destroy" {

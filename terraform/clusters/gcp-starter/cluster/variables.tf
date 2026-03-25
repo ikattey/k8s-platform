@@ -124,7 +124,7 @@ variable "storage_disk_size_gb" {
 }
 
 variable "create_backup_bucket" {
-  description = "Create a shared GCS bucket for Loki, CNPG, and Velero"
+  description = "Create a shared GCS bucket for Loki and CNPG"
   type        = bool
   default     = true
 }

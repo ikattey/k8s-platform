@@ -25,9 +25,6 @@ lokiBucketNames:
   chunks: ""
   ruler: ""
 
-# Velero object storage bucket name (set by Terraform when object storage is provisioned)
-veleroBucketName: ""
-
 # Object storage details (set by Terraform when object storage is provisioned)
 objectStorage:
   # s3 for AWS / OVH / Hetzner S3-compatible storage, gcs for Google Cloud Storage
@@ -38,11 +35,8 @@ objectStorage:
 # CNPG backup bucket name (set by Terraform when object storage is provisioned)
 cnpgBackupBucketName: ""
 
-# GCP project ID (used for GCS- and snapshot-backed integrations such as Velero)
+# GCP project ID (used for GCS-backed integrations)
 gcpProjectId: ""
-
-# GCP service account email for Velero Workload Identity (set by Terraform for GCP clusters)
-veleroGcpServiceAccount: ""
 
 # Optional cloud-identity annotation value for the CNPG instance manager service account.
 cnpgServiceAccountAnnotationValue: ""
@@ -74,7 +68,6 @@ versions:
   alloy: "1.6.1"
   cnpgOperator: "0.27.1"
   valkey: "0.9.3"
-  velero: "8.4.0"
 
 # Toggle components on/off
 components:
@@ -90,7 +83,6 @@ components:
   platformAlerts: true
   argocdIngress: true
   demoApp: false
-  velero: false
   # Data layer (enable per-service as needed)
   cnpg: false
   valkey: false

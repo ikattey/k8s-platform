@@ -57,10 +57,9 @@ output "object_storage_region" {
 output "object_storage_bucket_names" {
   description = "Logical object storage bucket names"
   value = var.create_backup_bucket ? {
-    "loki-chunks"    = google_storage_bucket.backups[0].name
-    "loki-ruler"     = google_storage_bucket.backups[0].name
-    "cnpg-backups"   = google_storage_bucket.backups[0].name
-    "velero-backups" = google_storage_bucket.backups[0].name
+    "loki-chunks"  = google_storage_bucket.backups[0].name
+    "loki-ruler"   = google_storage_bucket.backups[0].name
+    "cnpg-backups" = google_storage_bucket.backups[0].name
   } : null
 }
 
@@ -79,7 +78,3 @@ output "monitoring_service_account_email" {
   value       = var.create_backup_bucket ? google_service_account.monitoring[0].email : null
 }
 
-output "velero_service_account_email" {
-  description = "Google service account email for Velero"
-  value       = var.create_backup_bucket ? google_service_account.velero[0].email : null
-}

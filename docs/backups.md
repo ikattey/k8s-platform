@@ -201,30 +201,6 @@ spec:
 
 Once the restore cluster is healthy, promote it by deleting the source reference and updating your application's database connection.
 
-## Velero
-
-Velero is available for cluster-level backup and data movement between clouds. Enable it with `velero: true` under `components:` in `clusters/<cluster>/values.yaml`.
-
-### Key configuration notes
-
-- **Chart format**: uses Velero chart v8 key format — `backupStorageLocation` (singular) with flat fields, not nested `spec:`. Cloud overlays follow this format.
-- **CSI plugin**: Velero v1.14+ includes CSI support natively. The standalone CSI init container is not installed.
-- **CRD upgrades**: `upgradeCRDs` is disabled because the bitnami/kubectl image uses full patch version tags that the chart's auto-detection cannot resolve. CRDs are managed via Helm's native `crds/` directory on fresh installs.
-
-### GCP: Workload Identity
-
-On GCP, Velero uses Workload Identity to access the backup bucket. Set `veleroGcpServiceAccount` in `clusters/gcp-starter/values.yaml`:
-
-```yaml
-veleroGcpServiceAccount: "velero@your-gcp-project.iam.gserviceaccount.com"
-```
-
-The Terraform addons stage creates this service account and the Workload Identity binding automatically when Velero is enabled. The bucket name is injected from `veleroBucketName` (set at bootstrap time). A `prefix: velero` is added to the BSL config to scope backup objects in the bucket.
-
-### OVH / Hetzner: S3
-
-Velero on S3-compatible clouds uses static credentials. The bucket and endpoint are injected by the ArgoCD template from `veleroBucketName` and `objectStorage.endpoint`.
-
 ## PostgreSQL tuning
 
 The CNPG chart auto-tunes PostgreSQL from pod memory limits:

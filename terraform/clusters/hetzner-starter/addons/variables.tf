@@ -339,16 +339,3 @@ variable "cnpg_database_user" {
 }
 
 
-variable "object_storage_access_key" {
-  description = "Hetzner Object Storage access key used for Velero when running File System Backup."
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "object_storage_secret_key" {
-  description = "Hetzner Object Storage secret key used for Velero when running File System Backup."
-  type        = string
-  sensitive   = true
-  default     = ""
-}

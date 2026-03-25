@@ -178,14 +178,6 @@ resource "kubectl_manifest" "root_application" {
                 value = var.cnpg_service_account_annotation_value
               },
               {
-                name  = "veleroBucketName"
-                value = var.velero_bucket_name
-              },
-              {
-                name  = "veleroGcpServiceAccount"
-                value = var.velero_gcp_service_account
-              },
-              {
                 name  = "onepasswordItemUuids.monitoringBasicAuth"
                 value = var.onepassword_monitoring_auth_item_uuid
               },

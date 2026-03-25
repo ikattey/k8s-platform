@@ -74,11 +74,6 @@ output "monitoring_storage_role_arn" {
   value       = module.platform.monitoring_storage_role_arn
 }
 
-output "velero_role_arn" {
-  description = "IRSA role ARN for Velero"
-  value       = module.platform.velero_role_arn
-}
-
 output "database_host" {
   description = "Managed database host when database_provider=managed"
   value       = var.database_provider == "managed" ? module.database[0].host : null

@@ -121,7 +121,7 @@ variable "storage_disk_type" {
 }
 
 variable "create_backup_bucket" {
-  description = "Create a GCS bucket for Loki, CNPG, and Velero"
+  description = "Create a GCS bucket for Loki and CNPG"
   type        = bool
   default     = true
 }

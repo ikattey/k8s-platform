@@ -131,7 +131,7 @@ variable "enable_spot_instances" {
 }
 
 variable "create_backup_bucket" {
-  description = "Create a shared S3 bucket for Loki, CNPG, and Velero"
+  description = "Create a shared S3 bucket for Loki and CNPG"
   type        = bool
   default     = true
 }

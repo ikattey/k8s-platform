@@ -76,23 +76,6 @@ Grafana applies the admin password at first startup only. To reset: re-run Stage
 
 Examine restore pod logs for WAL archival errors. Verify `wals/` segments exist in object storage.
 
-## Velero
-
-### Backup fails with credentials error on GCP
-
-Verify Workload Identity is configured. The Velero pod must use the `velero` service account, which must have Workload Identity annotations linking it to the GCP service account. Check:
-
-```bash
-kubectl get serviceaccount velero -n velero -o yaml
-kubectl logs -n velero deploy/velero | grep -i "error\|credential"
-```
-
-If `veleroGcpServiceAccount` is not set in `clusters/<cluster>/values.yaml`, the BSL config will not include the service account annotation and authentication will fail.
-
-### upgradeCRDs job fails
-
-`upgradeCRDs` is disabled because the chart's bitnami/kubectl image uses full patch version tags that the auto-detection logic cannot resolve. If you see CRD-related errors on a fresh install, confirm the Velero chart version in `argocd/values.yaml` matches the CRDs in `values/velero/crds/` (if any are vendored). On upgrade, manage CRDs manually or via the Helm `crds/` directory.
-
 ## Typesense
 
 ### Cluster fails to form (x86_64)

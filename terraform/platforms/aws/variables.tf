@@ -111,7 +111,7 @@ variable "storage_instance_types" {
 }
 
 variable "create_backup_bucket" {
-  description = "Create an S3 bucket for Loki, CNPG, and Velero"
+  description = "Create an S3 bucket for Loki and CNPG"
   type        = bool
   default     = true
 }

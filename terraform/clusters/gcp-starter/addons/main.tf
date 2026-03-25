@@ -487,8 +487,6 @@ module "argocd" {
   object_storage_endpoint               = try(data.terraform_remote_state.cluster.outputs.object_storage_endpoint, "")
   object_storage_region                 = try(data.terraform_remote_state.cluster.outputs.object_storage_region, "")
   cnpg_backup_bucket_name               = try(data.terraform_remote_state.cluster.outputs.object_storage_bucket_names["cnpg-backups"], "")
-  velero_bucket_name                    = try(data.terraform_remote_state.cluster.outputs.object_storage_bucket_names["velero-backups"], "")
-  velero_gcp_service_account            = try(data.terraform_remote_state.cluster.outputs.velero_service_account_email, "")
   gcp_project_id                        = try(data.terraform_remote_state.cluster.outputs.project_id, "")
   cnpg_service_account_annotation_value = try(data.terraform_remote_state.cluster.outputs.cnpg_service_account_email, "")
   enable_argocd_oidc                    = local.enable_argocd_oidc

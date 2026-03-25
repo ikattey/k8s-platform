@@ -23,5 +23,5 @@ variable "region" {
 variable "bucket_names" {
   description = "List of bucket names to create"
   type        = list(string)
-  default     = ["loki-chunks", "loki-ruler", "cnpg-backups", "velero-backups"]
+  default     = ["loki-chunks", "loki-ruler", "cnpg-backups"]
 }

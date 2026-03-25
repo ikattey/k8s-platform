@@ -62,10 +62,9 @@ output "object_storage_region" {
 output "object_storage_bucket_names" {
   description = "Logical object storage bucket names"
   value = var.create_backup_bucket ? {
-    "loki-chunks"    = aws_s3_bucket.backups[0].id
-    "loki-ruler"     = aws_s3_bucket.backups[0].id
-    "cnpg-backups"   = aws_s3_bucket.backups[0].id
-    "velero-backups" = aws_s3_bucket.backups[0].id
+    "loki-chunks"  = aws_s3_bucket.backups[0].id
+    "loki-ruler"   = aws_s3_bucket.backups[0].id
+    "cnpg-backups" = aws_s3_bucket.backups[0].id
   } : null
 }
 
@@ -79,7 +78,3 @@ output "monitoring_storage_role_arn" {
   value       = var.create_backup_bucket ? aws_iam_role.monitoring[0].arn : null
 }
 
-output "velero_role_arn" {
-  description = "IRSA role for Velero"
-  value       = var.create_backup_bucket ? aws_iam_role.velero[0].arn : null
-}

@@ -42,8 +42,6 @@ spec:
     - server: https://kubernetes.default.svc
       namespace: database
     - server: https://kubernetes.default.svc
-      namespace: velero
-    - server: https://kubernetes.default.svc
       namespace: demo
   clusterResourceWhitelist:
     - group: "*"

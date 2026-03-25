@@ -120,12 +120,6 @@ variable "object_storage_provider" {
   }
 }
 
-variable "velero_bucket_name" {
-  description = "Velero backup bucket name. Set by Terraform from the cluster stage when object storage is provisioned."
-  type        = string
-  default     = ""
-}
-
 variable "object_storage_region" {
   description = "S3 region/location for platform object storage. Set by Terraform from the cluster stage when object storage is provisioned."
   type        = string
@@ -217,8 +211,3 @@ variable "cnpg_service_account_annotation_value" {
   default     = ""
 }
 
-variable "velero_gcp_service_account" {
-  description = "GCP service account email for Velero Workload Identity (used in BackupStorageLocation config.serviceAccount)."
-  type        = string
-  default     = ""
-}

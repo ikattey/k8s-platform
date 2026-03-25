@@ -52,6 +52,3 @@ letsencrypt_email = "ops@your-company.com"
 # GHCR (GitHub Container Registry — private image pull)
 # ghcr_username = ""
 # ghcr_token    = ""
-
-# Velero (optional)
-# Enable components.velero in clusters/ovh-starter/values.yaml when you want PVC migration support.

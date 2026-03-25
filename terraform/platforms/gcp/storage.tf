@@ -52,13 +52,6 @@ resource "google_service_account" "monitoring" {
   display_name = "Monitoring storage for ${var.cluster_name}"
 }
 
-resource "google_service_account" "velero" {
-  count        = var.create_backup_bucket ? 1 : 0
-  project      = var.project_id
-  account_id   = "${substr(replace(var.cluster_name, "/[^a-z0-9-]/", "-"), 0, 20)}-velero"
-  display_name = "Velero for ${var.cluster_name}"
-}
-
 resource "google_storage_bucket_iam_member" "cnpg_bucket_access" {
   count  = var.create_backup_bucket ? 1 : 0
   bucket = google_storage_bucket.backups[0].name
@@ -73,9 +66,3 @@ resource "google_storage_bucket_iam_member" "monitoring_bucket_access" {
   member = "serviceAccount:${google_service_account.monitoring[0].email}"
 }
 
-resource "google_storage_bucket_iam_member" "velero_bucket_access" {
-  count  = var.create_backup_bucket ? 1 : 0
-  bucket = google_storage_bucket.backups[0].name
-  role   = "roles/storage.objectAdmin"
-  member = "serviceAccount:${google_service_account.velero[0].email}"
-}

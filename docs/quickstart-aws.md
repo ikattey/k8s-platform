@@ -2,7 +2,7 @@
 
 This quickstart provisions an EKS-based starter cluster, bootstraps ArgoCD,
 creates portable storage classes, and wires Cloudflare, 1Password, OIDC,
-CNPG, optional RDS, and optional Velero data movement.
+CNPG, and optional RDS.
 
 ## 1. Prerequisites
 
@@ -146,7 +146,7 @@ This stage bootstraps:
 - ArgoCD app-of-apps
 - bootstrap secrets for Cloudflare, Grafana, and optional OIDC
 - portable storage classes `fast-rwo` and `standard-rwo`
-- IRSA-backed service accounts for Loki and Velero
+- IRSA-backed service account for Loki
 
 ## 10. Enable components in GitOps
 
@@ -158,7 +158,6 @@ Example:
 components:
   demoApp: true
   cnpg: true
-  velero: true
   valkey: true
   nats: true
   typesense: true

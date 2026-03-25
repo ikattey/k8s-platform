@@ -50,30 +50,6 @@ data "aws_iam_policy_document" "monitoring_assume" {
   }
 }
 
-data "aws_iam_policy_document" "velero_assume" {
-  statement {
-    effect  = "Allow"
-    actions = ["sts:AssumeRoleWithWebIdentity"]
-
-    principals {
-      type        = "Federated"
-      identifiers = [module.eks.oidc_provider_arn]
-    }
-
-    condition {
-      test     = "StringEquals"
-      variable = "${local.oidc_provider_host}:sub"
-      values   = ["system:serviceaccount:velero:velero"]
-    }
-
-    condition {
-      test     = "StringEquals"
-      variable = "${local.oidc_provider_host}:aud"
-      values   = ["sts.amazonaws.com"]
-    }
-  }
-}
-
 resource "aws_iam_role" "cnpg" {
   count              = var.create_backup_bucket ? 1 : 0
   name               = "${var.cluster_name}-cnpg"
@@ -85,13 +61,6 @@ resource "aws_iam_role" "monitoring" {
   count              = var.create_backup_bucket ? 1 : 0
   name               = "${var.cluster_name}-loki"
   assume_role_policy = data.aws_iam_policy_document.monitoring_assume.json
-  tags               = local.tags
-}
-
-resource "aws_iam_role" "velero" {
-  count              = var.create_backup_bucket ? 1 : 0
-  name               = "${var.cluster_name}-velero"
-  assume_role_policy = data.aws_iam_policy_document.velero_assume.json
   tags               = local.tags
 }
 
@@ -144,44 +113,6 @@ data "aws_iam_policy_document" "monitoring_storage" {
   }
 }
 
-data "aws_iam_policy_document" "velero_storage" {
-  count = var.create_backup_bucket ? 1 : 0
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "s3:ListBucket",
-      "s3:GetBucketLocation",
-      "s3:ListBucketMultipartUploads"
-    ]
-    resources = [aws_s3_bucket.backups[0].arn]
-  }
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "s3:GetObject",
-      "s3:PutObject",
-      "s3:DeleteObject",
-      "s3:AbortMultipartUpload",
-      "s3:ListMultipartUploadParts"
-    ]
-    resources = ["${aws_s3_bucket.backups[0].arn}/velero/*"]
-  }
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "ec2:DescribeVolumes",
-      "ec2:DescribeSnapshots",
-      "ec2:CreateSnapshot",
-      "ec2:DeleteSnapshot",
-      "ec2:CreateTags"
-    ]
-    resources = ["*"]
-  }
-}
-
 resource "aws_iam_policy" "cnpg_storage" {
   count  = var.create_backup_bucket ? 1 : 0
   name   = "${var.cluster_name}-cnpg-storage"
@@ -193,13 +124,6 @@ resource "aws_iam_policy" "monitoring_storage" {
   count  = var.create_backup_bucket ? 1 : 0
   name   = "${var.cluster_name}-loki-storage"
   policy = data.aws_iam_policy_document.monitoring_storage[0].json
-  tags   = local.tags
-}
-
-resource "aws_iam_policy" "velero_storage" {
-  count  = var.create_backup_bucket ? 1 : 0
-  name   = "${var.cluster_name}-velero-storage"
-  policy = data.aws_iam_policy_document.velero_storage[0].json
   tags   = local.tags
 }
 
@@ -215,8 +139,3 @@ resource "aws_iam_role_policy_attachment" "monitoring_storage" {
   policy_arn = aws_iam_policy.monitoring_storage[0].arn
 }
 
-resource "aws_iam_role_policy_attachment" "velero_storage" {
-  count      = var.create_backup_bucket ? 1 : 0
-  role       = aws_iam_role.velero[0].name
-  policy_arn = aws_iam_policy.velero_storage[0].arn
-}

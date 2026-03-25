@@ -94,11 +94,6 @@ output "monitoring_service_account_email" {
   value       = module.platform.monitoring_service_account_email
 }
 
-output "velero_service_account_email" {
-  description = "Google service account email used for Velero"
-  value       = module.platform.velero_service_account_email
-}
-
 output "database_host" {
   description = "Managed database host when database_provider=managed"
   value       = var.database_provider == "managed" ? module.database[0].host : null
