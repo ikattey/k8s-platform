@@ -11,5 +11,5 @@ tokenSecret:
 # 1Password SDK client-side cache
 cache:
   enabled: true
-  ttl: "1h"
+  ttl: "5m"
   maxSize: 100

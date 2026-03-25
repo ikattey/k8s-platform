@@ -7,10 +7,8 @@ secretStoreKind: ClusterSecretStore
 onepasswordVaultId: ""
 
 # How often ESO should refresh these secrets.
-# These are mostly static (credentials, tokens) so a longer interval
-# avoids 1Password API rate limits when multiple clusters share the
-# same service account.
-refreshInterval: 1h
+# Keep this relatively short so initial bootstrap converges quickly.
+refreshInterval: 5m
 
 # Each secret to sync from 1Password
 # Keys match the 1Password item title

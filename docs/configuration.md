@@ -33,6 +33,8 @@ Build your `.env` from the split example files:
 
 `OP_SERVICE_ACCOUNT_TOKEN` is auto-aliased from `TF_VAR_onepassword_service_account_token`; set the value once.
 
+> **Multi-cluster note:** If you run multiple clusters, use a separate 1Password service account per cluster. The 1Password SDK has daily rate limits, and sharing a single service account across clusters causes ExternalSecret sync failures when the combined refresh traffic exceeds the quota.
+
 ### Bootstrap
 
 - `TF_VAR_cloudflare_api_token` — Cloudflare API token with DNS edit permissions
@@ -60,6 +62,9 @@ Set this to the same vault as your infra vault, or a separate vault shared with 
 ## OIDC timing
 
 Configure OIDC before the first cluster apply if using SSO. On Hetzner, OIDC flags are baked into k3s at install time and cannot be changed later. See [oidc.md](oidc.md).
+
+On GCP, this OIDC setup covers ArgoCD and Grafana only. `kubectl` access uses
+`gcloud container clusters get-credentials`, not the kubectl OIDC client flow.
 
 ## CI credential mapping
 
