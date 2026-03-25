@@ -216,5 +216,5 @@ variable "rds_multi_az" {
 variable "deletion_protection" {
   description = "Protect RDS from accidental deletion"
   type        = bool
-  default     = true
+  default     = false
 }

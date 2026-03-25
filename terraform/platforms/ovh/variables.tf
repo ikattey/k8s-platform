@@ -9,7 +9,7 @@ variable "cluster_name" {
 }
 
 variable "domain" {
-  description = "Base domain for the cluster. Used to derive globally-unique OVH Object Storage bucket names when enable_object_storage is true."
+  description = "Base domain for the cluster. Used to derive globally-unique OVH Object Storage bucket names when create_backup_bucket is true."
   type        = string
   default     = ""
 }
@@ -58,7 +58,7 @@ variable "autoscale" {
 }
 
 # Storage Node Pool
-variable "enable_storage_pool" {
+variable "enable_storage_node_pool" {
   description = "Create a dedicated storage node pool with labels and taints"
   type        = bool
   default     = false
@@ -188,7 +188,7 @@ variable "environment" {
   default     = "production"
 }
 
-variable "enable_object_storage" {
+variable "create_backup_bucket" {
   description = "Enable OVH Object Storage for Loki log storage and CNPG backups"
   type        = bool
   default     = true

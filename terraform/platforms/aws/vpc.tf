@@ -17,10 +17,12 @@ module "vpc" {
   name = "${var.cluster_name}-vpc"
   cidr = var.vpc_cidr
 
-  azs             = local.azs
+  azs = local.azs
+  # Reserve distinct /20 ranges for private, public, and control-plane subnets
+  # so the layout scales cleanly to 6 AZs without overlap.
   private_subnets = [for idx, _ in local.azs : cidrsubnet(var.vpc_cidr, 4, idx)]
-  public_subnets  = [for idx, _ in local.azs : cidrsubnet(var.vpc_cidr, 8, idx + 48)]
-  intra_subnets   = [for idx, _ in local.azs : cidrsubnet(var.vpc_cidr, 8, idx + 52)]
+  public_subnets  = [for idx, _ in local.azs : cidrsubnet(var.vpc_cidr, 4, idx + 6)]
+  intra_subnets   = [for idx, _ in local.azs : cidrsubnet(var.vpc_cidr, 4, idx + 12)]
 
   enable_nat_gateway   = true
   single_nat_gateway   = var.single_nat_gateway

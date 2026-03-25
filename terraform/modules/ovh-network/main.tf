@@ -4,6 +4,13 @@ data "openstack_networking_network_v2" "ext_net" {
   external = true
 }
 
+locals {
+  subnet_prefix_length  = tonumber(split("/", var.subnet_cidr)[1])
+  subnet_host_capacity  = pow(2, 32 - local.subnet_prefix_length)
+  allocation_pool_start = cidrhost(var.subnet_cidr, 10)
+  allocation_pool_end   = cidrhost(var.subnet_cidr, local.subnet_host_capacity - 6)
+}
+
 resource "openstack_networking_network_v2" "private" {
   name           = var.network_name
   region         = var.region
@@ -22,8 +29,8 @@ resource "openstack_networking_subnet_v2" "private" {
   no_gateway = false
 
   allocation_pool {
-    start = cidrhost(var.subnet_cidr, 10)
-    end   = cidrhost(var.subnet_cidr, 250)
+    start = local.allocation_pool_start
+    end   = local.allocation_pool_end
   }
 }
 

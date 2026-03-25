@@ -225,13 +225,13 @@ locals {
   #   instances = 1           → -r (all-instances service; -ro has zero endpoints)
   cnpg_rw_host = var.cnpg_enabled ? format("%s.%s.svc.cluster.local",
     var.cnpg_pooler_enabled ? "${var.cnpg_cluster_name}-pooler-rw" : "${var.cnpg_cluster_name}-rw",
-    var.cnpg_namespace
+    "database"
   ) : null
   cnpg_ro_host = var.cnpg_enabled ? format("%s.%s.svc.cluster.local",
     var.cnpg_instances > 1
     ? (var.cnpg_pooler_enabled ? "${var.cnpg_cluster_name}-pooler-ro" : "${var.cnpg_cluster_name}-ro")
     : "${var.cnpg_cluster_name}-r",
-    var.cnpg_namespace
+    "database"
   ) : null
 
   # Managed DB takes priority when available (both paths won't be active simultaneously).
@@ -359,7 +359,7 @@ resource "kubectl_manifest" "database_namespace" {
     apiVersion = "v1"
     kind       = "Namespace"
     metadata = {
-      name = var.cnpg_namespace
+      name = "database"
       labels = {
         "app.kubernetes.io/managed-by" = "terraform-bootstrap"
       }
@@ -393,7 +393,7 @@ resource "kubernetes_secret_v1" "cnpg_bootstrap_credentials" {
 
   metadata {
     name      = "postgres-app-bootstrap"
-    namespace = var.cnpg_namespace
+    namespace = "database"
     labels = {
       "app.kubernetes.io/managed-by" = "terraform-bootstrap"
       "app.kubernetes.io/component"  = "database"

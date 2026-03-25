@@ -43,7 +43,7 @@ module "nodepool" {
 }
 
 module "storage_nodepool" {
-  count  = var.enable_storage_pool ? 1 : 0
+  count  = var.enable_storage_node_pool ? 1 : 0
   source = "../../modules/ovh-nodepool"
 
   project_id    = var.project_id
@@ -89,7 +89,7 @@ locals {
 }
 
 module "object_storage" {
-  count  = var.enable_object_storage ? 1 : 0
+  count  = var.create_backup_bucket ? 1 : 0
   source = "../../modules/ovh-object-storage"
 
   project_id    = var.project_id

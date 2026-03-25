@@ -20,6 +20,7 @@ module "eks" {
   endpoint_public_access       = var.cluster_endpoint_public_access
   endpoint_private_access      = var.cluster_endpoint_private_access
   endpoint_public_access_cidrs = var.cluster_endpoint_public_access_cidrs
+  authentication_mode          = "API_AND_CONFIG_MAP"
 
   enable_cluster_creator_admin_permissions = true
   access_entries                           = var.access_entries

@@ -96,6 +96,7 @@ Optional managed PostgreSQL:
 database_provider = "managed"
 rds_instance_class = "db.t4g.small"
 rds_multi_az       = false
+deletion_protection = false
 ```
 
 ## 7. Apply the cluster stage
@@ -213,6 +214,9 @@ terraform -chdir=terraform/clusters/aws-starter/cluster destroy -auto-approve
 ```
 
 Destroy includes intentional pauses (60s for external-secrets cleanup, 180s for ArgoCD) -- expect it to take several minutes. If destroy fails with a timeout after the pauses, re-run the same command -- transient API errors are common.
+
+If you enabled RDS deletion protection manually, set `deletion_protection = false`
+and apply the cluster stage before running `terraform destroy`.
 
 Delete stale `heritage=external-dns` TXT records in your Cloudflare dashboard before redeploying to the same domain.
 

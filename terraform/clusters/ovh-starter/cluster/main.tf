@@ -22,11 +22,11 @@ module "platform" {
   max_nodes     = var.max_nodes
   autoscale     = var.autoscale
 
-  enable_storage_pool   = var.enable_storage_node_pool
-  storage_flavor        = var.storage_flavor
-  storage_desired_nodes = var.storage_desired_nodes
-  storage_min_nodes     = var.storage_min_nodes
-  storage_max_nodes     = var.storage_max_nodes
+  enable_storage_node_pool = var.enable_storage_node_pool
+  storage_flavor           = var.storage_flavor
+  storage_desired_nodes    = var.storage_desired_nodes
+  storage_min_nodes        = var.storage_min_nodes
+  storage_max_nodes        = var.storage_max_nodes
 
   enable_oidc          = var.enable_oidc
   oidc_client_id       = var.oidc_client_id
@@ -45,8 +45,8 @@ module "platform" {
   database_ip_restrictions = local.database_ip_restrictions
   environment              = var.environment
 
-  enable_object_storage = var.create_backup_bucket
-  storage_region        = var.storage_region
+  create_backup_bucket = var.create_backup_bucket
+  storage_region       = var.storage_region
 
   api_server_ip_restrictions = var.api_server_ip_restrictions
 }

@@ -21,7 +21,7 @@ locals {
         }
       }
     },
-    var.storage_enabled ? {
+    var.enable_storage_node_pool ? {
       storage = {
         name           = "storage"
         instance_types = var.storage_instance_types

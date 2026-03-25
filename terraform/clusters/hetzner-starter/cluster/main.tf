@@ -20,9 +20,9 @@ module "platform" {
   server_type               = var.server_type
   desired_nodes             = var.desired_nodes
 
-  enable_storage_nodes = var.enable_storage_node_pool
-  storage_server_type  = var.storage_server_type
-  storage_node_count   = var.storage_node_count
+  enable_storage_node_pool = var.enable_storage_node_pool
+  storage_server_type      = var.storage_server_type
+  storage_node_count       = var.storage_node_count
 
   enable_oidc          = var.enable_oidc
   oidc_client_id       = var.oidc_client_id

@@ -69,27 +69,27 @@ output "database_password" {
 
 output "object_storage_access_key" {
   description = "S3 access key for object storage"
-  value       = var.enable_object_storage ? module.object_storage[0].access_key : null
+  value       = var.create_backup_bucket ? module.object_storage[0].access_key : null
   sensitive   = true
 }
 
 output "object_storage_secret_key" {
   description = "S3 secret key for object storage"
-  value       = var.enable_object_storage ? module.object_storage[0].secret_key : null
+  value       = var.create_backup_bucket ? module.object_storage[0].secret_key : null
   sensitive   = true
 }
 
 output "object_storage_endpoint" {
   description = "S3 endpoint for object storage"
-  value       = var.enable_object_storage ? module.object_storage[0].endpoint : null
+  value       = var.create_backup_bucket ? module.object_storage[0].endpoint : null
 }
 
 output "object_storage_region" {
   description = "S3 region (lowercase)"
-  value       = var.enable_object_storage ? module.object_storage[0].region : null
+  value       = var.create_backup_bucket ? module.object_storage[0].region : null
 }
 
 output "object_storage_bucket_names" {
   description = "Map of logical to actual bucket names"
-  value       = var.enable_object_storage ? module.object_storage[0].bucket_names : null
+  value       = var.create_backup_bucket ? module.object_storage[0].bucket_names : null
 }

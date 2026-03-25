@@ -80,7 +80,7 @@ variable "general_instance_types" {
   default     = ["m5.large", "m5a.large", "m6i.large", "m6a.large"]
 }
 
-variable "storage_enabled" {
+variable "enable_storage_node_pool" {
   description = "Create a dedicated storage node group. Enable when running CNPG or other stateful workloads that need dedicated storage nodes."
   type        = bool
   default     = false

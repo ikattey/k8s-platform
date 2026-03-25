@@ -302,12 +302,6 @@ variable "cnpg_enabled" {
   default     = false
 }
 
-variable "cnpg_namespace" {
-  description = "Namespace where the CNPG cluster is deployed. Must match the namespace in argocd/templates/data.yaml (cnpg-cluster destination)."
-  type        = string
-  default     = "database"
-}
-
 variable "cnpg_cluster_name" {
   description = "CNPG cluster name used for service discovery."
   type        = string
@@ -337,4 +331,3 @@ variable "cnpg_database_user" {
   type        = string
   default     = "app"
 }
-

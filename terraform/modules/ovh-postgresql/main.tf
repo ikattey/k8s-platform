@@ -13,7 +13,7 @@ resource "ovh_cloud_project_database" "postgresql" {
   }
 
   dynamic "nodes" {
-    for_each = var.plan == "business" ? [1] : []
+    for_each = var.plan == "business" ? [1] : var.plan == "enterprise" ? [1, 2] : []
     content {
       region     = var.region
       network_id = var.network_id

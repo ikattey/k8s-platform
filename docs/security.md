@@ -31,7 +31,11 @@ master_authorized_cidr_blocks = [
 
 ### Hetzner (kube-hetzner)
 
-The kube-hetzner module manages firewall rules. Add API server restrictions via `extra_firewall_rules` in the cluster variables.
+This starter does not currently expose kube-hetzner's `firewall_kube_api_source`
+input as a first-class Stage 1 variable. `extra_firewall_rules` is for the node
+firewall and is not an API-server allowlist. If you need Hetzner API
+restriction, add `firewall_kube_api_source` to the underlying kube-hetzner
+configuration in a follow-up change.
 
 ### OVH
 

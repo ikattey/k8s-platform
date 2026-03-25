@@ -5,10 +5,17 @@ service:
 
 # OVH's OpenStack load balancer injects PROXY protocol headers. Traefik must be
 # configured to parse them; otherwise external traffic returns 400.
+# Trust only OVH LB source ranges instead of accepting forged PROXY headers
+# from arbitrary clients. OVH's ProxyProtocol guide uses 10.108.0.0/14 as the
+# documented outbound range for the load balancer service.
 ports:
   web:
     proxyProtocol:
-      insecure: true
+      trustedIPs:
+        - 127.0.0.1/32
+        - 10.108.0.0/14
   websecure:
     proxyProtocol:
-      insecure: true
+      trustedIPs:
+        - 127.0.0.1/32
+        - 10.108.0.0/14

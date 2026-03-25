@@ -21,12 +21,12 @@ module "platform" {
   general_desired_size   = var.general_desired_size
   general_instance_types = var.general_instance_types
 
-  storage_enabled        = var.enable_storage_node_pool
-  storage_min_size       = var.storage_min_size
-  storage_max_size       = var.storage_max_size
-  storage_desired_size   = var.storage_desired_size
-  storage_instance_types = var.storage_instance_types
-  enable_spot_instances  = var.enable_spot_instances
+  enable_storage_node_pool = var.enable_storage_node_pool
+  storage_min_size         = var.storage_min_size
+  storage_max_size         = var.storage_max_size
+  storage_desired_size     = var.storage_desired_size
+  storage_instance_types   = var.storage_instance_types
+  enable_spot_instances    = var.enable_spot_instances
 
   create_backup_bucket             = var.create_backup_bucket
   force_destroy_backup_bucket      = var.force_destroy_backup_bucket
