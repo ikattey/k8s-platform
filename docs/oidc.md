@@ -96,9 +96,12 @@ export TF_VAR_argocd_oidc_client_secret=""
 
 `TF_VAR_oidc_allowed_domains` is required when ArgoCD OIDC or Grafana OAuth is
 enabled. It restricts Grafana login to users whose email matches the listed
-domains. ArgoCD does not support domain filtering natively — access is
-controlled via RBAC (`policy.default` and `policy.csv` in `argocd-rbac-cm`).
-To restrict ArgoCD by domain, configure the Google OAuth consent screen scoped to your Workspace domain.
+domains. For ArgoCD, `allowedDomains` is enforced when configured — it is
+passed through to the OIDC connector and will reject tokens whose email domain
+does not match. ArgoCD access is also controlled via RBAC (`policy.default` and
+`policy.csv` in `argocd-rbac-cm`). The OIDC configuration block is rendered
+using `yamlencode` to ensure correct YAML structure — do not hand-edit the
+`argocd-cm` OIDC field directly after Terraform manages it.
 
 ## kubectl OIDC
 

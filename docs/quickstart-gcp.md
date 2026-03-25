@@ -194,6 +194,16 @@ components:
 For production, switch the cluster issuer from staging to production once DNS
 and routing are verified.
 
+### Velero on GCP
+
+When `velero: true`, the addons stage creates a dedicated GCP service account and Workload Identity binding. Set the service account email in `clusters/gcp-starter/values.yaml`:
+
+```yaml
+veleroGcpServiceAccount: "velero@your-gcp-project.iam.gserviceaccount.com"
+```
+
+The bucket name is read from `veleroBucketName` (set by Terraform at bootstrap). Velero v1.14+ includes CSI support natively — no additional init container is needed. See [backups.md](backups.md#velero) for full configuration details.
+
 ## 12. Verify storage classes and storage nodes
 
 ```bash

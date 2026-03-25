@@ -14,6 +14,16 @@
   - `bootstrap-secrets.yaml`
   - `required-values.yaml` — validates required values at render time
 
+### Template behavior
+
+**Demo app** — uses `valuesObject` in the ArgoCD template to inject ingress host, TLS, cluster issuer, and data-layer service flags. There are no per-cluster `demo-app-values.yaml` files. All demo app customization goes in `clusters/<cluster>/values.yaml` under `components:`.
+
+**Loki and Traefik** — use `ignoreMissingValueFiles: true` so cloud-specific overlay files (e.g. `values-ovh.yaml`) are optional and silently skipped when absent.
+
+**External-DNS** — `txtOwnerId` and `domainFilters` are injected from `clusterName` and `domain` values in `clusters/<cluster>/values.yaml`. No manual configuration in the external-dns values files.
+
+**Cert issuer** — the cluster issuer (`clusterIssuer`) is read from `clusters/<cluster>/values.yaml` and injected into all ingress annotations by the template. Change it there, not in individual component values.
+
 ## Sync order
 
 ArgoCD sync waves control deployment order. Lower waves deploy first.

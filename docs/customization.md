@@ -3,7 +3,7 @@
 ## Where to change things
 
 - `argocd/values.yaml`: shared defaults
-- `clusters/<cluster>/values.yaml`: per-cluster overrides
+- `clusters/<cluster>/values.yaml`: per-cluster overrides, including `components:` flags
 - `clusters/<cluster>/cnpg-values.yaml`: per-cluster CNPG overrides (database name, storage size, replicas, backup schedule, pooler settings, node targeting)
 - `clusters/<cluster>/typesense-values.yaml`: per-cluster Typesense overrides (storage class, node targeting)
 - `clusters/<cluster>/nats-values.yaml`: per-cluster NATS overrides (storage class, node targeting)
@@ -11,6 +11,8 @@
 - `values/<component>/values-<cloud>.yaml`: cloud-specific component overrides
 - `terraform/clusters/<cluster>/cluster/terraform.tfvars`: cloud and cluster infrastructure
 - `terraform/clusters/<cluster>/addons/terraform.tfvars`: ArgoCD bootstrap inputs
+
+The demo app does not use per-cluster values files. Its ingress, TLS, cluster issuer, and data-layer flags are injected by the ArgoCD template from `clusters/<cluster>/values.yaml` via `components:` flags. There is no `demo-app-values.yaml` per cluster.
 
 ## Component toggles
 
@@ -63,6 +65,8 @@ components:
   demoApp: true
 ```
 
+When enabled, the demo app checks health for all five data-layer services (postgres-write, postgres-read, valkey, typesense, nats). A service only appears in the health check when its corresponding `components:` flag is true. The image is multi-arch (amd64 + arm64) and hosted publicly — no `imagePullSecrets` are needed.
+
 ### Enable CNPG
 
 Set `cnpg: true` in `clusters/<cluster>/values.yaml` and `cnpg_enabled = true` in your addons `terraform.tfvars`:
@@ -81,6 +85,42 @@ cnpg_enabled = true
 CNPG backups require object storage. Set `enable_object_storage = true` in your cluster `terraform.tfvars` if it isn't already. See [backups.md](backups.md) for backup configuration.
 
 CNPG uses the cluster's default storage class. For higher I/O performance, opt in to `fast-rwo` in your per-cluster `cnpg-values.yaml` — see [Storage classes](#storage-classes) below. On Hetzner, this requires `enable_storage_class_aliases = true` in your addons `terraform.tfvars`; on AWS/GCP the aliases are always available.
+
+### NATS authentication
+
+NATS ships with auth disabled by default for simplicity. For production, enable token auth and provide the token via ESO:
+
+```yaml
+# values/nats/values.yaml (or a per-cluster override)
+nats:
+  auth:
+    enabled: true
+    tokenSecretRef:
+      name: nats-auth-token
+      key: token
+```
+
+Create a 1Password item with the token, add it to `clusters/<cluster>/bootstrap-secrets.yaml`, and ESO will sync it to `messaging/nats-auth-token`.
+
+### Typesense version
+
+Typesense is pinned to **v29.0**. v30.1 has a known segfault on x86_64 — do not upgrade to v30.x until an upstream fix is confirmed. To upgrade, update `typesense.image` in `values/typesense/values.yaml`:
+
+```yaml
+typesense:
+  image: typesense/typesense:29.0
+```
+
+Check the [Typesense changelog](https://typesense.org/docs/guide/updating-typesense.html) before bumping versions.
+
+### External-DNS ownership and domain scope
+
+`txtOwnerId` and `domainFilters` are injected automatically per cluster by the ArgoCD template:
+
+- `txtOwnerId` is set to `k8s-platform-<clusterName>` — prevents DNS record conflicts when multiple clusters share the same Cloudflare account.
+- `domainFilters` is scoped to `<domain>` from your cluster values — prevents one cluster from deleting DNS records owned by another cluster.
+
+These are not set in `values/external-dns/values.yaml`. Do not add them there; they are always overridden by the template.
 
 ### Change Traefik or monitoring values
 

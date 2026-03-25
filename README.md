@@ -22,7 +22,7 @@ Terraform + ArgoCD starter kit for production Kubernetes. Fork this repo, follow
 - **Monitoring and logging** — Grafana, Prometheus, and Loki (with S3 backend), plus pre-configured alerts.
 - **Secret management via 1Password** — External Secrets Operator syncs secrets from 1Password into Kubernetes. See [credential-flow.md](docs/credential-flow.md).
 - **GitOps** — ArgoCD polls your fork and syncs the cluster state via the app-of-apps pattern.
-- **Demo app** — verifies ingress, DNS, and TLS end-to-end.
+- **Demo app** — verifies ingress, DNS, and TLS end-to-end. When data-layer components are enabled, shows a health status for each: postgres-write, postgres-read, valkey, typesense, and nats. Multi-arch (amd64 + arm64), no imagePullSecrets needed.
 
 An optional data layer (CloudNativePG, Valkey, Typesense, NATS) is included but disabled by default. See [customization.md](docs/customization.md).
 

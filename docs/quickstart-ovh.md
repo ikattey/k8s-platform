@@ -280,7 +280,7 @@ echo
 
 To enable CNPG, set `cnpg: true` under `components:` in `clusters/ovh-starter/values.yaml` and `cnpg_enabled = true` in addons `terraform.tfvars`. CNPG backups require object storage (set in Stage 1).
 
-For a private demo app image, create an `imagePullSecret` in the `demo` namespace before enabling `demoApp`.
+The demo app image is public and multi-arch (amd64 + arm64). No `imagePullSecrets` are required.
 
 ### Networking
 
