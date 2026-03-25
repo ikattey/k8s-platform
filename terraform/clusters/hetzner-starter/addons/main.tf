@@ -493,6 +493,7 @@ module "argocd" {
   onepassword_cloudflare_item_uuid      = try(onepassword_item.cloudflare_dns[0].uuid, "")
   onepassword_argocd_oidc_item_uuid     = try(onepassword_item.argocd_oidc[0].uuid, "")
   onepassword_monitoring_auth_item_uuid = try(onepassword_item.monitoring_basic_auth[0].uuid, "")
+  onepassword_database_item_uuid        = try(onepassword_item.database_credentials[0].uuid, "")
   domain                                = var.domain
   loki_bucket_chunks                    = try(data.terraform_remote_state.cluster.outputs.object_storage_bucket_names["loki-chunks"], "")
   loki_bucket_ruler                     = try(data.terraform_remote_state.cluster.outputs.object_storage_bucket_names["loki-ruler"], "")
