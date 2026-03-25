@@ -132,6 +132,12 @@ variable "onepassword_monitoring_auth_item_uuid" {
   default     = ""
 }
 
+variable "onepassword_database_item_uuid" {
+  description = "Optional: 1Password item UUID for database-* bootstrap secret lookup."
+  type        = string
+  default     = ""
+}
+
 variable "enable_argocd_oidc" {
   description = "Enable ArgoCD OIDC configuration during initial Helm bootstrap."
   type        = bool

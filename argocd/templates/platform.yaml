@@ -84,6 +84,7 @@ spec:
       helm:
         valuesObject:
           onepasswordItemName: {{ printf "monitoring-basic-auth-%s" .Values.clusterName | quote }}
+          onepasswordItemUuid: {{ .Values.onepasswordItemUuids.monitoringBasicAuth | quote }}
           onepasswordVaultId: {{ .Values.onepasswordVaultId | quote }}
     - repoURL: {{ .Values.repoURL }}
       targetRevision: {{ .Values.targetRevision }}
@@ -127,6 +128,8 @@ spec:
           - $values/values/external-dns/values-{{ .Values.cloudProvider }}.yaml
         valuesObject:
           txtOwnerId: {{ printf "k8s-platform-%s" .Values.clusterName | quote }}
+          extraArgs:
+            txt-owner-id-old: k8s-platform
           domainFilters:
             - {{ .Values.domain | quote }}
     - repoURL: {{ .Values.repoURL }}

@@ -7,6 +7,9 @@
 # 1Password item name for the monitoring-basic-auth secret
 onepasswordItemName: ""
 
+# Optional: pin to a specific 1Password item UUID to avoid duplicate-title lookups.
+onepasswordItemUuid: ""
+
 # 1Password vault UUID or name for op:// references (set by ArgoCD)
 onepasswordVaultId: ""
 

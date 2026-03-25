@@ -178,6 +178,10 @@ resource "kubectl_manifest" "root_application" {
                 value = var.onepassword_monitoring_auth_item_uuid
               },
               {
+                name  = "onepasswordItemUuids.database"
+                value = var.onepassword_database_item_uuid
+              },
+              {
                 name  = "components.grafanaOAuth"
                 value = tostring(var.enable_grafana_oauth)
               },

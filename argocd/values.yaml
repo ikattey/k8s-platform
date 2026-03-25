@@ -20,6 +20,14 @@ environment: "production"
 # "letsencrypt-production" once routing and DNS are verified.
 clusterIssuer: "letsencrypt-staging"
 
+# ACME challenge solver used by the cert-manager issuers chart.
+# Supported values:
+# - http01
+# - dns01-cloudflare
+issuerSolver: "http01"
+issuerCloudflareApiTokenSecretName: "cloudflare-api-token"
+issuerCloudflareApiTokenSecretKey: "cloudflare_api_token"
+
 # Loki object storage bucket names (set by Terraform when object storage is provisioned)
 lokiBucketNames:
   chunks: ""
@@ -52,6 +60,7 @@ onepasswordItemUuids:
   grafanaAdmin: ""
   cloudflareApiToken: ""
   monitoringBasicAuth: ""
+  database: ""
   grafanaOAuth: ""
   argocdOidc: ""
 

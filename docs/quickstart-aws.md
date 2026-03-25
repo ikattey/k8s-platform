@@ -55,6 +55,11 @@ cat .env.oidc.example >> .env      # SSO for Grafana and ArgoCD
 cat .env.extras.example >> .env    # GHCR, GitHub token for private repos
 ```
 
+For AWS, leave `TF_VAR_kubectl_oidc_client_id` and
+`TF_VAR_kubectl_oidc_client_secret` empty. EKS access should use
+`aws eks update-kubeconfig`, not the kubectl OIDC bootstrap path used on OVH
+and Hetzner.
+
 Fill in the values:
 
 - `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` -- IAM user access keys (from step 2)
@@ -232,7 +237,8 @@ Destroy includes intentional pauses (60s for external-secrets cleanup, 180s for 
 If you enabled RDS deletion protection manually, set `deletion_protection = false`
 and apply the cluster stage before running `terraform destroy`.
 
-Delete stale `heritage=external-dns` TXT records in your Cloudflare dashboard before redeploying to the same domain.
+Delete stale `heritage=external-dns` TXT records and any stale `*-aws-starter`
+DNS records in your Cloudflare dashboard before redeploying to the same domain.
 
 EBS volumes created by PersistentVolumeClaims are not always removed by Terraform destroy. Check the EC2 console under Elastic Block Store > Volumes and delete any orphaned volumes tagged with your cluster name.
 
