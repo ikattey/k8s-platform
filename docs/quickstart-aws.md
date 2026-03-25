@@ -51,7 +51,7 @@ cat .env.aws.example >> .env
 Optionally append OIDC and extras:
 
 ```bash
-cat .env.oidc.example >> .env      # SSO for kubectl, Grafana, ArgoCD
+cat .env.oidc.example >> .env      # SSO for Grafana and ArgoCD
 cat .env.extras.example >> .env    # GHCR, GitHub token for private repos
 ```
 
@@ -147,7 +147,7 @@ This stage bootstraps:
 - ArgoCD app-of-apps
 - bootstrap secrets for Cloudflare, Grafana, and optional OIDC
 - portable storage classes `fast-rwo` and `standard-rwo`
-- IRSA-backed service account for Loki
+- AWS-native monitoring storage integration for Loki
 
 ## 10. Enable components in GitOps
 

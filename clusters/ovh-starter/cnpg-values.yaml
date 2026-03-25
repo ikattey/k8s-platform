@@ -6,7 +6,7 @@ backup:
   enabled: true
   schedule: "0 0 2 * * *"
 
-# Uncomment when enable_storage_pool = true:
+# Uncomment when enable_storage_node_pool = true:
 # cluster:
 #   nodeSelector:
 #     k8s-platform/pool-role: storage

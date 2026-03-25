@@ -71,7 +71,7 @@ cat .env.gcp.example >> .env
 Optionally append OIDC and extras:
 
 ```bash
-cat .env.oidc.example >> .env      # SSO for kubectl, Grafana, ArgoCD
+cat .env.oidc.example >> .env      # SSO for Grafana and ArgoCD
 cat .env.extras.example >> .env    # GHCR, GitHub token for private repos
 ```
 
@@ -157,8 +157,9 @@ cnpg_instances    = 3
 
 Provide sensitive values through `TF_VAR_...` environment variables (already exported via `.env`).
 
-If you enable OIDC, also set the Grafana / ArgoCD / kubectl client IDs and
-secrets through `TF_VAR_...` variables.
+If you enable OIDC, set the Grafana / ArgoCD client IDs and secrets through
+`TF_VAR_...` variables. kubectl access on GCP uses
+`gcloud container clusters get-credentials`.
 
 ## 10. Apply the addons stage
 
@@ -174,7 +175,7 @@ This stage bootstraps:
 - ArgoCD app-of-apps
 - bootstrap secrets for Cloudflare, Grafana, and optional OIDC
 - portable storage classes `fast-rwo` and `standard-rwo`
-- Workload Identity bindings for Loki and CNPG backups
+- platform storage wiring for Loki and CNPG backups
 
 ## 11. Enable platform components in GitOps
 

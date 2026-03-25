@@ -15,9 +15,9 @@ The kit ships:
 - Loki retention: `168h` (`7d`)
 - Prometheus control-plane scraping disabled for managed cluster components
 
-> Loki requires S3 object storage. Set `enable_object_storage = true` in Stage 1 cluster `terraform.tfvars` before the first apply.
+> Loki requires object storage. Set `create_backup_bucket = true` in Stage 1 cluster `terraform.tfvars` before the first apply.
 >
-> Loki resolves bucket names at bootstrap time. On both OVH and Hetzner, Terraform injects the bucket name and endpoint into the ArgoCD application values automatically — no manual editing is needed when `enable_object_storage = true`. For Hetzner, a `clusters/<cluster>/loki-values.yaml` file with real bucket name overrides is kept in the repo; for other clouds that use Terraform injection, this file is optional and omitted (ArgoCD uses `ignoreMissingValueFiles: true`).
+> Loki resolves bucket names at bootstrap time. Terraform injects the bucket names on every cloud when `create_backup_bucket = true`. OVH and Hetzner also inject the S3-compatible endpoint and region, AWS uses native S3, and GCP uses the GCS-backed overlay. No manual bucket-name editing is required in the supported bootstrap path.
 
 ## Alerts
 

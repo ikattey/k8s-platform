@@ -84,9 +84,9 @@ components:
 cnpg_enabled = true
 ```
 
-CNPG backups require object storage. Set `enable_object_storage = true` in your cluster `terraform.tfvars` if it isn't already. See [backups.md](backups.md) for backup configuration.
+CNPG backups require object storage. Set `create_backup_bucket = true` in your cluster `terraform.tfvars` if it isn't already. See [backups.md](backups.md) for backup configuration.
 
-CNPG uses the cluster's default storage class. For higher I/O performance, opt in to `fast-rwo` in your per-cluster `cnpg-values.yaml` — see [Storage classes](#storage-classes) below. On Hetzner, this requires `enable_storage_class_aliases = true` in your addons `terraform.tfvars`; on AWS/GCP the aliases are always available.
+CNPG uses the cluster's default storage class. For higher I/O performance, opt in to `fast-rwo` in your per-cluster `cnpg-values.yaml` — see [Storage classes](#storage-classes) below. On Hetzner, the storage-class aliases are enabled by default in the addons stage; use `enable_storage_class_aliases = false` only if you explicitly want to opt out.
 
 ### NATS authentication
 
@@ -233,8 +233,8 @@ Typical examples:
 
 - OVH node flavor or autoscaling limits
 - Hetzner server type or node counts
-- enabling Hetzner storage nodes
-- enabling managed PostgreSQL on OVH
+- enabling a storage node pool
+- enabling managed PostgreSQL on AWS, GCP, or OVH
 
 ## Database contract
 
@@ -244,11 +244,14 @@ The cluster stage exports `database_host`, `database_port`, `database_name`, `da
 
 | Option | Provider | Managed by | Best for |
 |--------|----------|------------|----------|
-| Managed PostgreSQL | OVH only | OVH | Operational simplicity, built-in HA and backups |
+| Managed PostgreSQL | AWS / GCP / OVH | AWS RDS / Cloud SQL / OVH | Operational simplicity, cloud-managed HA and backups |
+| External PostgreSQL | Any cloud | You | Reusing an existing database service |
 | CNPG | Any cloud | You (via operator) | Full control, lower cost, multi-cloud portability |
 
 **Managed PostgreSQL** — set `database_provider = "managed"` in cluster
-`terraform.tfvars`. See [quickstart-ovh.md](quickstart-ovh.md) for setup.
+`terraform.tfvars`. AWS provisions RDS, GCP provisions Cloud SQL, and OVH
+provisions OVH managed PostgreSQL. Hetzner does not ship a managed database
+module in this starter; use `database_provider = "external"` there.
 
 **CNPG** — set `cnpg: true` in `clusters/<cluster>/values.yaml` and configure
 backups. See [backups.md](backups.md) for backup/restore/tuning.
@@ -304,13 +307,14 @@ Components use the cluster default storage class. On Hetzner with dedicated node
 Enable in the cluster stage `terraform.tfvars`:
 
 ```hcl
-enable_storage_nodes = true    # Longhorn needs dedicated nodes
+enable_storage_node_pool = true    # Longhorn needs dedicated nodes
 ```
 
-Enable in the addons stage `terraform.tfvars`:
+Enable in the addons stage `terraform.tfvars` only if you want to override the
+Hetzner default:
 
 ```hcl
-enable_storage_class_aliases = true
+enable_storage_class_aliases = true   # Optional; true by default on Hetzner
 longhorn_replica_count       = 2    # Match your storage_node_count for redundancy
 ```
 

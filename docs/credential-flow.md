@@ -39,8 +39,8 @@ Browser-login items for human access:
 - `grafana-admin-<cluster>` when `TF_VAR_onepassword_team_logins_vault_id` is set
 - `prometheus-<cluster>` when `TF_VAR_onepassword_team_logins_vault_id` is set
 - `alertmanager-<cluster>` when `TF_VAR_onepassword_team_logins_vault_id` is set
-- `kubeconfig-oidc-<cluster>` when kubectl OIDC is enabled and a team-logins
-  vault is configured
+- `kubeconfig-oidc-<cluster>` when kubectl OIDC is enabled on OVH or Hetzner
+  and a team-logins vault is configured
 
 When OIDC is enabled, login items shift between vaults:
 - ArgoCD and Grafana login items move to the infra vault only when their own OIDC is enabled
@@ -50,13 +50,14 @@ This means enabling only Grafana OAuth will move Prometheus and AlertManager log
 
 ## Managed PostgreSQL credentials
 
-When OVH managed PostgreSQL is enabled (`database_provider = "managed"`, OVH only — not available on Hetzner):
+When `database_provider = "managed"`:
 
-1. Stage 1 provisions the database and exports credentials as Terraform outputs
-2. Stage 2 creates `database-credentials` Secret in the `demo` namespace (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DATABASE_WRITE_URL`, `DATABASE_READ_URL`) and writes `database-<cluster>` to 1Password
-3. If `database.enabled: true` in `clusters/<cluster>/bootstrap-secrets.yaml`, ESO syncs the item back for ongoing refresh
+1. Stage 1 provisions the platform database and exports the same output contract on every supported managed path:
+   AWS uses RDS, GCP uses Cloud SQL, and OVH uses OVH managed PostgreSQL.
+2. Stage 2 creates `demo/database-credentials` (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DATABASE_WRITE_URL`, `DATABASE_READ_URL`) and writes `database-<cluster>` to 1Password.
+3. When `database.enabled: true` in `clusters/<cluster>/bootstrap-secrets.yaml`, ESO keeps the Kubernetes Secret refreshed from 1Password.
 
-When CNPG is used instead, the same Secret contract is populated from Terraform-generated passwords. The workload interface is identical.
+When CNPG is used instead, Terraform seeds the same Secret contract from the in-cluster PostgreSQL bootstrap credentials. On Hetzner, `database_provider = "external"` uses that exact same Secret contract, but you provide the backing credentials yourself.
 
 ## Required environment
 
@@ -86,11 +87,11 @@ Common Kubernetes Secret bindings:
 - external-dns reads `external-dns/cloudflare-api-token`
 - Grafana reads `monitoring/grafana-admin`
 - Grafana OAuth reads `monitoring/grafana-oauth` (when OAuth is enabled)
-- Loki reads `monitoring/loki-storage-credentials`
+- Loki reads `monitoring/loki-storage-credentials` on OVH and Hetzner
 - Prometheus and Alertmanager ingress read `monitoring/monitoring-basic-auth`
 - demo workloads read `demo/database-credentials` (DATABASE_WRITE_URL, DATABASE_READ_URL, DB_HOST, etc.)
 - CNPG uses `database/postgres-app-bootstrap` for the initial application user credentials (the `cnpg_database_user` variable)
-- CNPG backups read `database/cnpg-backup-credentials` for S3 access
+- CNPG backups read `database/cnpg-backup-credentials` on every cloud
 
 ## Verification
 

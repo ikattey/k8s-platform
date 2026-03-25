@@ -1,6 +1,6 @@
 # Per-cluster NATS overrides for ovh-starter.
 
-# Uncomment when enable_storage_pool = true:
+# Uncomment when enable_storage_node_pool = true:
 # nats:
 #   nodeSelector:
 #     k8s-platform/pool-role: storage

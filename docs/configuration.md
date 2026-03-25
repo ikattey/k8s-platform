@@ -11,7 +11,7 @@ Build your `.env` from the split example files:
 | `.env.hetzner.example` | Hetzner API + SSH keys |
 | `.env.aws.example` | AWS IAM credentials + region |
 | `.env.gcp.example` | GCP project + region (auth via `gcloud` ADC) |
-| `.env.oidc.example` | OIDC/SSO for kubectl, Grafana, ArgoCD |
+| `.env.oidc.example` | OIDC/SSO for Grafana and ArgoCD on every cloud, plus kubectl on OVH and Hetzner |
 | `.env.extras.example` | GHCR registry, GitHub token for private repos |
 
 ## Key variables
@@ -22,9 +22,9 @@ Build your `.env` from the split example files:
 
 > `TF_VAR_state_bucket`, `TF_VAR_state_region`, and `TF_VAR_state_endpoint` are **not** used by `terraform init`. The backend is configured by editing the `backend.tf` file in each cluster directory — update the bucket, key, and endpoint to match your state bucket. These three variables are passed to the addons stage so the `data "terraform_remote_state"` block can read cluster outputs from the correct bucket.
 
-- `TF_VAR_state_bucket` — bucket name
-- `TF_VAR_state_region` — S3 bucket location code: `gra` for OVH, `fsn1` for Hetzner. Bucket region, not cluster region (e.g. `gra`, not `GRA9`).
-- `TF_VAR_state_endpoint` — full URL (e.g. `https://s3.gra.io.cloud.ovh.net`)
+- `TF_VAR_state_bucket` — state bucket name (used by the addons stage on every cloud)
+- `TF_VAR_state_region` — backend region for S3-compatible state backends (AWS, OVH, Hetzner). GCP roots use the `gcs` backend and ignore this value.
+- `TF_VAR_state_endpoint` — custom S3 endpoint for OVH / Hetzner state backends. Leave empty for AWS and GCP.
 
 ### 1Password
 

@@ -2,7 +2,7 @@
 
 CNPG backups consist of base backups (`Backup` objects) and WAL segments archived to object storage. A complete restore needs both.
 
-**Prerequisites:** CNPG must be enabled (`cnpg: true` under `components:` in `clusters/<cluster>/values.yaml`) and object storage must be enabled in Stage 1 (`enable_object_storage = true` in cluster `terraform.tfvars`).
+**Prerequisites:** CNPG must be enabled (`cnpg: true` under `components:` in `clusters/<cluster>/values.yaml`) and object storage must be enabled in Stage 1 (`create_backup_bucket = true` in cluster `terraform.tfvars`).
 
 ## Where backup settings live
 
@@ -28,8 +28,18 @@ backup:
 
 ## Backup credentials
 
-For the public OVH and Hetzner starter paths, CNPG backups use static
-S3-compatible credentials from `cnpg-backup-credentials`.
+CNPG backups use the same Kubernetes Secret contract on every cloud:
+`database/cnpg-backup-credentials`.
+
+Terraform writes a `cnpg-backup-<cluster>` item to 1Password, and
+`bootstrap-secrets` syncs that item into Kubernetes for ongoing refresh.
+
+The backing infrastructure differs by cloud:
+
+- AWS: static IAM access keys for the shared S3 backup bucket
+- GCP: HMAC credentials for the shared GCS backup bucket, used through the S3-compatible endpoint `https://storage.googleapis.com`
+- OVH: OVH Object Storage S3 credentials
+- Hetzner: Hetzner Object Storage S3 credentials
 
 That synced secret should contain:
 
@@ -38,17 +48,12 @@ That synced secret should contain:
 - `ACCESS_SECRET_KEY`
 
 
-## OVH
+## Cloud behavior
 
-With `enable_object_storage = true`, Terraform provisions `loki-chunks`, `loki-ruler`, and `cnpg-backups` buckets, writes OVH S3 credentials to 1Password, and `bootstrap-secrets` syncs them to `monitoring/loki-storage-credentials` and `database/cnpg-backup-credentials`.
-
-Enable backups and set the schedule in `clusters/{name}/cnpg-values.yaml`.
-
-## Hetzner
-
-With `enable_object_storage = true`, Terraform provisions `loki-chunks`, `loki-ruler`, and `cnpg-backups` buckets. The Object Storage endpoint and region are exported from Stage 1 and passed into ArgoCD for both Loki and CNPG, avoiding stale `fsn1` placeholders when running in `nbg1` or `hel1`.
-
-Synced secrets are the same as OVH: `monitoring/loki-storage-credentials` and `database/cnpg-backup-credentials`.
+- AWS: `create_backup_bucket = true` provisions one S3 bucket and uses the same bucket for Loki and CNPG prefixes.
+- GCP: `create_backup_bucket = true` provisions one GCS bucket; CNPG uses HMAC credentials through the S3-compatible endpoint while Loki uses the GCP monitoring storage integration.
+- OVH: `create_backup_bucket = true` provisions `loki-chunks`, `loki-ruler`, and `cnpg-backups` buckets, writes the S3 credentials to 1Password, and syncs `monitoring/loki-storage-credentials` plus `database/cnpg-backup-credentials`.
+- Hetzner: `create_backup_bucket = true` provisions `loki-chunks`, `loki-ruler`, and `cnpg-backups` buckets and syncs the same Kubernetes Secrets as OVH.
 
 Enable backups and set the schedule in `clusters/{name}/cnpg-values.yaml`, and set `cnpg_enabled = true` in addons `terraform.tfvars`.
 
@@ -100,25 +105,35 @@ kubectl get backup -n database
 kubectl describe backup -n database "${MANUAL_BACKUP}"
 ```
 
-For OVH, data bucket credentials differ from the state bucket credentials in `.env`. Retrieve them from Stage 1 output:
+To inspect backup contents, use the storage interface for your cloud:
+
+AWS:
 
 ```bash
-terraform -chdir=terraform/clusters/ovh-starter/cluster output object_storage_access_key
-terraform -chdir=terraform/clusters/ovh-starter/cluster output object_storage_secret_key
+aws s3 ls s3://<cnpg-backups-bucket>/postgres/ --recursive
 ```
 
-Then list the bucket contents:
+GCP:
 
 ```bash
-AWS_ACCESS_KEY_ID=<from-output> AWS_SECRET_ACCESS_KEY=<from-output> \
-  aws --endpoint-url https://s3.gra.perf.cloud.ovh.net s3 ls s3://<cnpg-backups-bucket>/postgres/ --recursive
+gcloud storage ls --recursive gs://<cnpg-backups-bucket>/postgres/
 ```
 
-OVH uses different S3 endpoint tiers: state bucket uses `s3.gra.io.cloud.ovh.net` (standard), data buckets use `s3.gra.perf.cloud.ovh.net` (high-performance).
-
-For Hetzner Object Storage, use the region-specific endpoint from Stage 1:
+OVH:
 
 ```bash
+OVH_ENDPOINT="$(terraform -chdir=terraform/clusters/ovh-starter/cluster output -raw object_storage_endpoint)"
+OVH_ACCESS_KEY="$(terraform -chdir=terraform/clusters/ovh-starter/cluster output -raw object_storage_access_key)"
+OVH_SECRET_KEY="$(terraform -chdir=terraform/clusters/ovh-starter/cluster output -raw object_storage_secret_key)"
+
+AWS_ACCESS_KEY_ID="$OVH_ACCESS_KEY" AWS_SECRET_ACCESS_KEY="$OVH_SECRET_KEY" \
+  aws --endpoint-url "$OVH_ENDPOINT" s3 ls s3://<cnpg-backups-bucket>/postgres/ --recursive
+```
+
+Hetzner:
+
+```bash
+AWS_ACCESS_KEY_ID="$TF_VAR_object_storage_access_key" AWS_SECRET_ACCESS_KEY="$TF_VAR_object_storage_secret_key" \
 aws --endpoint-url https://<fsn1|nbg1|hel1>.your-objectstorage.com \
   s3 ls s3://<cnpg-backups-bucket>/postgres/ --recursive
 ```
