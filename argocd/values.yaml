@@ -38,9 +38,6 @@ cnpgBackupBucketName: ""
 # GCP project ID (used for GCS-backed integrations)
 gcpProjectId: ""
 
-# Optional cloud-identity annotation value for the CNPG instance manager service account.
-cnpgServiceAccountAnnotationValue: ""
-
 # 1Password vault name for ESO ClusterSecretStore (set by Terraform)
 onepasswordVaultId: ""
 

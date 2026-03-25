@@ -64,9 +64,15 @@ output "object_storage_bucket_names" {
   value       = module.platform.object_storage_bucket_names
 }
 
-output "cnpg_backup_role_arn" {
-  description = "IRSA role ARN for CNPG backups"
-  value       = module.platform.cnpg_backup_role_arn
+output "cnpg_backup_access_key_id" {
+  description = "Static access key ID for CNPG backups"
+  value       = module.platform.cnpg_backup_access_key_id
+}
+
+output "cnpg_backup_secret_access_key" {
+  description = "Static secret access key for CNPG backups"
+  value       = module.platform.cnpg_backup_secret_access_key
+  sensitive   = true
 }
 
 output "monitoring_storage_role_arn" {

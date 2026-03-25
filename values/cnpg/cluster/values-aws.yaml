@@ -1,8 +1,6 @@
 # AWS cloud overlay for CNPG
-# Backups use Amazon S3. Prefer IRSA so the database namespace service account
-# can assume an IAM role without static credentials.
+# Backups use Amazon S3 via static credentials synced from 1Password.
 
 backup:
   provider: s3
-  inheritFromIAMRole: true
   destinationPath: "s3://cnpg-backups/postgres/"

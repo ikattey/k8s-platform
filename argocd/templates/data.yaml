@@ -1,5 +1,5 @@
 {{- if .Values.components.cnpg }}
-{{- $backupProvider := default "s3" .Values.objectStorage.provider }}
+{{- $backupProvider := ternary "s3" (default "s3" .Values.objectStorage.provider) (eq .Values.cloudProvider "gcp") }}
 {{- $backupScheme := ternary "gs" $backupProvider (eq $backupProvider "gcs") }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -22,9 +22,8 @@ spec:
           - values.yaml
           - values-{{ .Values.cloudProvider }}.yaml
           - $values/clusters/{{ .Values.clusterName }}/cnpg-values.yaml
-        {{- if or .Values.cnpgBackupBucketName .Values.cnpgServiceAccountAnnotationValue }}
+        {{- if .Values.cnpgBackupBucketName }}
         parameters:
-          {{- if .Values.cnpgBackupBucketName }}
           - name: backup.destinationPath
             value: {{ printf "%s://%s/postgres/" $backupScheme .Values.cnpgBackupBucketName | quote }}
           - name: backup.provider
@@ -36,15 +35,6 @@ spec:
           {{- if and (eq $backupProvider "s3") .Values.objectStorage.region }}
           - name: backup.s3.region
             value: {{ .Values.objectStorage.region | quote }}
-          {{- end }}
-          {{- end }}
-          {{- if and .Values.cnpgServiceAccountAnnotationValue (eq .Values.cloudProvider "aws") }}
-          - name: cluster.serviceAccountAnnotations.eks\.amazonaws\.com/role-arn
-            value: {{ .Values.cnpgServiceAccountAnnotationValue | quote }}
-          {{- end }}
-          {{- if and .Values.cnpgServiceAccountAnnotationValue (eq .Values.cloudProvider "gcp") }}
-          - name: cluster.serviceAccountAnnotations.iam\.gke\.io/gcp-service-account
-            value: {{ .Values.cnpgServiceAccountAnnotationValue | quote }}
           {{- end }}
         {{- end }}
     - repoURL: {{ .Values.repoURL }}

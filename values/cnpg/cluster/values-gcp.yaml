@@ -1,25 +1,8 @@
 # GCP cloud overlay for CNPG
-# Backups use Google Cloud Storage via a service account JSON key.
-#
-# Pre-requisites (one-time per cluster):
-#   1. Create a GCP service account key for the CNPG backup SA:
-#      gcloud iam service-accounts keys create /tmp/cnpg-sa.json \
-#        --iam-account=<cluster-name>-cnpg@<project>.iam.gserviceaccount.com
-#   2. Store the key as a Kubernetes secret in the database namespace:
-#      kubectl create secret generic cnpg-gcs-credentials \
-#        --from-file=serviceaccount.json=/tmp/cnpg-sa.json \
-#        -n database
-#
-# Then override in your per-cluster cnpg-values.yaml:
-#   backup:
-#     enabled: true
-#     destinationPath: "gs://<cluster-backup-bucket>/postgres/"
-#     googleCredentials:
-#       applicationCredentials:
-#         name: cnpg-gcs-credentials
-#         key: serviceaccount.json
+# Backups use GCS's S3-compatible interoperability endpoint with HMAC
+# credentials synced from 1Password.
 
 backup:
-  provider: gcs
-  destinationPath: ""  # Must be overridden per cluster (e.g. "gs://<bucket>/postgres/")
-  googleCredentials: {}  # Must be set to applicationCredentials map when backup.enabled=true
+  provider: s3
+  endpointURL: "https://storage.googleapis.com"
+  destinationPath: "s3://cnpg-backups/postgres/"

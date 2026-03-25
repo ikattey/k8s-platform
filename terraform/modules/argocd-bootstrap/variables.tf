@@ -204,10 +204,3 @@ variable "gcp_project_id" {
   type        = string
   default     = ""
 }
-
-variable "cnpg_service_account_annotation_value" {
-  description = "Optional cloud-identity annotation value for the CNPG instance-manager service account."
-  type        = string
-  default     = ""
-}
-

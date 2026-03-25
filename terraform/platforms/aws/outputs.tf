@@ -68,13 +68,18 @@ output "object_storage_bucket_names" {
   } : null
 }
 
-output "cnpg_backup_role_arn" {
-  description = "IRSA role for CNPG backups"
-  value       = var.create_backup_bucket ? aws_iam_role.cnpg[0].arn : null
+output "cnpg_backup_access_key_id" {
+  description = "Static access key ID for CNPG backups"
+  value       = var.create_backup_bucket ? aws_iam_access_key.cnpg_backup[0].id : null
+}
+
+output "cnpg_backup_secret_access_key" {
+  description = "Static secret access key for CNPG backups"
+  value       = var.create_backup_bucket ? aws_iam_access_key.cnpg_backup[0].secret : null
+  sensitive   = true
 }
 
 output "monitoring_storage_role_arn" {
   description = "IRSA role for Loki storage"
   value       = var.create_backup_bucket ? aws_iam_role.monitoring[0].arn : null
 }
-

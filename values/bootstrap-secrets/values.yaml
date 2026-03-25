@@ -62,7 +62,7 @@ secrets:
     enabled: false
     name: cnpg-backup-credentials
     namespace: database
-    onepasswordItem: ""  # Set per-cluster, typically reusing the Loki S3 item
+    onepasswordItem: ""  # Set per-cluster, e.g., "cnpg-backup-ovh-starter"
     onepasswordItemUuid: "" # Optional: use item UUID to avoid duplicate-title ambiguity
     targetLabels: {}
     data:

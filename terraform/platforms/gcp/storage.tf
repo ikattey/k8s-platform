@@ -59,10 +59,16 @@ resource "google_storage_bucket_iam_member" "cnpg_bucket_access" {
   member = "serviceAccount:${google_service_account.cnpg[0].email}"
 }
 
+resource "google_storage_hmac_key" "cnpg" {
+  count                 = var.create_backup_bucket ? 1 : 0
+  project               = var.project_id
+  service_account_email = google_service_account.cnpg[0].email
+  state                 = "ACTIVE"
+}
+
 resource "google_storage_bucket_iam_member" "monitoring_bucket_access" {
   count  = var.create_backup_bucket ? 1 : 0
   bucket = google_storage_bucket.backups[0].name
   role   = "roles/storage.objectAdmin"
   member = "serviceAccount:${google_service_account.monitoring[0].email}"
 }
-

@@ -3,15 +3,6 @@
 backup:
   enabled: true
   schedule: "0 0 2 * * *"
-  destinationPath: "gs://gcp-starter-backups-af2434df/postgres/"
-  # GCS credentials via Workload Identity service account key.
-  # Create the secret before enabling backup:
-  #   kubectl create secret generic cnpg-gcs-credentials \
-  #     --from-file=serviceaccount.json=<sa-key.json> -n database
-  googleCredentials:
-    applicationCredentials:
-      name: cnpg-gcs-credentials
-      key: serviceaccount.json
 
 # Uncomment for fast storage (requires storage class aliases, created by default on GCP):
 # cluster:

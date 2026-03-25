@@ -84,9 +84,15 @@ output "workload_identity_pool" {
   value       = module.platform.workload_identity_pool
 }
 
-output "cnpg_service_account_email" {
-  description = "Google service account email used for CNPG backups"
-  value       = module.platform.cnpg_service_account_email
+output "cnpg_backup_access_key_id" {
+  description = "Static HMAC access key ID for CNPG backups"
+  value       = module.platform.cnpg_backup_access_key_id
+}
+
+output "cnpg_backup_secret_access_key" {
+  description = "Static HMAC secret access key for CNPG backups"
+  value       = module.platform.cnpg_backup_secret_access_key
+  sensitive   = true
 }
 
 output "monitoring_service_account_email" {

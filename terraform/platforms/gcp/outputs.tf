@@ -45,8 +45,8 @@ output "object_storage_provider" {
 }
 
 output "object_storage_endpoint" {
-  description = "Object storage endpoint (unused for GCS)"
-  value       = ""
+  description = "Object storage endpoint used by CNPG's S3-compatible backup client"
+  value       = var.create_backup_bucket ? "https://storage.googleapis.com" : ""
 }
 
 output "object_storage_region" {
@@ -68,13 +68,18 @@ output "workload_identity_pool" {
   value       = "${var.project_id}.svc.id.goog"
 }
 
-output "cnpg_service_account_email" {
-  description = "Google service account email for CNPG backups"
-  value       = var.create_backup_bucket ? google_service_account.cnpg[0].email : null
+output "cnpg_backup_access_key_id" {
+  description = "Static HMAC access key ID for CNPG backups"
+  value       = var.create_backup_bucket ? google_storage_hmac_key.cnpg[0].access_id : null
+}
+
+output "cnpg_backup_secret_access_key" {
+  description = "Static HMAC secret access key for CNPG backups"
+  value       = var.create_backup_bucket ? google_storage_hmac_key.cnpg[0].secret : null
+  sensitive   = true
 }
 
 output "monitoring_service_account_email" {
   description = "Google service account email for monitoring storage"
   value       = var.create_backup_bucket ? google_service_account.monitoring[0].email : null
 }
-

@@ -255,6 +255,17 @@ locals {
 }
 
 locals {
+  cnpg_backup_access_key_id = coalesce(
+    try(data.terraform_remote_state.cluster.outputs.cnpg_backup_access_key_id, ""),
+    try(data.terraform_remote_state.cluster.outputs.object_storage_access_key, "")
+  )
+  cnpg_backup_secret_access_key = coalesce(
+    try(data.terraform_remote_state.cluster.outputs.cnpg_backup_secret_access_key, ""),
+    try(data.terraform_remote_state.cluster.outputs.object_storage_secret_key, "")
+  )
+}
+
+locals {
   kubectl_oidc_exec_args = concat(
     [
       "oidc-login",
@@ -488,7 +499,6 @@ module "argocd" {
   object_storage_region                 = try(data.terraform_remote_state.cluster.outputs.object_storage_region, "")
   cnpg_backup_bucket_name               = try(data.terraform_remote_state.cluster.outputs.object_storage_bucket_names["cnpg-backups"], "")
   gcp_project_id                        = ""
-  cnpg_service_account_annotation_value = try(data.terraform_remote_state.cluster.outputs.cnpg_backup_role_arn, "")
   enable_argocd_oidc                    = local.enable_argocd_oidc
   argocd_oidc_client_id                 = var.argocd_oidc_client_id
   argocd_oidc_client_secret             = var.argocd_oidc_client_secret
@@ -514,6 +524,7 @@ module "argocd" {
     onepassword_item.cloudflare_dns,
     onepassword_item.argocd_oidc,
     onepassword_item.loki_s3_credentials,
+    onepassword_item.cnpg_backup_credentials,
     onepassword_item.monitoring_basic_auth,
     onepassword_item.database_credentials,
   ]
@@ -649,8 +660,8 @@ resource "onepassword_item" "cnpg_backup_credentials" {
   count = (
     var.onepassword_vault_id != "" &&
     var.cnpg_enabled &&
-    try(data.terraform_remote_state.cluster.outputs.object_storage_access_key, "") != "" &&
-    try(data.terraform_remote_state.cluster.outputs.object_storage_secret_key, "") != ""
+    local.cnpg_backup_access_key_id != "" &&
+    local.cnpg_backup_secret_access_key != ""
   ) ? 1 : 0
 
   vault    = var.onepassword_vault_id
@@ -667,12 +678,12 @@ resource "onepassword_item" "cnpg_backup_credentials" {
     field {
       label = "AWS_ACCESS_KEY_ID"
       type  = "CONCEALED"
-      value = data.terraform_remote_state.cluster.outputs.object_storage_access_key
+      value = local.cnpg_backup_access_key_id
     }
     field {
       label = "AWS_SECRET_ACCESS_KEY"
       type  = "CONCEALED"
-      value = data.terraform_remote_state.cluster.outputs.object_storage_secret_key
+      value = local.cnpg_backup_secret_access_key
     }
   }
 
@@ -823,4 +834,3 @@ resource "onepassword_item" "alertmanager_browser_login" {
 
   tags = ["terraform-managed", "monitoring", "browser-login", local.cluster_name]
 }
-
