@@ -16,9 +16,8 @@ letsencrypt_email = "ops@example.com"
 # onepassword_vault_id             = ""   # Vault UUID — find via: op vault list
 # cloudflare_api_token             = ""
 
-# OIDC examples
-# oidc_admins  = ["ops@example.com"]
-# oidc_viewers = ["dev@example.com"]
+# kubectl access on GCP uses:
+#   gcloud container clusters get-credentials <cluster_name> --location <location> --project <project_id>
 
 # CNPG defaults
 # cnpg_enabled   = true   # Also enable components.cnpg in clusters/gcp-starter/values.yaml

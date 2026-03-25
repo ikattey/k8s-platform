@@ -8,30 +8,36 @@ The kit supports three separate auth paths:
 
 They are independent. Enable only the ones you need. Create OAuth/OIDC clients in your identity provider:
 
-| Client | Type | Redirect URI |
-| --- | --- | --- |
-| `kubectl` | Desktop app | `http://localhost:8000`, `http://localhost:18000` |
-| `grafana` | Web application | `https://grafana-<cluster>.<domain>/login/generic_oauth` |
-| `argocd` | Web application | `https://argocd-<cluster>.<domain>/auth/callback` |
+| Path | OVH | Hetzner | AWS | GCP |
+| --- | --- | --- | --- | --- |
+| `kubectl` OIDC | Supported | Supported | Not supported | Not supported |
+| Grafana OAuth | Supported | Supported | Supported | Supported |
+| ArgoCD OIDC | Supported | Supported | Supported | Supported |
+
+| Client | Type | Redirect URI | Clouds |
+| --- | --- | --- | --- |
+| `kubectl` | Desktop app | `http://localhost:8000`, `http://localhost:18000` | OVH, Hetzner |
+| `grafana` | Web application | `https://grafana-<cluster>.<domain>/login/generic_oauth` | All clouds |
+| `argocd` | Web application | `https://argocd-<cluster>.<domain>/auth/callback` | All clouds |
 
 Defaults in this repo are tuned for Google, but the flow is provider-agnostic.
 
 ## Setup
 
-1. Create OAuth/OIDC clients using the table above (each needs a different redirect URI). See [Creating Google OAuth clients](#creating-google-oauth-clients) below.
+1. Create only the OAuth/OIDC clients you need from the table above. See [Creating Google OAuth clients](#creating-google-oauth-clients) below.
 2. Fill in the OIDC variables in `.env` (append `.env.oidc.example` to your `.env` if you haven't already).
-3. **Hetzner only**: set `enable_oidc = true` and `oidc_client_id` in cluster `terraform.tfvars` **before the first apply** (OIDC flags are baked into k3s at install time).
+3. For **OVH** and **Hetzner** kubectl OIDC only: set `enable_oidc = true` and `oidc_client_id` in cluster `terraform.tfvars` before the first apply.
 4. Apply both stages: cluster then addons.
-5. Install kubelogin: `brew install kubelogin`
-6. Download `kubeconfig-oidc-<cluster>` from 1Password (requires `TF_VAR_onepassword_team_logins_vault_id`).
-7. Run any `kubectl` command — the browser opens for login automatically.
+5. For **OVH** and **Hetzner** kubectl OIDC only: install kubelogin with `brew install kubelogin`, download `kubeconfig-oidc-<cluster>` from 1Password, then run any `kubectl` command to trigger browser login.
+6. For **AWS**: use `aws eks update-kubeconfig --region <region> --name <cluster>`.
+7. For **GCP**: use `gcloud container clusters get-credentials <cluster> --location <location> --project <project>`.
 
 See [credential-flow.md](credential-flow.md) for details on which 1Password
 items are created and when.
 
 ## Creating Google OAuth clients
 
-The kit defaults to Google as the identity provider. Create three separate OAuth clients — one per auth path.
+The kit defaults to Google as the identity provider. Create the OAuth clients you need for the auth paths you plan to enable.
 
 **1. Configure the OAuth consent screen** (one-time per GCP project)
 
@@ -48,15 +54,15 @@ Go to **Google Cloud Console > APIs & Services > OAuth consent screen** (or Goog
 
 Go to **Google Cloud Console > APIs & Services > Credentials** and create three **OAuth 2.0 Client IDs**, one per row:
 
-| Client name | Application type | Authorized redirect URIs |
-| --- | --- | --- |
-| `oidc-{cluster}-kubectl` | Desktop app | `http://localhost:8000`, `http://localhost:18000` |
-| `oidc-{cluster}-grafana` | Web application | `https://grafana-{cluster}.{domain}/login/generic_oauth` |
-| `oidc-{cluster}-argocd` | Web application | `https://argocd-{cluster}.{domain}/auth/callback` |
+| Client name | Application type | Authorized redirect URIs | Clouds |
+| --- | --- | --- | --- |
+| `oidc-{cluster}-kubectl` | Desktop app | `http://localhost:8000`, `http://localhost:18000` | OVH, Hetzner |
+| `oidc-{cluster}-grafana` | Web application | `https://grafana-{cluster}.{domain}/login/generic_oauth` | All clouds |
+| `oidc-{cluster}-argocd` | Web application | `https://argocd-{cluster}.{domain}/auth/callback` | All clouds |
 
 Replace `{cluster}` with your cluster name (e.g. `aws-starter`) and `{domain}` with your domain.
 
-For each client, after creation Google shows a dialog with the **Client ID** and **Client secret** — copy both immediately.
+For each client, after creation Google shows a dialog with the **Client ID** and **Client secret** — copy both immediately. Skip the kubectl client entirely on AWS and GCP.
 
 **3. Fill in `.env`**
 
@@ -72,13 +78,14 @@ export TF_VAR_argocd_oidc_client_secret="<argocd-client-secret>"
 export TF_VAR_oidc_allowed_domains="your-domain.com"
 ```
 
-The `kubectl` client ID is also needed in cluster `terraform.tfvars` (Stage 1) as `oidc_client_id`. For Hetzner, this must be set before the first apply.
+The `kubectl` client values are only used on OVH and Hetzner. The client ID is also needed in cluster `terraform.tfvars` (Stage 1) as `oidc_client_id`. For Hetzner, this must be set before the first apply.
 
 ## Environment
 
 ```bash
 export TF_VAR_oidc_issuer_url="https://accounts.google.com"
 
+# OVH / Hetzner only:
 export TF_VAR_kubectl_oidc_client_id=""
 export TF_VAR_kubectl_oidc_client_secret=""
 
@@ -105,7 +112,9 @@ screen set to "Internal" for Google Workspace). See the setup section above.
 
 ## kubectl OIDC
 
-Stage 1 must enable OIDC on the API server:
+Supported only on OVH and Hetzner. AWS and GCP do not configure API-server OIDC in this starter.
+
+For OVH and Hetzner, Stage 1 must enable OIDC on the API server:
 
 ```hcl
 enable_oidc     = true
@@ -115,7 +124,7 @@ oidc_issuer_url = "https://accounts.google.com"
 
 **Hetzner:** OIDC is immutable after cluster creation. Set `enable_oidc = true` before the first apply; changing it later requires destroy and recreate. OVH does not have this constraint.
 
-In Stage 2, set:
+In Stage 2 on OVH and Hetzner, set:
 
 ```bash
 export TF_VAR_kubectl_oidc_client_id="your-kubectl-client-id"
@@ -138,6 +147,20 @@ kubectl krew install oidc-login
 
 After the addons apply, each team member installs kubelogin, downloads `kubeconfig-oidc-<cluster>` from 1Password, and runs any `kubectl` command to trigger browser login and cache the token.
 
+### AWS and GCP
+
+Use the cloud-native kubeconfig commands instead:
+
+```bash
+# AWS
+aws eks update-kubeconfig --region <region> --name <cluster>
+
+# GCP
+gcloud container clusters get-credentials <cluster> --location <location> --project <project>
+```
+
+The starter does not publish a kubectl OIDC kubeconfig item for AWS or GCP.
+
 ## Grafana OAuth
 
 When `TF_VAR_grafana_oauth_client_id` is set, Terraform creates `Secret/monitoring/grafana-oauth`, writes `grafana-oidc-<cluster>` to the infra vault, and enables `components.grafanaOAuth` (which injects `auth.generic_oauth` into Grafana values).
@@ -152,7 +175,7 @@ The browser-login item is `argocd-<cluster>`. With ArgoCD OIDC enabled and an in
 
 ## RBAC
 
-Set these in addons `terraform.tfvars` before applying:
+Set these in addons `terraform.tfvars` before applying on OVH or Hetzner:
 
 ```hcl
 oidc_viewers = ["dev@example.com"]
@@ -160,6 +183,8 @@ oidc_admins  = ["ops@example.com"]
 ```
 
 `oidc_admins` get `cluster-admin`. `oidc_viewers` get `view` (read-only across all namespaces). Both accept email addresses or group identifiers. The default username prefix is `oidc:`.
+
+AWS and GCP do not support these OIDC RBAC shortcuts in this starter; use the native cloud auth path instead.
 
 ### Verifying RBAC
 

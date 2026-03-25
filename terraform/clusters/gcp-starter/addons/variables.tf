@@ -90,15 +90,25 @@ variable "onepassword_service_account_token" {
 # --- OIDC RBAC ---
 
 variable "oidc_viewers" {
-  description = "OIDC user emails to grant view (read-only) cluster access"
+  description = "OIDC user emails to grant view (read-only) cluster access. Not supported on GCP in this starter."
   type        = list(string)
   default     = []
+
+  validation {
+    condition     = length(var.oidc_viewers) == 0
+    error_message = "GCP starter does not support kubectl OIDC. Use gcloud container clusters get-credentials and Google IAM instead of oidc_viewers."
+  }
 }
 
 variable "oidc_admins" {
-  description = "OIDC user emails to grant cluster-admin access"
+  description = "OIDC user emails to grant cluster-admin access. Not supported on GCP in this starter."
   type        = list(string)
   default     = []
+
+  validation {
+    condition     = length(var.oidc_admins) == 0
+    error_message = "GCP starter does not support kubectl OIDC. Use gcloud container clusters get-credentials and Google IAM instead of oidc_admins."
+  }
 }
 
 variable "oidc_username_prefix" {
@@ -187,16 +197,26 @@ variable "argocd_oidc_client_secret" {
 }
 
 variable "kubectl_oidc_client_id" {
-  description = "OIDC client ID for kubectl/kubelogin. Leave empty to skip kubeconfig generation."
+  description = "Unsupported on GCP in this starter. Leave empty and use gcloud container clusters get-credentials instead."
   type        = string
   default     = ""
+
+  validation {
+    condition     = var.kubectl_oidc_client_id == ""
+    error_message = "GCP starter does not support kubectl OIDC. Leave kubectl_oidc_client_id empty and use gcloud container clusters get-credentials."
+  }
 }
 
 variable "kubectl_oidc_client_secret" {
-  description = "OIDC client secret for kubectl/kubelogin (some providers require this)."
+  description = "Unsupported on GCP in this starter. Leave empty and use gcloud container clusters get-credentials instead."
   type        = string
   sensitive   = true
   default     = ""
+
+  validation {
+    condition     = var.kubectl_oidc_client_secret == ""
+    error_message = "GCP starter does not support kubectl OIDC. Leave kubectl_oidc_client_secret empty and use gcloud container clusters get-credentials."
+  }
 }
 
 # --- Cloud Provider ---

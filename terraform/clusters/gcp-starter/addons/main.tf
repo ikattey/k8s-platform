@@ -5,7 +5,6 @@ locals {
 
   enable_grafana_oauth = var.grafana_oauth_client_id != ""
   enable_argocd_oidc   = var.argocd_oidc_client_id != ""
-  enable_kubectl_oidc  = var.kubectl_oidc_client_id != ""
   enable_any_oidc      = local.enable_grafana_oauth || local.enable_argocd_oidc
 }
 
@@ -263,51 +262,6 @@ locals {
     try(data.terraform_remote_state.cluster.outputs.cnpg_backup_secret_access_key, ""),
     try(data.terraform_remote_state.cluster.outputs.object_storage_secret_key, "")
   )
-}
-
-locals {
-  kubectl_oidc_exec_args = concat(
-    [
-      "oidc-login",
-      "get-token",
-      "--oidc-issuer-url=${var.oidc_issuer_url}",
-      "--oidc-client-id=${var.kubectl_oidc_client_id}",
-      "--oidc-extra-scope=email",
-      "--oidc-extra-scope=profile",
-    ],
-    var.kubectl_oidc_client_secret != "" ? ["--oidc-client-secret=${var.kubectl_oidc_client_secret}"] : []
-  )
-
-  oidc_kubeconfig = yamlencode({
-    apiVersion = "v1"
-    kind       = "Config"
-    clusters = [{
-      name = local.cluster_name
-      cluster = {
-        server                       = local.cluster.server
-        "certificate-authority-data" = local.cluster["certificate-authority-data"]
-      }
-    }]
-    contexts = [{
-      name = "${local.cluster_name}-oidc"
-      context = {
-        cluster = local.cluster_name
-        user    = "${local.cluster_name}-oidc-user"
-      }
-    }]
-    "current-context" = "${local.cluster_name}-oidc"
-    users = [{
-      name = "${local.cluster_name}-oidc-user"
-      user = {
-        exec = {
-          apiVersion      = "client.authentication.k8s.io/v1"
-          command         = "kubectl"
-          args            = local.kubectl_oidc_exec_args
-          interactiveMode = "IfAvailable"
-        }
-      }
-    }]
-  })
 }
 
 # --- Bootstrap Secrets: External DNS ---
@@ -768,17 +722,6 @@ resource "onepassword_item" "grafana_browser_login" {
   url      = "https://grafana-${local.cluster_name}.${var.domain}"
 
   tags = ["terraform-managed", "grafana", "browser-login", local.cluster_name]
-}
-
-resource "onepassword_item" "oidc_kubeconfig" {
-  count = var.onepassword_team_logins_vault_id != "" && local.enable_kubectl_oidc ? 1 : 0
-
-  vault      = var.onepassword_team_logins_vault_id
-  title      = "kubeconfig-oidc-${local.cluster_name}"
-  category   = "secure_note"
-  note_value = local.oidc_kubeconfig
-
-  tags = ["terraform-managed", "kubectl", "oidc", "kubeconfig", local.cluster_name]
 }
 
 # --- 1Password: Monitoring basicAuth (for ESO sync) ---
