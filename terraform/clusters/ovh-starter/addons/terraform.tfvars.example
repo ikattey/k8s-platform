@@ -25,9 +25,6 @@ letsencrypt_email = "ops@your-company.com"
 # grafana_admin_password = ""  # Leave empty to auto-generate
 # cloudflare_api_token   = ""  # Cloudflare API token for external-dns (Zone:DNS:Edit)
 
-# 1Password Dual-Vault (optional)
-# onepassword_team_logins_vault_id = ""  # Vault ID for browser logins
-
 # OIDC RBAC (optional)
 # oidc_viewers = ["dev@example.com"]
 # oidc_admins  = ["ops@example.com"]

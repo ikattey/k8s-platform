@@ -347,7 +347,7 @@ The included workflow handles both stages sequentially. You need admin access to
 | `TF_VAR_argocd_target_revision` | `ARGOCD_TARGET_REVISION` |
 | `TF_VAR_letsencrypt_email` | `LETSENCRYPT_EMAIL` |
 
-Optional: `ARGOCD_GITHUB_TOKEN` (secret, for private repos), `ONEPASSWORD_TEAM_LOGINS_VAULT_ID` (secret), OIDC secrets -- see [ci.md](ci.md) for the full list.
+Optional: `ARGOCD_GITHUB_TOKEN` (secret, for private repos), OIDC secrets -- see [ci.md](ci.md) for the full list.
 
 **4. Trigger:** Go to **Actions > Terraform Apply > Run workflow**. Select `hetzner-starter` and `plan` for a dry run, then re-run with `apply` to deploy.
 

@@ -28,7 +28,7 @@ Defaults in this repo are tuned for Google, but the flow is provider-agnostic.
 2. Fill in the OIDC variables in `.env` (append `.env.oidc.example` to your `.env` if you haven't already).
 3. For **OVH** and **Hetzner** kubectl OIDC only: set `enable_oidc = true` and `oidc_client_id` in cluster `terraform.tfvars` before the first apply.
 4. Apply both stages: cluster then addons.
-5. For **OVH** and **Hetzner** kubectl OIDC only: install kubelogin with `brew install kubelogin`, download `kubeconfig-oidc-<cluster>` from 1Password, then run any `kubectl` command to trigger browser login.
+5. For **OVH** and **Hetzner** kubectl OIDC only: install kubelogin with `brew install kubelogin`, then use kubelogin directly with the OIDC issuer and your kubectl client ID to authenticate.
 6. For **AWS**: use `aws eks update-kubeconfig --region <region> --name <cluster>`.
 7. For **GCP**: use `gcloud container clusters get-credentials <cluster> --location <location> --project <project>`.
 
@@ -139,8 +139,6 @@ export TF_VAR_kubectl_oidc_client_id="your-kubectl-client-id"
 export TF_VAR_kubectl_oidc_client_secret="your-kubectl-client-secret"
 ```
 
-If `TF_VAR_onepassword_team_logins_vault_id` is set, Terraform writes a `kubeconfig-oidc-<cluster>` item using the Kubernetes exec credential plugin (`kubectl oidc-login get-token`, `interactiveMode: IfAvailable`). Without this vault, the kubeconfig item is not published.
-
 Install the client plugin on each machine:
 
 ```bash
@@ -153,7 +151,7 @@ or:
 kubectl krew install oidc-login
 ```
 
-After the addons apply, each team member installs kubelogin, downloads `kubeconfig-oidc-<cluster>` from 1Password, and runs any `kubectl` command to trigger browser login and cache the token.
+After the addons apply, each team member installs kubelogin and authenticates directly using the OIDC issuer URL and kubectl client ID. Use `kubectl oidc-login setup` or configure the exec credential plugin in your kubeconfig manually. The kubeconfig server URL and CA data are available from `terraform output` in the cluster stage.
 
 ### AWS and GCP
 

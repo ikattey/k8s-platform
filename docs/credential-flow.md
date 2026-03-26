@@ -33,20 +33,12 @@ Infrastructure items (for Kubernetes Secret sync via ESO):
 
 Terraform creates `grafana-admin` at bootstrap. `grafana-<cluster>` is the ESO sync item; `grafana-admin-<cluster>` is the browser-login item.
 
-Browser-login items for human access:
+Browser-login items for human access (written to the infra vault when `TF_VAR_onepassword_vault_id` is set):
 
-- `argocd-<cluster>` when `TF_VAR_onepassword_team_logins_vault_id` is set
-- `grafana-admin-<cluster>` when `TF_VAR_onepassword_team_logins_vault_id` is set
-- `prometheus-<cluster>` when `TF_VAR_onepassword_team_logins_vault_id` is set
-- `alertmanager-<cluster>` when `TF_VAR_onepassword_team_logins_vault_id` is set
-- `kubeconfig-oidc-<cluster>` when kubectl OIDC is enabled on OVH or Hetzner
-  and a team-logins vault is configured
-
-When OIDC is enabled, login items shift between vaults:
-- ArgoCD and Grafana login items move to the infra vault only when their own OIDC is enabled
-- Prometheus and AlertManager login items move to the infra vault when **any** OIDC is enabled (Grafana OAuth or ArgoCD OIDC)
-
-This means enabling only Grafana OAuth will move Prometheus and AlertManager logins to the infra vault while ArgoCD stays in the team vault.
+- `argocd-<cluster>`
+- `grafana-admin-<cluster>`
+- `prometheus-<cluster>`
+- `alertmanager-<cluster>`
 
 ## Managed PostgreSQL credentials
 
@@ -72,12 +64,6 @@ Infrastructure vault — the UUID is used by both Terraform (to write items) and
 
 ```bash
 export TF_VAR_onepassword_vault_id="<vault-uuid>"   # find via: op vault list
-```
-
-Optional team browser-login vault:
-
-```bash
-export TF_VAR_onepassword_team_logins_vault_id="<vault-uuid>"
 ```
 
 ## Secret consumption

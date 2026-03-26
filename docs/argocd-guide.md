@@ -55,7 +55,7 @@ Primary URL:
 
 - `https://argocd-<cluster>.<domain>`
 
-If `TF_VAR_onepassword_team_logins_vault_id` is set, Terraform writes an `argocd-<cluster>` browser-login item. See [credential-flow.md](credential-flow.md) for the full item lifecycle.
+If `TF_VAR_onepassword_vault_id` is set, Terraform writes an `argocd-<cluster>` browser-login item to the 1Password vault. See [credential-flow.md](credential-flow.md) for the full item lifecycle.
 
 Break-glass password:
 

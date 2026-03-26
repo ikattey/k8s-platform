@@ -265,51 +265,6 @@ locals {
   ), "")
 }
 
-locals {
-  kubectl_oidc_exec_args = concat(
-    [
-      "oidc-login",
-      "get-token",
-      "--oidc-issuer-url=${var.oidc_issuer_url}",
-      "--oidc-client-id=${var.kubectl_oidc_client_id}",
-      "--oidc-extra-scope=email",
-      "--oidc-extra-scope=profile",
-    ],
-    var.kubectl_oidc_client_secret != "" ? ["--oidc-client-secret=${var.kubectl_oidc_client_secret}"] : []
-  )
-
-  oidc_kubeconfig = yamlencode({
-    apiVersion = "v1"
-    kind       = "Config"
-    clusters = [{
-      name = local.cluster_name
-      cluster = {
-        server                       = local.cluster.server
-        "certificate-authority-data" = local.cluster["certificate-authority-data"]
-      }
-    }]
-    contexts = [{
-      name = "${local.cluster_name}-oidc"
-      context = {
-        cluster = local.cluster_name
-        user    = "${local.cluster_name}-oidc-user"
-      }
-    }]
-    "current-context" = "${local.cluster_name}-oidc"
-    users = [{
-      name = "${local.cluster_name}-oidc-user"
-      user = {
-        exec = {
-          apiVersion      = "client.authentication.k8s.io/v1"
-          command         = "kubectl"
-          args            = local.kubectl_oidc_exec_args
-          interactiveMode = "IfAvailable"
-        }
-      }
-    }]
-  })
-}
-
 # --- Bootstrap Secrets: External DNS ---
 
 resource "kubernetes_namespace_v1" "external_dns" {
@@ -744,14 +699,12 @@ resource "onepassword_item" "database_credentials" {
   tags = ["terraform-managed", "database", "k8s-secret", local.cluster_name]
 }
 
-# --- 1Password: Team Browser Logins ---
+# --- 1Password: Browser Logins ---
 
-# When OIDC is enabled, admin logins move to infra vault (break-glass only).
-# When OIDC is off, they stay in team logins (admin password is the only way in).
 resource "onepassword_item" "argocd_browser_login" {
-  count = var.onepassword_team_logins_vault_id != "" ? 1 : 0
+  count = var.onepassword_vault_id != "" ? 1 : 0
 
-  vault    = local.enable_argocd_oidc && var.onepassword_vault_id != "" ? var.onepassword_vault_id : var.onepassword_team_logins_vault_id
+  vault    = var.onepassword_vault_id
   title    = "argocd-${local.cluster_name}"
   category = "login"
   username = "admin"
@@ -762,9 +715,9 @@ resource "onepassword_item" "argocd_browser_login" {
 }
 
 resource "onepassword_item" "grafana_browser_login" {
-  count = var.onepassword_team_logins_vault_id != "" ? 1 : 0
+  count = var.onepassword_vault_id != "" ? 1 : 0
 
-  vault    = local.enable_grafana_oauth && var.onepassword_vault_id != "" ? var.onepassword_vault_id : var.onepassword_team_logins_vault_id
+  vault    = var.onepassword_vault_id
   title    = "grafana-admin-${local.cluster_name}"
   category = "login"
   username = "admin"
@@ -772,17 +725,6 @@ resource "onepassword_item" "grafana_browser_login" {
   url      = "https://grafana-${local.cluster_name}.${var.domain}"
 
   tags = ["terraform-managed", "grafana", "browser-login", local.cluster_name]
-}
-
-resource "onepassword_item" "oidc_kubeconfig" {
-  count = var.onepassword_team_logins_vault_id != "" && local.enable_kubectl_oidc ? 1 : 0
-
-  vault      = var.onepassword_team_logins_vault_id
-  title      = "kubeconfig-oidc-${local.cluster_name}"
-  category   = "secure_note"
-  note_value = local.oidc_kubeconfig
-
-  tags = ["terraform-managed", "kubectl", "oidc", "kubeconfig", local.cluster_name]
 }
 
 # --- 1Password: Monitoring basicAuth (for ESO sync) ---
@@ -812,12 +754,10 @@ resource "onepassword_item" "monitoring_basic_auth" {
 
 # --- 1Password: Prometheus & AlertManager Browser Logins ---
 
-# When any OIDC is enabled, Prometheus/AlertManager logins move to infra vault
-# (devs view metrics in Grafana via SSO; direct Prometheus access is ops-only).
 resource "onepassword_item" "prometheus_browser_login" {
-  count = var.onepassword_team_logins_vault_id != "" ? 1 : 0
+  count = var.onepassword_vault_id != "" ? 1 : 0
 
-  vault    = local.enable_any_oidc && var.onepassword_vault_id != "" ? var.onepassword_vault_id : var.onepassword_team_logins_vault_id
+  vault    = var.onepassword_vault_id
   title    = "prometheus-${local.cluster_name}"
   category = "login"
   username = local.monitoring_username
@@ -828,9 +768,9 @@ resource "onepassword_item" "prometheus_browser_login" {
 }
 
 resource "onepassword_item" "alertmanager_browser_login" {
-  count = var.onepassword_team_logins_vault_id != "" ? 1 : 0
+  count = var.onepassword_vault_id != "" ? 1 : 0
 
-  vault    = local.enable_any_oidc && var.onepassword_vault_id != "" ? var.onepassword_vault_id : var.onepassword_team_logins_vault_id
+  vault    = var.onepassword_vault_id
   title    = "alertmanager-${local.cluster_name}"
   category = "login"
   username = local.monitoring_username

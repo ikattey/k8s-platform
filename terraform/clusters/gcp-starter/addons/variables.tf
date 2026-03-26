@@ -280,12 +280,6 @@ variable "onepassword_vault_id" {
   }
 }
 
-variable "onepassword_team_logins_vault_id" {
-  description = "1Password vault ID for team browser logins. Leave empty to skip."
-  type        = string
-  default     = ""
-}
-
 variable "domain" {
   description = "Base domain for cluster URLs. Used to populate the URL field on 1Password login items (ArgoCD/Grafana) and by the GitOps layer for demo ingress hostnames."
   type        = string

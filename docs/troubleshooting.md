@@ -64,7 +64,7 @@ Common causes: wrong vault name/UUID, incorrect item title or field name, missin
 
 ### Prometheus and Alertmanager return `401`
 
-Use `prometheus-<cluster>` / `alertmanager-<cluster>` browser-login items (team-logins vault) or credentials from `monitoring-basic-auth-<cluster>` in the infra vault. With Grafana OAuth or ArgoCD OIDC enabled, browser-login items move to the infra vault.
+Use `prometheus-<cluster>` / `alertmanager-<cluster>` browser-login items from the 1Password vault, or credentials from `monitoring-basic-auth-<cluster>` in the same vault.
 
 ### Grafana password does not update
 

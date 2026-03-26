@@ -157,12 +157,6 @@ variable "onepassword_vault_id" {
   }
 }
 
-variable "onepassword_team_logins_vault_id" {
-  description = "1Password vault ID for team browser logins. Leave empty to skip."
-  type        = string
-  default     = ""
-}
-
 # --- Storage Class Aliases ---
 
 variable "enable_storage_class_aliases" {

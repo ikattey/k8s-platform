@@ -695,14 +695,12 @@ resource "onepassword_item" "database_credentials" {
   tags = ["terraform-managed", "database", "k8s-secret", local.cluster_name]
 }
 
-# --- 1Password: Team Browser Logins ---
+# --- 1Password: Browser Logins ---
 
-# When OIDC is enabled, admin logins move to infra vault (break-glass only).
-# When OIDC is off, they stay in team logins (admin password is the only way in).
 resource "onepassword_item" "argocd_browser_login" {
-  count = var.onepassword_team_logins_vault_id != "" ? 1 : 0
+  count = var.onepassword_vault_id != "" ? 1 : 0
 
-  vault    = local.enable_argocd_oidc && var.onepassword_vault_id != "" ? var.onepassword_vault_id : var.onepassword_team_logins_vault_id
+  vault    = var.onepassword_vault_id
   title    = "argocd-${local.cluster_name}"
   category = "login"
   username = "admin"
@@ -713,9 +711,9 @@ resource "onepassword_item" "argocd_browser_login" {
 }
 
 resource "onepassword_item" "grafana_browser_login" {
-  count = var.onepassword_team_logins_vault_id != "" ? 1 : 0
+  count = var.onepassword_vault_id != "" ? 1 : 0
 
-  vault    = local.enable_grafana_oauth && var.onepassword_vault_id != "" ? var.onepassword_vault_id : var.onepassword_team_logins_vault_id
+  vault    = var.onepassword_vault_id
   title    = "grafana-admin-${local.cluster_name}"
   category = "login"
   username = "admin"
@@ -752,12 +750,10 @@ resource "onepassword_item" "monitoring_basic_auth" {
 
 # --- 1Password: Prometheus & AlertManager Browser Logins ---
 
-# When any OIDC is enabled, Prometheus/AlertManager logins move to infra vault
-# (devs view metrics in Grafana via SSO; direct Prometheus access is ops-only).
 resource "onepassword_item" "prometheus_browser_login" {
-  count = var.onepassword_team_logins_vault_id != "" ? 1 : 0
+  count = var.onepassword_vault_id != "" ? 1 : 0
 
-  vault    = local.enable_any_oidc && var.onepassword_vault_id != "" ? var.onepassword_vault_id : var.onepassword_team_logins_vault_id
+  vault    = var.onepassword_vault_id
   title    = "prometheus-${local.cluster_name}"
   category = "login"
   username = local.monitoring_username
@@ -768,9 +764,9 @@ resource "onepassword_item" "prometheus_browser_login" {
 }
 
 resource "onepassword_item" "alertmanager_browser_login" {
-  count = var.onepassword_team_logins_vault_id != "" ? 1 : 0
+  count = var.onepassword_vault_id != "" ? 1 : 0
 
-  vault    = local.enable_any_oidc && var.onepassword_vault_id != "" ? var.onepassword_vault_id : var.onepassword_team_logins_vault_id
+  vault    = var.onepassword_vault_id
   title    = "alertmanager-${local.cluster_name}"
   category = "login"
   username = local.monitoring_username

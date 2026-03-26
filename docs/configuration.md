@@ -53,12 +53,6 @@ Use the same Stage 1 variable names on every cloud:
 
 Cloud-specific Terraform modules can still differ behind the scenes, but these are the user-facing knobs across OVH, Hetzner, AWS, and GCP.
 
-### Team logins vault
-
-`TF_VAR_onepassword_team_logins_vault_id` controls where Terraform writes browser-login items for ArgoCD, Grafana, Prometheus, and Alertmanager. With OIDC enabled, items move to the infra vault as break-glass access; with OIDC disabled, they stay in the team logins vault as the primary login method.
-
-Set this to the same vault as your infra vault, or a separate vault shared with your team. Without it, browser-login items are not created and break-glass credentials come only from Terraform outputs (not available in CI deploys).
-
 ## OIDC timing
 
 Configure OIDC before the first cluster apply if using SSO. On Hetzner, OIDC flags are baked into k3s at install time and cannot be changed later. See [oidc.md](oidc.md).

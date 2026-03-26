@@ -24,7 +24,6 @@ Runs from the GitHub Actions UI. Pick a cluster (`ovh-starter`, `hetzner-starter
 | `CLOUDFLARE_API_TOKEN` | `TF_VAR_cloudflare_api_token` | Cloudflare API token for external-dns |
 | `ONEPASSWORD_SERVICE_ACCOUNT_TOKEN` | `TF_VAR_onepassword_service_account_token` | 1Password service account token |
 | `ONEPASSWORD_VAULT_ID` | `TF_VAR_onepassword_vault_id` | 1Password infrastructure vault UUID |
-| `ONEPASSWORD_TEAM_LOGINS_VAULT_ID` | `TF_VAR_onepassword_team_logins_vault_id` | 1Password team logins vault UUID (optional) |
 | `ARGOCD_GITHUB_TOKEN` | `TF_VAR_github_token` | GitHub PAT -- repo access for ArgoCD (only for private repos) |
 
 | GitHub Variable | `.env` source | Example |
