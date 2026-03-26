@@ -3,12 +3,18 @@
 ## Where to change things
 
 - `argocd/values.yaml`: shared defaults
-- `clusters/<cluster>/values.yaml`: per-cluster overrides
-- `clusters/<cluster>/cnpg-values.yaml`: per-cluster CNPG overrides (database name, storage size, replicas, backup schedule, pooler settings)
+- `clusters/<cluster>/values.yaml`: per-cluster overrides, including `components:` flags
+- `clusters/<cluster>/cnpg-values.yaml`: per-cluster CNPG overrides (database name, storage size, replicas, backup schedule, pooler settings, node targeting)
+- `clusters/<cluster>/typesense-values.yaml`: per-cluster Typesense overrides (storage class, node targeting)
+- `clusters/<cluster>/nats-values.yaml`: per-cluster NATS overrides (storage class, node targeting)
 - `values/<component>/values.yaml`: component-specific Helm values
 - `values/<component>/values-<cloud>.yaml`: cloud-specific component overrides
 - `terraform/clusters/<cluster>/cluster/terraform.tfvars`: cloud and cluster infrastructure
 - `terraform/clusters/<cluster>/addons/terraform.tfvars`: ArgoCD bootstrap inputs
+
+The demo app does not use per-cluster values files. Its ingress, TLS, cluster issuer, and data-layer flags are injected by the ArgoCD template from `clusters/<cluster>/values.yaml` via `components:` flags. There is no `demo-app-values.yaml` per cluster.
+
+Data-layer services are opt-in on every cloud. The starter defaults to `demoApp: true` and keeps `cnpg`, `valkey`, `nats`, and `typesense` disabled until you explicitly enable and configure them.
 
 ## Component toggles
 
@@ -26,7 +32,7 @@ Current toggles live under `components:` in `argocd/values.yaml`:
 - `argocdIngress`
 - `demoApp`
 - `cnpg`
-- `dragonfly`
+- `valkey`
 - `typesense`
 - `nats`
 - `platformAlerts`
@@ -61,6 +67,8 @@ components:
   demoApp: true
 ```
 
+When enabled, the demo app checks health for all five data-layer services (postgres-write, postgres-read, valkey, typesense, nats). A service only appears in the health check when its corresponding `components:` flag is true. The image is multi-arch (amd64 + arm64) and hosted publicly — no `imagePullSecrets` are needed.
+
 ### Enable CNPG
 
 Set `cnpg: true` in `clusters/<cluster>/values.yaml` and `cnpg_enabled = true` in your addons `terraform.tfvars`:
@@ -76,7 +84,78 @@ components:
 cnpg_enabled = true
 ```
 
-CNPG backups require object storage. Set `enable_object_storage = true` in your cluster `terraform.tfvars` if it isn't already. See [backups.md](backups.md) for backup configuration.
+CNPG backups require object storage. Set `create_backup_bucket = true` in your cluster `terraform.tfvars` if it isn't already. See [backups.md](backups.md) for backup configuration.
+
+CNPG uses the cluster's default storage class. For higher I/O performance, opt in to `fast-rwo` in your per-cluster `cnpg-values.yaml` — see [Storage classes](#storage-classes) below. On Hetzner, the storage-class aliases are enabled by default in the addons stage; use `enable_storage_class_aliases = false` only if you explicitly want to opt out.
+
+### NATS authentication
+
+NATS ships with auth disabled by default for simplicity. For production, enable token auth and provide the token via ESO:
+
+```yaml
+# values/nats/values.yaml (or a per-cluster override)
+nats:
+  auth:
+    enabled: true
+    tokenSecretRef:
+      name: nats-auth-token
+      key: token
+```
+
+Add this to `clusters/<cluster>/bootstrap-secrets.yaml`:
+
+```yaml
+secrets:
+  natsAuthToken:
+    enabled: true
+    onepasswordItem: "nats-auth-<cluster>"
+```
+
+Create the matching 1Password item with a `token` field, and ESO will sync it to `messaging/nats-auth-token`.
+
+### Typesense admin key
+
+Typesense requires an admin key. The starter now fails fast if the chart is still using the placeholder value.
+
+For the 1Password/ESO path, disable the inline Secret and add this to `clusters/<cluster>/typesense-values.yaml`:
+
+```yaml
+typesense:
+  auth:
+    createSecret: false
+```
+
+Then add this to `clusters/<cluster>/bootstrap-secrets.yaml`:
+
+```yaml
+secrets:
+  typesenseAdminKey:
+    enabled: true
+    onepasswordItem: "typesense-admin-<cluster>"
+```
+
+Create the matching 1Password item with an `api_key` field, and ESO will sync it to `search/typesense-admin-key`.
+
+### Typesense version
+
+Typesense is pinned to **v29.0**. v30.1 has a known segfault on x86_64 — do not upgrade to v30.x until an upstream fix is confirmed. To upgrade, update `typesense.image` in `values/typesense/values.yaml`:
+
+```yaml
+typesense:
+  image: typesense/typesense:29.0
+```
+
+Check the [Typesense changelog](https://typesense.org/docs/guide/updating-typesense.html) before bumping versions.
+
+### External-DNS ownership and domain scope
+
+`txtOwnerId` and `domainFilters` are injected automatically per cluster by the ArgoCD template:
+
+- `txtOwnerId` defaults to `k8s-platform-<clusterName>` — prevents DNS record conflicts when multiple clusters share the same Cloudflare account.
+- `externalDns.txtOwnerId` can override that default for clusters that must adopt pre-existing TXT ownership.
+- `domainFilters` is scoped to `<domain>` from your cluster values — prevents one cluster from deleting DNS records owned by another cluster.
+
+These are not set in `values/external-dns/values.yaml`. Do not add them there; they are always overridden by the template.
 
 ### Change Traefik or monitoring values
 
@@ -155,8 +234,8 @@ Typical examples:
 
 - OVH node flavor or autoscaling limits
 - Hetzner server type or node counts
-- enabling Hetzner storage nodes
-- enabling managed PostgreSQL on OVH
+- enabling a storage node pool
+- enabling managed PostgreSQL on AWS, GCP, or OVH
 
 ## Database contract
 
@@ -166,11 +245,14 @@ The cluster stage exports `database_host`, `database_port`, `database_name`, `da
 
 | Option | Provider | Managed by | Best for |
 |--------|----------|------------|----------|
-| Managed PostgreSQL | OVH only | OVH | Operational simplicity, built-in HA and backups |
+| Managed PostgreSQL | AWS / GCP / OVH | AWS RDS / Cloud SQL / OVH | Operational simplicity, cloud-managed HA and backups |
+| External PostgreSQL | Any cloud | You | Reusing an existing database service |
 | CNPG | Any cloud | You (via operator) | Full control, lower cost, multi-cloud portability |
 
 **Managed PostgreSQL** — set `database_provider = "managed"` in cluster
-`terraform.tfvars`. See [quickstart-ovh.md](quickstart-ovh.md) for setup.
+`terraform.tfvars`. AWS provisions RDS, GCP provisions Cloud SQL, and OVH
+provisions OVH managed PostgreSQL. Hetzner does not ship a managed database
+module in this starter; use `database_provider = "external"` there.
 
 **CNPG** — set `cnpg: true` in `clusters/<cluster>/values.yaml` and configure
 backups. See [backups.md](backups.md) for backup/restore/tuning.
@@ -203,7 +285,7 @@ PgBouncer maintains a pool of `default_pool_size` backend connections per databa
 
 - **High connection count**: increase `max_client_conn` and add pooler instances
 - **Long transactions or prepared statements**: switch `poolMode` to `session` (disables connection sharing)
-- **Read-heavy workloads with replicas**: create a separate Pooler manifest with `type: ro` in `values/cnpg/cluster/templates/` (the current template only renders one pooler)
+- **Read-heavy workloads with replicas**: a read-only pooler (`pooler-ro.yaml`) is already included in `values/cnpg/cluster/templates/` and activates automatically when `cluster.instances > 1` — no extra manifest needed
 
 ### Disabling the pooler
 
@@ -223,56 +305,63 @@ Components use the cluster default storage class. On Hetzner with dedicated node
 | `fast-rwo` | Longhorn (local NVMe) | PostgreSQL, search indexes |
 | `standard-rwo` | Hetzner CSI (network) | Message queues, general workloads |
 
-Enable in `terraform.tfvars`:
+Enable in the cluster stage `terraform.tfvars`:
 
 ```hcl
-enable_storage_class_aliases = true
-enable_storage_nodes         = true    # Longhorn needs dedicated nodes
-longhorn_replica_count       = 2       # Match your storage_node_count for redundancy
+enable_storage_node_pool = true    # Longhorn needs dedicated nodes
 ```
 
-Then set the storage class in per-cloud value overlays:
+Enable in the addons stage `terraform.tfvars` only if you want to override the
+Hetzner default:
+
+```hcl
+enable_storage_class_aliases = true   # Optional; true by default on Hetzner
+longhorn_replica_count       = 2    # Match your storage_node_count for redundancy
+```
+
+Then opt in to fast storage in per-cluster overlays:
 
 ```yaml
-# values/cnpg/cluster/values-hetzner.yaml
-storage:
-  storageClass: fast-rwo
+# clusters/<cluster>/cnpg-values.yaml (uncomment to enable)
+# cluster:
+#   storage:
+#     storageClass: fast-rwo
+#   walStorage:
+#     storageClass: fast-rwo
 ```
 
-Aliases work across all clouds. On Hetzner with dedicated storage nodes, `fast-rwo` maps to Longhorn (local NVMe) and `standard-rwo` maps to Hetzner CSI.
+Aliases work across all clouds. On Hetzner with dedicated storage nodes, `fast-rwo` maps to Longhorn (local NVMe) and `standard-rwo` maps to Hetzner CSI. On AWS/GCP, aliases are always available.
 
-## Running CNPG on dedicated storage nodes
+## Running workloads on dedicated storage nodes
 
-When Hetzner storage nodes are enabled, you can pin PostgreSQL to local
-NVMe for better I/O performance:
+All clouds use the `k8s-platform/pool-role` label and taint to isolate stateful workloads on dedicated storage node pools:
 
-1. Enable storage nodes in `terraform.tfvars`:
+```
+Label:  k8s-platform/pool-role=storage
+Taint:  k8s-platform/pool-role=storage:NoSchedule
+```
 
-   ```hcl
-   enable_storage_nodes         = true
-   enable_storage_class_aliases = true
-   ```
+Workload targeting is configured in per-cluster overlay files, not cloud-level overlays. By default, all data layer components run on general nodes. To pin CNPG to storage nodes:
 
-2. Configure CNPG in `values/cnpg/cluster/values-hetzner.yaml`:
+```yaml
+# clusters/<cluster>/cnpg-values.yaml (uncomment to enable)
+# cluster:
+#   storage:
+#     storageClass: fast-rwo
+#   walStorage:
+#     storageClass: fast-rwo
+#   nodeSelector:
+#     k8s-platform/pool-role: storage
+#   tolerations:
+#     - key: k8s-platform/pool-role
+#       operator: Equal
+#       value: storage
+#       effect: NoSchedule
+```
 
-   ```yaml
-   cluster:
-     storage:
-       storageClass: fast-rwo
-     walStorage:
-       storageClass: fast-rwo
-     nodeSelector:
-       server-usage: storage
-     tolerations:
-       - key: storage
-         operator: Equal
-         value: "true"
-         effect: NoSchedule
-   ```
+Both `nodeSelector` and `tolerations` are required — storage nodes are tainted. The same pattern applies to Typesense and NATS if needed.
 
-Both `nodeSelector` and `tolerations` are required — storage nodes are tainted. Omitting either causes CNPG to schedule on regular worker nodes.
-
-The same pattern applies to Typesense and NATS — add matching `nodeSelector` and `tolerations` in their `values-hetzner.yaml` overlays.
+See [node-pools.md](node-pools.md) for full details on the convention, per-cloud tradeoffs, and component-specific guidance.
 
 ## Hetzner firewall rules
 

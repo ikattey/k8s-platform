@@ -15,9 +15,9 @@ The kit ships:
 - Loki retention: `168h` (`7d`)
 - Prometheus control-plane scraping disabled for managed cluster components
 
-> Loki requires S3 object storage. Set `enable_object_storage = true` in Stage 1 cluster `terraform.tfvars` before the first apply.
+> Loki requires object storage. Set `create_backup_bucket = true` in Stage 1 cluster `terraform.tfvars` before the first apply.
 >
-> Loki resolves bucket names from `clusters/<cluster>/loki-values.yaml`. On OVH, Terraform populates bucket names into the ArgoCD overlay automatically. On Hetzner, bucket names are written to `clusters/<cluster>/loki-values.yaml` by the object storage module output — verify this file exists and contains your actual bucket names after Stage 1.
+> Loki resolves bucket names at bootstrap time. Terraform injects the bucket names on every cloud when `create_backup_bucket = true`. OVH and Hetzner also inject the S3-compatible endpoint and region, AWS uses native S3, and GCP uses the GCS-backed overlay. No manual bucket-name editing is required in the supported bootstrap path.
 
 ## Alerts
 
@@ -52,7 +52,7 @@ The kit ships with `platform-alerts`, a set of PrometheusRule alert rules enable
 | NodePIDPressure | Node condition true | 5m |
 | CPUThrottlingHigh | > 50% throttling | 15m |
 
-Data layer alerts (DragonflyDB, NATS, Typesense) activate when the corresponding service is enabled in `clusters/<cluster>/values.yaml`.
+Data layer alerts (Valkey, NATS, Typesense) activate when the corresponding service is enabled in `clusters/<cluster>/values.yaml`.
 
 ### Tuning thresholds
 
@@ -139,8 +139,10 @@ Example LogQL queries:
 {app="traefik"} |= "500"
 ```
 
-Available stream labels: `namespace`, `pod`, `container`, `app`,
-`app_kubernetes_io_name`, `node`, `cluster`.
+Stream labels come from two sources:
+
+- **Pod discovery labels** (extracted from pod metadata): `namespace`, `pod`, `container`, `app`, `app_kubernetes_io_name`, `app_kubernetes_io_component`, `app_kubernetes_io_instance`, `app_kubernetes_io_version`, `node`
+- **External labels** (added to every stream by Alloy): `cluster`, `environment`
 
 Log retention: 7 days. Set `retention_period` in `values/loki/values.yaml` to change.
 

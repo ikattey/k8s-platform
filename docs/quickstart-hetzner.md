@@ -29,7 +29,7 @@ hcloud version
 **Required accounts:**
 
 - **Cloudflare** -- a domain managed in Cloudflare for DNS automation. [Create an API token](https://dash.cloudflare.com/profile/api-tokens) using the "Edit zone DNS" template, scoped to your domain's zone.
-- **1Password** -- a service account with read/write access to an infrastructure vault. Create one in your 1Password admin console under Developer > Service Accounts. You need the vault **name** (e.g. `Starter Kit Infra`) or the vault **UUID** (visible in the URL at Settings > Vaults) — either one works. Also set up a **team logins vault** (can be the same vault or a separate one shared with your team) — Terraform writes browser-login items here for ArgoCD, Grafana, Prometheus, and Alertmanager so your team can log in via 1Password.
+- **1Password** -- a service account with read/write access to an infrastructure vault. Create one in your 1Password admin console under Developer > Service Accounts. You need the vault **UUID** (find via `op vault list` or visible in the URL at Settings > Vaults). Also set up a **team logins vault** (can be the same vault or a separate one shared with your team) — Terraform writes browser-login items here for ArgoCD, Grafana, Prometheus, and Alertmanager so your team can log in via 1Password.
 - **Hetzner Cloud** -- a project with API access (credentials covered in step 3).
 
 If you plan to use CI (Option B in step 11), you also need admin access to your GitHub fork to create environments and add secrets.
@@ -169,11 +169,35 @@ control_plane_count       = 1
 
 server_type   = "cax21"
 desired_nodes = 2
-
-enable_object_storage = true
 ```
 
 `control_plane_count = 1` is the minimal starting point; the code default is `3` for HA. Always set `control_plane_server_type` explicitly — the default (`cpx22`, shared x86) differs from the `cax21` (ARM) shown above.
+
+### Object storage
+
+Object storage is required for monitoring (Loki) and CNPG backups. To enable it, add to `terraform.tfvars`:
+
+```hcl
+create_backup_bucket = true
+```
+
+Object storage requires two additional environment variables:
+
+```bash
+export TF_VAR_object_storage_access_key="<hetzner-object-storage-access-key>"
+export TF_VAR_object_storage_secret_key="<hetzner-object-storage-secret-key>"
+```
+
+These can reuse the same credentials as your state bucket.
+
+After enabling object storage, enable monitoring in `clusters/hetzner-starter/values.yaml`:
+
+```yaml
+components:
+  monitoring: true
+```
+
+Then commit and push — ArgoCD will deploy the monitoring stack with Loki backed by your object storage buckets.
 
 If you plan to use OIDC, also add:
 
@@ -201,23 +225,16 @@ The kit supports dedicated storage nodes for Longhorn. Enable them in
 `terraform.tfvars`:
 
 ```hcl
-enable_storage_nodes = true
-storage_server_type  = "cax41"
-storage_node_count   = 2
+enable_storage_node_pool = true
+storage_server_type      = "cax41"
+storage_node_count       = 2
 ```
 
-Storage nodes are labeled `server-usage=storage` and tainted
-`storage=true:NoSchedule`. Longhorn is automatically enabled when storage nodes
-are present.
+Storage nodes are labeled `k8s-platform/pool-role=storage` and tainted
+`k8s-platform/pool-role=storage:NoSchedule`. Longhorn is automatically enabled
+when storage nodes are present. See [node-pools.md](node-pools.md).
 
 For advanced Longhorn tuning (replica count, encryption, backup targets), see the [kube-hetzner storage documentation](https://github.com/mysticaltech/terraform-hcloud-kube-hetzner#storage).
-
-If you keep `enable_object_storage = true`, also add these to your `.env`:
-
-```bash
-export TF_VAR_object_storage_access_key="<hetzner-object-storage-access-key>"
-export TF_VAR_object_storage_secret_key="<hetzner-object-storage-secret-key>"
-```
 
 ## 9. Push to fork
 
@@ -260,7 +277,7 @@ For private repo access, set `github_token`. See [argocd-guide.md](argocd-guide.
 Required environment variables (from [configuration.md](configuration.md)):
 `TF_VAR_state_bucket`, `TF_VAR_state_region`, `TF_VAR_state_endpoint`,
 `TF_VAR_onepassword_service_account_token`,
-`TF_VAR_onepassword_infra_vault_id` (or `TF_VAR_onepassword_infra_vault` — only one is needed),
+`TF_VAR_onepassword_vault_id`,
 `TF_VAR_cloudflare_api_token`, `TF_VAR_domain`, `TF_VAR_letsencrypt_email`.
 
 (`OP_SERVICE_ACCOUNT_TOKEN` is auto-aliased from `TF_VAR_onepassword_service_account_token` in `.env.shared.example`.)
@@ -300,7 +317,7 @@ The included workflow handles both stages sequentially. You need admin access to
 
 > MicroOS snapshots (step 4) must exist in your Hetzner project before CI runs.
 >
-> The CI workflow does not set `TF_VAR_object_storage_access_key` or `TF_VAR_object_storage_secret_key`. If object storage is enabled, add these as GitHub secrets and update the workflow, or set `enable_object_storage = false`.
+> The CI workflow does not set `TF_VAR_object_storage_access_key` or `TF_VAR_object_storage_secret_key`. If `create_backup_bucket = true`, add these as GitHub secrets and update the workflow, or set `create_backup_bucket = false`.
 
 **1. Create a `production` environment** in Settings > Environments. Add required reviewers to gate applies.
 
@@ -318,7 +335,7 @@ The included workflow handles both stages sequentially. You need admin access to
 | `TF_VAR_state_endpoint` | `HETZNER_STATE_ENDPOINT` |
 | `TF_VAR_cloudflare_api_token` | `CLOUDFLARE_API_TOKEN` |
 | `TF_VAR_onepassword_service_account_token` | `ONEPASSWORD_SERVICE_ACCOUNT_TOKEN` |
-| `TF_VAR_onepassword_infra_vault_id` | `ONEPASSWORD_INFRA_VAULT_ID` |
+| `TF_VAR_onepassword_vault_id` | `ONEPASSWORD_VAULT_ID` |
 
 **3. Add variables** in Settings > Secrets and variables > Actions > Variables:
 
@@ -330,7 +347,7 @@ The included workflow handles both stages sequentially. You need admin access to
 | `TF_VAR_argocd_target_revision` | `ARGOCD_TARGET_REVISION` |
 | `TF_VAR_letsencrypt_email` | `LETSENCRYPT_EMAIL` |
 
-Optional: `ARGOCD_GITHUB_TOKEN` (secret, for private repos), `ONEPASSWORD_TEAM_LOGINS_VAULT_ID` (secret), OIDC secrets -- see [ci.md](ci.md) for the full list.
+Optional: `ARGOCD_GITHUB_TOKEN` (secret, for private repos), OIDC secrets -- see [ci.md](ci.md) for the full list.
 
 **4. Trigger:** Go to **Actions > Terraform Apply > Run workflow**. Select `hetzner-starter` and `plan` for a dry run, then re-run with `apply` to deploy.
 
@@ -354,12 +371,14 @@ Break-glass passwords (local deploy only — CI deploys don't expose Terraform o
 
 ```bash
 terraform -chdir=terraform/clusters/hetzner-starter/addons output -raw argocd_admin_password
+echo
 terraform -chdir=terraform/clusters/hetzner-starter/addons output -raw grafana_admin_password
+echo
 ```
 
 To enable CNPG, set `cnpg: true` under `components:` in `clusters/hetzner-starter/values.yaml` and `cnpg_enabled = true` in addons `terraform.tfvars`. CNPG backups require object storage (set in Stage 1).
 
-For a private demo app image, create an `imagePullSecret` in the `demo` namespace before enabling `demoApp`.
+The demo app image is public and multi-arch (amd64 + arm64). No `imagePullSecrets` are required.
 
 ### Networking
 

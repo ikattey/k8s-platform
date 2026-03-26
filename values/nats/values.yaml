@@ -26,12 +26,13 @@ nats:
     enabled: true
     storage:
       size: 10Gi              # PVC size (Kubernetes notation)
-      maxFileStore: 10737418240  # NATS max_file_store in bytes (= 10 GiB)
+      maxFileStore: "10737418240"  # NATS max_file_store in bytes (= 10 GiB); quoted to prevent scientific notation
       # storageClass: "" # Uses cluster default
 
-  # Authentication
+  # Authentication — disabled by default for simplicity.
+  # Enable and provide a token via ESO (ExternalSecret) in production.
   auth:
-    enabled: true
+    enabled: false
     tokenSecretRef:
       name: nats-auth-token
       key: token

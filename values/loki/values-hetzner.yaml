@@ -1,15 +1,33 @@
 # Hetzner cloud overlay for Loki
-# S3-compatible Object Storage via Hetzner Object Storage
+# S3-compatible Object Storage via Hetzner Object Storage.
 
 loki:
   storage:
+    type: s3
     bucketNames:
-      chunks: loki-chunks      # Create this bucket in Hetzner Object Storage
-      ruler: loki-ruler         # Can be the same bucket as chunks
+      chunks: loki-chunks
+      ruler: loki-ruler
     s3:
-      endpoint: fsn1.your-objectstorage.com  # FSN1 region — change to match your location
-      region: fsn1                           # Match the endpoint location code (nbg1/hel1 for other regions)
-      s3ForcePathStyle: true                 # Required for Hetzner S3-compatible API
-
+      endpoint: fsn1.your-objectstorage.com
+      region: fsn1
+      s3ForcePathStyle: true
+  storage_config:
+    aws:
+      s3forcepathstyle: true
+      endpoint: https://fsn1.your-objectstorage.com
+      region: fsn1
   compactor:
-    delete_request_store: s3   # Required when retention_enabled: true (set in values.yaml)
+    delete_request_store: s3
+
+singleBinary:
+  extraEnv:
+    - name: AWS_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: loki-storage-credentials
+          key: AWS_ACCESS_KEY_ID
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: loki-storage-credentials
+          key: AWS_SECRET_ACCESS_KEY

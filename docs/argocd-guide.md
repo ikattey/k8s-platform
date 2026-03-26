@@ -12,6 +12,17 @@
   - `data.yaml`
   - `applications.yaml`
   - `bootstrap-secrets.yaml`
+  - `required-values.yaml` — validates required values at render time
+
+### Template behavior
+
+**Demo app** — uses `valuesObject` in the ArgoCD template to inject ingress host, TLS, cluster issuer, and data-layer service flags. There are no per-cluster `demo-app-values.yaml` files. All demo app customization goes in `clusters/<cluster>/values.yaml` under `components:`.
+
+**Loki and Traefik** — use `ignoreMissingValueFiles: true` so cloud-specific overlay files (e.g. `values-ovh.yaml`) are optional and silently skipped when absent.
+
+**External-DNS** — `txtOwnerId` and `domainFilters` are injected from `clusterName` and `domain` values in `clusters/<cluster>/values.yaml`. Clusters can override `externalDns.txtOwnerId` when they must adopt legacy TXT ownership. No manual configuration in the external-dns values files.
+
+**Cert issuer** — the cluster issuer (`clusterIssuer`) is read from `clusters/<cluster>/values.yaml` and injected into all ingress annotations by the template. Change it there, not in individual component values.
 
 ## Sync order
 
@@ -23,13 +34,13 @@ ArgoCD sync waves control deployment order. Lower waves deploy first.
 | -5 | cert-manager | Webhook + CRDs must be ready before any Certificate request |
 | -4 | cert-manager-issuers | ClusterIssuer depends on cert-manager CRDs |
 | -3 | external-secrets | ESO operator must be ready before any ExternalSecret |
-| -2 | platform-secrets, cnpg-operator, dragonfly-operator | ClusterSecretStore needs ESO; operators need CRDs before instances |
+| -2 | platform-secrets, cnpg-operator | ClusterSecretStore needs ESO; operators need CRDs before instances |
 | -1 | bootstrap-secrets, traefik | ExternalSecrets need the store; ingress controller before routes |
 | 0 | argocd-ingress, monitoring-middleware, external-dns, kube-prometheus-stack | Core platform services — no ordering dependency between them |
 | 1 | loki | Log aggregation — needs Prometheus for ServiceMonitors |
 | 2 | alloy | Collector — needs loki-gateway endpoint to exist |
 | 3 | (reserved) | Custom applications go here |
-| 4 | cnpg-cluster, dragonfly, typesense-cluster, nats | Data layer instances — operators must be at -2 |
+| 4 | cnpg-cluster, valkey, typesense-cluster, nats | Data layer instances |
 | 5 | platform-alerts, demo-app | Last — exercises the full stack |
 
 Verify the live order:
@@ -44,7 +55,7 @@ Primary URL:
 
 - `https://argocd-<cluster>.<domain>`
 
-If `TF_VAR_onepassword_team_logins_vault_id` is set, Terraform writes an `argocd-<cluster>` browser-login item. See [credential-flow.md](credential-flow.md) for the full item lifecycle.
+If `TF_VAR_onepassword_vault_id` is set, Terraform writes an `argocd-<cluster>` browser-login item to the 1Password vault. See [credential-flow.md](credential-flow.md) for the full item lifecycle.
 
 Break-glass password:
 
@@ -69,7 +80,7 @@ argocd_repo_url = "https://github.com/your-org/k8s-platform"
 github_token = "ghp_xxxxxxxxxxxx"
 ```
 
-`github_token` is for ArgoCD Git access only. `ghcr_token` is separate — it is for pulling private images from GHCR. Use a token with read access to the repository ArgoCD should sync.
+`github_token` is primarily for ArgoCD Git access. `ghcr_token` is the dedicated token for GHCR image pulling, but if not set, `github_token` is used as a fallback via `coalesce()`. Use a token with read access to the repository ArgoCD should sync.
 
 ## Verification
 

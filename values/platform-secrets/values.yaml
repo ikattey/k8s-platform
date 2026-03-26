@@ -1,5 +1,5 @@
 # 1Password SDK ClusterSecretStore configuration
-# Note: ESO expects the *vault name*, not the UUID.
+# Vault UUID for the 1Password ClusterSecretStore. Find via: op vault list
 vaultId: ""
 
 # Service account token secret reference
@@ -7,3 +7,9 @@ tokenSecret:
   name: "onepassword-token"
   namespace: "external-secrets"
   key: "token"
+
+# 1Password SDK client-side cache
+cache:
+  enabled: true
+  ttl: "5m"
+  maxSize: 100

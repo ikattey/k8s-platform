@@ -11,8 +11,8 @@ output "secret_key" {
 }
 
 output "endpoint" {
-  description = "S3 endpoint URL (e.g., s3.gra.io.cloud.ovh.net)"
-  value       = "s3.${lower(var.region)}.io.cloud.ovh.net"
+  description = "S3 endpoint URL (e.g., https://s3.gra.io.cloud.ovh.net)"
+  value       = "https://s3.${lower(var.region)}.io.cloud.ovh.net"
 }
 
 output "region" {

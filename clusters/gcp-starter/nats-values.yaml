@@ -1,0 +1,13 @@
+# Per-cluster NATS overrides for gcp-starter.
+#
+# NATS runs on general-purpose nodes by default. If you enable a dedicated
+# storage node pool, uncomment the nodeSelector and tolerations below.
+
+# nats:
+#   nodeSelector:
+#     k8s-platform/pool-role: storage
+#   tolerations:
+#     - key: k8s-platform/pool-role
+#       operator: Equal
+#       value: storage
+#       effect: NoSchedule

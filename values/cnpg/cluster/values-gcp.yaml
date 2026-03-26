@@ -1,0 +1,8 @@
+# GCP cloud overlay for CNPG
+# Backups use GCS's S3-compatible interoperability endpoint with HMAC
+# credentials synced from 1Password.
+
+backup:
+  provider: s3
+  endpointURL: "https://storage.googleapis.com"
+  destinationPath: "s3://cnpg-backups/postgres/"

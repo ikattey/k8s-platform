@@ -8,8 +8,7 @@ argocd_target_revision = "main"
 # Secret Zero (1Password SDK provider)
 # Recommended: set sensitive values via environment variables (see .env.shared.example)
 # onepassword_service_account_token = ""   # 1Password service account token
-# onepassword_infra_vault           = ""   # Vault name for ESO (e.g. "-infra")
-# onepassword_infra_vault_id        = ""   # Vault UUID used by Terraform to write items (optional)
+# onepassword_vault_id              = ""   # Vault UUID — find via: op vault list
 
 # Cloud Provider
 cloud_provider = "ovh"
@@ -25,9 +24,6 @@ letsencrypt_email = "ops@your-company.com"
 # domain             = ""  # Base domain used for demo ingress hostnames and 1Password login item URLs
 # grafana_admin_password = ""  # Leave empty to auto-generate
 # cloudflare_api_token   = ""  # Cloudflare API token for external-dns (Zone:DNS:Edit)
-
-# 1Password Dual-Vault (optional)
-# onepassword_team_logins_vault_id = ""  # Vault ID for browser logins
 
 # OIDC RBAC (optional)
 # oidc_viewers = ["dev@example.com"]

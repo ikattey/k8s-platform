@@ -1,15 +1,33 @@
 # OVH cloud overlay for Loki
-# S3-compatible object storage via OVH Object Storage (Swift/S3 API)
+# S3-compatible Object Storage via OVH Object Storage.
 
 loki:
   storage:
+    type: s3
     bucketNames:
-      chunks: YOUR-CLUSTER-NAME-loki-chunks   # OVH S3 names are global — must be unique
-      ruler: YOUR-CLUSTER-NAME-loki-ruler     # Can be the same bucket as chunks
+      chunks: YOUR-CLUSTER-NAME-loki-chunks
+      ruler: YOUR-CLUSTER-NAME-loki-ruler
     s3:
-      endpoint: s3.gra.perf.cloud.ovh.net  # GRA region — change to match your region
+      endpoint: s3.gra.io.cloud.ovh.net
       region: gra
-      s3ForcePathStyle: true    # Required for OVH S3-compatible API
-
+      s3ForcePathStyle: true
+  storage_config:
+    aws:
+      s3forcepathstyle: true
+      endpoint: https://s3.gra.io.cloud.ovh.net
+      region: gra
   compactor:
-    delete_request_store: s3   # Required when retention_enabled: true (set in values.yaml)
+    delete_request_store: s3
+
+singleBinary:
+  extraEnv:
+    - name: AWS_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: loki-storage-credentials
+          key: AWS_ACCESS_KEY_ID
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: loki-storage-credentials
+          key: AWS_SECRET_ACCESS_KEY

@@ -1,0 +1,6 @@
+# AWS cloud overlay for CNPG
+# Backups use Amazon S3 via static credentials synced from 1Password.
+
+backup:
+  provider: s3
+  destinationPath: "s3://cnpg-backups/postgres/"

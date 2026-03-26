@@ -1,0 +1,2 @@
+# GCP cloud overlay for NATS JetStream
+# No cloud-specific overrides needed. Uses cluster default storage class.

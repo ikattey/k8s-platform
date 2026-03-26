@@ -55,27 +55,27 @@ output "database_password" {
 
 output "object_storage_access_key" {
   description = "Object storage access key (passthrough for addons stage)"
-  value       = var.enable_object_storage ? var.object_storage_access_key : null
+  value       = var.create_backup_bucket ? var.object_storage_access_key : null
   sensitive   = true
 }
 
 output "object_storage_secret_key" {
   description = "Object storage secret key (passthrough for addons stage)"
-  value       = var.enable_object_storage ? var.object_storage_secret_key : null
+  value       = var.create_backup_bucket ? var.object_storage_secret_key : null
   sensitive   = true
 }
 
 output "object_storage_endpoint" {
   description = "Object storage S3 endpoint"
-  value       = var.enable_object_storage ? "https://${var.region}.your-objectstorage.com" : null
+  value       = var.create_backup_bucket ? "https://${var.region}.your-objectstorage.com" : null
 }
 
 output "object_storage_region" {
   description = "Object storage region (must match the Hetzner Object Storage endpoint location, e.g. fsn1)"
-  value       = var.enable_object_storage ? var.region : null
+  value       = var.create_backup_bucket ? var.region : null
 }
 
 output "object_storage_bucket_names" {
   description = "Map of logical bucket name to actual bucket name"
-  value       = var.enable_object_storage ? module.object_storage[0].bucket_names : null
+  value       = var.create_backup_bucket ? module.object_storage[0].bucket_names : null
 }

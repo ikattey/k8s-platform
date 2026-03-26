@@ -1,16 +1,7 @@
-# --- Cluster name resolution ---
-
-data "onepassword_vault" "infra" {
-  count = var.onepassword_infra_vault == "" && var.onepassword_infra_vault_id != "" ? 1 : 0
-  uuid  = var.onepassword_infra_vault_id
-}
+# --- Locals ---
 
 locals {
   cluster_name = var.cluster_name
-
-  onepassword_infra_vault_name = var.onepassword_infra_vault != "" ? var.onepassword_infra_vault : (
-    var.onepassword_infra_vault_id != "" ? data.onepassword_vault.infra[0].name : ""
-  )
 
   enable_grafana_oauth = var.grafana_oauth_client_id != ""
   enable_argocd_oidc   = var.argocd_oidc_client_id != ""
@@ -228,19 +219,19 @@ locals {
   # -r (all instances), -any (all incl. not-ready). Pooler resources add
   # {cluster}-pooler-rw and {cluster}-pooler-ro (ro only when instances > 1).
   #
-  # Read endpoint logic (mirrors masena-infra):
+  # Read endpoint logic (production-proven pooled vs direct read routing):
   #   instances > 1 + pooler → pooler-ro (pooled reads to replicas)
   #   instances > 1 no pooler → -ro (direct reads to replicas)
   #   instances = 1           → -r (all-instances service; -ro has zero endpoints)
   cnpg_rw_host = var.cnpg_enabled ? format("%s.%s.svc.cluster.local",
     var.cnpg_pooler_enabled ? "${var.cnpg_cluster_name}-pooler-rw" : "${var.cnpg_cluster_name}-rw",
-    var.cnpg_namespace
+    "database"
   ) : null
   cnpg_ro_host = var.cnpg_enabled ? format("%s.%s.svc.cluster.local",
     var.cnpg_instances > 1
     ? (var.cnpg_pooler_enabled ? "${var.cnpg_cluster_name}-pooler-ro" : "${var.cnpg_cluster_name}-ro")
     : "${var.cnpg_cluster_name}-r",
-    var.cnpg_namespace
+    "database"
   ) : null
 
   # Managed DB takes priority when available (both paths won't be active simultaneously).
@@ -264,48 +255,14 @@ locals {
 }
 
 locals {
-  kubectl_oidc_exec_args = concat(
-    [
-      "oidc-login",
-      "get-token",
-      "--oidc-issuer-url=${var.oidc_issuer_url}",
-      "--oidc-client-id=${var.kubectl_oidc_client_id}",
-      "--oidc-extra-scope=email",
-      "--oidc-extra-scope=profile",
-    ],
-    var.kubectl_oidc_client_secret != "" ? ["--oidc-client-secret=${var.kubectl_oidc_client_secret}"] : []
-  )
-
-  oidc_kubeconfig = yamlencode({
-    apiVersion = "v1"
-    kind       = "Config"
-    clusters = [{
-      name = local.cluster_name
-      cluster = {
-        server                       = local.cluster.server
-        "certificate-authority-data" = local.cluster["certificate-authority-data"]
-      }
-    }]
-    contexts = [{
-      name = "${local.cluster_name}-oidc"
-      context = {
-        cluster = local.cluster_name
-        user    = "${local.cluster_name}-oidc-user"
-      }
-    }]
-    "current-context" = "${local.cluster_name}-oidc"
-    users = [{
-      name = "${local.cluster_name}-oidc-user"
-      user = {
-        exec = {
-          apiVersion      = "client.authentication.k8s.io/v1"
-          command         = "kubectl"
-          args            = local.kubectl_oidc_exec_args
-          interactiveMode = "IfAvailable"
-        }
-      }
-    }]
-  })
+  cnpg_backup_access_key_id = try(coalesce(
+    try(data.terraform_remote_state.cluster.outputs.cnpg_backup_access_key_id, ""),
+    try(data.terraform_remote_state.cluster.outputs.object_storage_access_key, "")
+  ), "")
+  cnpg_backup_secret_access_key = try(coalesce(
+    try(data.terraform_remote_state.cluster.outputs.cnpg_backup_secret_access_key, ""),
+    try(data.terraform_remote_state.cluster.outputs.object_storage_secret_key, "")
+  ), "")
 }
 
 # --- Bootstrap Secrets: External DNS ---
@@ -357,7 +314,7 @@ resource "kubectl_manifest" "database_namespace" {
     apiVersion = "v1"
     kind       = "Namespace"
     metadata = {
-      name = var.cnpg_namespace
+      name = "database"
       labels = {
         "app.kubernetes.io/managed-by" = "terraform-bootstrap"
       }
@@ -391,7 +348,7 @@ resource "kubernetes_secret_v1" "cnpg_bootstrap_credentials" {
 
   metadata {
     name      = "postgres-app-bootstrap"
-    namespace = var.cnpg_namespace
+    namespace = "database"
     labels = {
       "app.kubernetes.io/managed-by" = "terraform-bootstrap"
       "app.kubernetes.io/component"  = "database"
@@ -485,18 +442,21 @@ module "argocd" {
   letsencrypt_email                     = var.letsencrypt_email
   cloud_provider                        = var.cloud_provider
   cluster_name                          = local.cluster_name
-  onepassword_vault_id                  = local.onepassword_infra_vault_name
+  onepassword_vault_id                  = var.onepassword_vault_id
   onepassword_grafana_item_uuid         = try(onepassword_item.grafana_k8s_secret[0].uuid, "")
   onepassword_grafana_oauth_item_uuid   = try(onepassword_item.grafana_oauth[0].uuid, "")
   onepassword_cloudflare_item_uuid      = try(onepassword_item.cloudflare_dns[0].uuid, "")
   onepassword_argocd_oidc_item_uuid     = try(onepassword_item.argocd_oidc[0].uuid, "")
   onepassword_monitoring_auth_item_uuid = try(onepassword_item.monitoring_basic_auth[0].uuid, "")
+  onepassword_database_item_uuid        = try(onepassword_item.database_credentials[0].uuid, "")
   domain                                = var.domain
   loki_bucket_chunks                    = try(data.terraform_remote_state.cluster.outputs.object_storage_bucket_names["loki-chunks"], "")
   loki_bucket_ruler                     = try(data.terraform_remote_state.cluster.outputs.object_storage_bucket_names["loki-ruler"], "")
+  object_storage_provider               = try(data.terraform_remote_state.cluster.outputs.object_storage_provider, "s3")
   object_storage_endpoint               = try(data.terraform_remote_state.cluster.outputs.object_storage_endpoint, "")
   object_storage_region                 = try(data.terraform_remote_state.cluster.outputs.object_storage_region, "")
   cnpg_backup_bucket_name               = try(data.terraform_remote_state.cluster.outputs.object_storage_bucket_names["cnpg-backups"], "")
+  gcp_project_id                        = ""
   enable_argocd_oidc                    = local.enable_argocd_oidc
   argocd_oidc_client_id                 = var.argocd_oidc_client_id
   argocd_oidc_client_secret             = var.argocd_oidc_client_secret
@@ -508,6 +468,7 @@ module "argocd" {
   grafana_oauth_api_url                 = var.grafana_oauth_api_url
   grafana_oauth_scopes                  = var.grafana_oauth_scopes
   cnpg_enabled                          = var.cnpg_enabled
+  database_enabled                      = local.database_contract_enabled
 
   depends_on = [
     kubernetes_namespace_v1.demo,
@@ -523,6 +484,7 @@ module "argocd" {
     onepassword_item.cloudflare_dns,
     onepassword_item.argocd_oidc,
     onepassword_item.loki_s3_credentials,
+    onepassword_item.cnpg_backup_credentials,
     onepassword_item.monitoring_basic_auth,
     onepassword_item.database_credentials,
   ]
@@ -531,9 +493,9 @@ module "argocd" {
 # --- 1Password: Infrastructure Secrets (for ESO sync) ---
 
 resource "onepassword_item" "grafana_k8s_secret" {
-  count = var.onepassword_infra_vault_id != "" ? 1 : 0
+  count = var.onepassword_vault_id != "" ? 1 : 0
 
-  vault    = var.onepassword_infra_vault_id
+  vault    = var.onepassword_vault_id
   title    = "grafana-${local.cluster_name}"
   category = "secure_note"
 
@@ -555,9 +517,9 @@ resource "onepassword_item" "grafana_k8s_secret" {
 }
 
 resource "onepassword_item" "cloudflare_dns" {
-  count = var.onepassword_infra_vault_id != "" ? 1 : 0
+  count = var.onepassword_vault_id != "" ? 1 : 0
 
-  vault    = var.onepassword_infra_vault_id
+  vault    = var.onepassword_vault_id
   title    = "cloudflare-dns-${local.cluster_name}"
   category = "secure_note"
 
@@ -574,9 +536,9 @@ resource "onepassword_item" "cloudflare_dns" {
 }
 
 resource "onepassword_item" "grafana_oauth" {
-  count = var.onepassword_infra_vault_id != "" && local.enable_grafana_oauth ? 1 : 0
+  count = var.onepassword_vault_id != "" && local.enable_grafana_oauth ? 1 : 0
 
-  vault    = var.onepassword_infra_vault_id
+  vault    = var.onepassword_vault_id
   title    = "grafana-oidc-${local.cluster_name}"
   category = "secure_note"
 
@@ -598,9 +560,9 @@ resource "onepassword_item" "grafana_oauth" {
 }
 
 resource "onepassword_item" "argocd_oidc" {
-  count = var.onepassword_infra_vault_id != "" && local.enable_argocd_oidc ? 1 : 0
+  count = var.onepassword_vault_id != "" && local.enable_argocd_oidc ? 1 : 0
 
-  vault    = var.onepassword_infra_vault_id
+  vault    = var.onepassword_vault_id
   title    = "argocd-oidc-${local.cluster_name}"
   category = "secure_note"
 
@@ -623,12 +585,12 @@ resource "onepassword_item" "argocd_oidc" {
 
 resource "onepassword_item" "loki_s3_credentials" {
   count = (
-    var.onepassword_infra_vault_id != "" &&
+    var.onepassword_vault_id != "" &&
     try(data.terraform_remote_state.cluster.outputs.object_storage_access_key, "") != "" &&
     try(data.terraform_remote_state.cluster.outputs.object_storage_secret_key, "") != ""
   ) ? 1 : 0
 
-  vault    = var.onepassword_infra_vault_id
+  vault    = var.onepassword_vault_id
   title    = "loki-s3-${local.cluster_name}"
   category = "secure_note"
 
@@ -656,13 +618,13 @@ resource "onepassword_item" "loki_s3_credentials" {
 
 resource "onepassword_item" "cnpg_backup_credentials" {
   count = (
-    var.onepassword_infra_vault_id != "" &&
+    var.onepassword_vault_id != "" &&
     var.cnpg_enabled &&
-    try(data.terraform_remote_state.cluster.outputs.object_storage_access_key, "") != "" &&
-    try(data.terraform_remote_state.cluster.outputs.object_storage_secret_key, "") != ""
+    local.cnpg_backup_access_key_id != "" &&
+    local.cnpg_backup_secret_access_key != ""
   ) ? 1 : 0
 
-  vault    = var.onepassword_infra_vault_id
+  vault    = var.onepassword_vault_id
   title    = "cnpg-backup-${local.cluster_name}"
   category = "secure_note"
 
@@ -676,12 +638,12 @@ resource "onepassword_item" "cnpg_backup_credentials" {
     field {
       label = "AWS_ACCESS_KEY_ID"
       type  = "CONCEALED"
-      value = data.terraform_remote_state.cluster.outputs.object_storage_access_key
+      value = local.cnpg_backup_access_key_id
     }
     field {
       label = "AWS_SECRET_ACCESS_KEY"
       type  = "CONCEALED"
-      value = data.terraform_remote_state.cluster.outputs.object_storage_secret_key
+      value = local.cnpg_backup_secret_access_key
     }
   }
 
@@ -689,9 +651,9 @@ resource "onepassword_item" "cnpg_backup_credentials" {
 }
 
 resource "onepassword_item" "database_credentials" {
-  count = var.onepassword_infra_vault_id != "" && local.database_contract_enabled ? 1 : 0
+  count = var.onepassword_vault_id != "" && local.database_contract_enabled ? 1 : 0
 
-  vault    = var.onepassword_infra_vault_id
+  vault    = var.onepassword_vault_id
   title    = "database-${local.cluster_name}"
   category = "secure_note"
 
@@ -737,14 +699,12 @@ resource "onepassword_item" "database_credentials" {
   tags = ["terraform-managed", "database", "k8s-secret", local.cluster_name]
 }
 
-# --- 1Password: Team Browser Logins ---
+# --- 1Password: Browser Logins ---
 
-# When OIDC is enabled, admin logins move to infra vault (break-glass only).
-# When OIDC is off, they stay in team logins (admin password is the only way in).
 resource "onepassword_item" "argocd_browser_login" {
-  count = var.onepassword_team_logins_vault_id != "" ? 1 : 0
+  count = var.onepassword_vault_id != "" ? 1 : 0
 
-  vault    = local.enable_argocd_oidc && var.onepassword_infra_vault_id != "" ? var.onepassword_infra_vault_id : var.onepassword_team_logins_vault_id
+  vault    = var.onepassword_vault_id
   title    = "argocd-${local.cluster_name}"
   category = "login"
   username = "admin"
@@ -755,9 +715,9 @@ resource "onepassword_item" "argocd_browser_login" {
 }
 
 resource "onepassword_item" "grafana_browser_login" {
-  count = var.onepassword_team_logins_vault_id != "" ? 1 : 0
+  count = var.onepassword_vault_id != "" ? 1 : 0
 
-  vault    = local.enable_grafana_oauth && var.onepassword_infra_vault_id != "" ? var.onepassword_infra_vault_id : var.onepassword_team_logins_vault_id
+  vault    = var.onepassword_vault_id
   title    = "grafana-admin-${local.cluster_name}"
   category = "login"
   username = "admin"
@@ -767,23 +727,12 @@ resource "onepassword_item" "grafana_browser_login" {
   tags = ["terraform-managed", "grafana", "browser-login", local.cluster_name]
 }
 
-resource "onepassword_item" "oidc_kubeconfig" {
-  count = var.onepassword_team_logins_vault_id != "" && local.enable_kubectl_oidc ? 1 : 0
-
-  vault      = var.onepassword_team_logins_vault_id
-  title      = "kubeconfig-oidc-${local.cluster_name}"
-  category   = "secure_note"
-  note_value = local.oidc_kubeconfig
-
-  tags = ["terraform-managed", "kubectl", "oidc", "kubeconfig", local.cluster_name]
-}
-
 # --- 1Password: Monitoring basicAuth (for ESO sync) ---
 
 resource "onepassword_item" "monitoring_basic_auth" {
-  count = var.onepassword_infra_vault_id != "" ? 1 : 0
+  count = var.onepassword_vault_id != "" ? 1 : 0
 
-  vault    = var.onepassword_infra_vault_id
+  vault    = var.onepassword_vault_id
   title    = "monitoring-basic-auth-${local.cluster_name}"
   category = "secure_note"
 
@@ -805,12 +754,10 @@ resource "onepassword_item" "monitoring_basic_auth" {
 
 # --- 1Password: Prometheus & AlertManager Browser Logins ---
 
-# When any OIDC is enabled, Prometheus/AlertManager logins move to infra vault
-# (devs view metrics in Grafana via SSO; direct Prometheus access is ops-only).
 resource "onepassword_item" "prometheus_browser_login" {
-  count = var.onepassword_team_logins_vault_id != "" ? 1 : 0
+  count = var.onepassword_vault_id != "" ? 1 : 0
 
-  vault    = local.enable_any_oidc && var.onepassword_infra_vault_id != "" ? var.onepassword_infra_vault_id : var.onepassword_team_logins_vault_id
+  vault    = var.onepassword_vault_id
   title    = "prometheus-${local.cluster_name}"
   category = "login"
   username = local.monitoring_username
@@ -821,9 +768,9 @@ resource "onepassword_item" "prometheus_browser_login" {
 }
 
 resource "onepassword_item" "alertmanager_browser_login" {
-  count = var.onepassword_team_logins_vault_id != "" ? 1 : 0
+  count = var.onepassword_vault_id != "" ? 1 : 0
 
-  vault    = local.enable_any_oidc && var.onepassword_infra_vault_id != "" ? var.onepassword_infra_vault_id : var.onepassword_team_logins_vault_id
+  vault    = var.onepassword_vault_id
   title    = "alertmanager-${local.cluster_name}"
   category = "login"
   username = local.monitoring_username

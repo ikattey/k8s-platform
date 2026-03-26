@@ -15,6 +15,7 @@ spec:
       chart: traefik
       targetRevision: {{ .Values.versions.traefik }}
       helm:
+        ignoreMissingValueFiles: true
         valueFiles:
           - $values/values/traefik/values.yaml
           - $values/values/traefik/values-{{ .Values.cloudProvider }}.yaml
@@ -83,6 +84,8 @@ spec:
       helm:
         valuesObject:
           onepasswordItemName: {{ printf "monitoring-basic-auth-%s" .Values.clusterName | quote }}
+          onepasswordItemUuid: {{ .Values.onepasswordItemUuids.monitoringBasicAuth | quote }}
+          onepasswordVaultId: {{ .Values.onepasswordVaultId | quote }}
     - repoURL: {{ .Values.repoURL }}
       targetRevision: {{ .Values.targetRevision }}
       ref: values
@@ -123,6 +126,10 @@ spec:
         valueFiles:
           - $values/values/external-dns/values.yaml
           - $values/values/external-dns/values-{{ .Values.cloudProvider }}.yaml
+        valuesObject:
+          txtOwnerId: {{ default (printf "k8s-platform-%s" .Values.clusterName) .Values.externalDns.txtOwnerId | quote }}
+          domainFilters:
+            - {{ .Values.domain | quote }}
     - repoURL: {{ .Values.repoURL }}
       targetRevision: {{ .Values.targetRevision }}
       ref: values
@@ -250,26 +257,44 @@ spec:
       chart: loki
       targetRevision: {{ .Values.versions.loki }}
       helm:
+        ignoreMissingValueFiles: true
         valueFiles:
           - $values/values/loki/values.yaml
           - $values/values/loki/values-{{ .Values.cloudProvider }}.yaml
-{{ if and .Values.lokiBucketNames.chunks .Values.lokiBucketNames.ruler }}
+          - $values/clusters/{{ .Values.clusterName }}/loki-values.yaml
+{{- if and .Values.lokiBucketNames.chunks .Values.lokiBucketNames.ruler }}
         valuesObject:
           loki:
             storage:
               bucketNames:
                 chunks: {{ .Values.lokiBucketNames.chunks | quote }}
                 ruler: {{ .Values.lokiBucketNames.ruler | quote }}
-{{- if .Values.objectStorage.endpoint }}
+            {{- if eq .Values.objectStorage.provider "s3" }}
               s3:
+                {{- if .Values.objectStorage.endpoint }}
                 endpoint: {{ trimPrefix "https://" .Values.objectStorage.endpoint | quote }}
-{{- if .Values.objectStorage.region }}
+                {{- end }}
+                {{- if .Values.objectStorage.region }}
                 region: {{ .Values.objectStorage.region | quote }}
+                {{- end }}
+            storage_config:
+              aws:
+                bucketnames: {{ .Values.lokiBucketNames.chunks | quote }}
+                {{- if .Values.objectStorage.region }}
+                region: {{ .Values.objectStorage.region | quote }}
+                {{- end }}
+                s3forcepathstyle: {{ ternary "true" "false" (ne .Values.cloudProvider "aws") }}
+                {{- if .Values.objectStorage.endpoint }}
+                endpoint: {{ .Values.objectStorage.endpoint | quote }}
+                {{- end }}
+            {{- else if eq .Values.objectStorage.provider "gcs" }}
+              gcs:
+                bucket_name: {{ .Values.lokiBucketNames.chunks | quote }}
+            storage_config:
+              gcs:
+                bucket_name: {{ .Values.lokiBucketNames.chunks | quote }}
+            {{- end }}
 {{- end }}
-{{- end }}
-{{ else }}
-          - $values/clusters/{{ .Values.clusterName }}/loki-values.yaml
-{{ end }}
     - repoURL: {{ .Values.repoURL }}
       targetRevision: {{ .Values.targetRevision }}
       ref: values
@@ -338,8 +363,8 @@ spec:
         parameters:
           - name: services.cnpg
             value: {{ .Values.components.cnpg | quote }}
-          - name: services.dragonfly
-            value: {{ .Values.components.dragonfly | quote }}
+          - name: services.valkey
+            value: {{ .Values.components.valkey | quote }}
           - name: services.nats
             value: {{ .Values.components.nats | quote }}
           - name: services.typesense

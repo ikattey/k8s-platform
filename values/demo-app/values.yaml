@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: ghcr.io/masena-dev/k8s-platform-demo-app
-  tag: "main-bb58242"
+  tag: "main-8471417"
   pullPolicy: IfNotPresent
 
 containerPort: 8080
@@ -17,7 +17,7 @@ ingress:
   enabled: false
   className: traefik
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-staging
+    cert-manager.io/cluster-issuer: letsencrypt-production
   hosts:
     - host: demo.your-domain.com
       paths:
@@ -34,6 +34,23 @@ ingress:
 databaseSecret:
   enabled: false
   name: database-credentials
+
+# Data layer services (all optional, disabled by default)
+valkey:
+  enabled: false
+  addr: "valkey.cache:6379"
+
+typesense:
+  enabled: false
+  addr: "typesense.search:8108"
+  apiKey: ""
+  secretName: ""       # K8s secret containing TYPESENSE_API_KEY
+  secretKey: "api-key"
+
+nats:
+  enabled: false
+  url: "nats://nats.messaging:4222"
+  secretName: ""  # secret containing NATS_URL; set when URL includes auth credentials
 
 resources:
   requests:

@@ -26,6 +26,9 @@ type healthResponse struct {
 type app struct {
 	startTime time.Time
 	db        *database
+	valkey    *valkeyClient
+	typesense *typesenseClient
+	nats      *natsClient
 }
 
 func main() {
@@ -36,6 +39,8 @@ func main() {
 
 	a := &app{startTime: time.Now()}
 
+	// PostgreSQL is the primary data store — fatal on connection failure.
+	// Data layer services (Valkey, Typesense, NATS) are auxiliary — warn and continue.
 	if cfg.DB.WriteDSN != "" {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		db, err := newDatabase(ctx, cfg.DB.WriteDSN, cfg.DB.ReadDSN)
@@ -52,6 +57,39 @@ func main() {
 		logCtx, logCancel = context.WithTimeout(context.Background(), 3*time.Second)
 		log.Printf("read pool connected: %s", poolHost(logCtx, db.ReadPool))
 		logCancel()
+	}
+
+	// Valkey (optional)
+	if cfg.Valkey.Addr != "" {
+		vk, err := newValkey(cfg.Valkey.Addr)
+		if err != nil {
+			log.Printf("WARNING: valkey not available: %v", err)
+		} else {
+			a.valkey = vk
+			log.Printf("valkey connected: %s", cfg.Valkey.Addr)
+		}
+	}
+
+	// Typesense (optional)
+	if cfg.Typesense.Addr != "" {
+		ts, err := newTypesense(cfg.Typesense.Addr, cfg.Typesense.APIKey)
+		if err != nil {
+			log.Printf("WARNING: typesense not available: %v", err)
+		} else {
+			a.typesense = ts
+			log.Printf("typesense connected: %s", cfg.Typesense.Addr)
+		}
+	}
+
+	// NATS (optional)
+	if cfg.NATS.URL != "" {
+		nc, err := newNATS(cfg.NATS.URL)
+		if err != nil {
+			log.Printf("WARNING: nats not available: %v", err)
+		} else {
+			a.nats = nc
+			log.Printf("nats connected: %s", nc.conn.ConnectedUrlRedacted())
+		}
 	}
 
 	mux := http.NewServeMux()
@@ -90,30 +128,61 @@ func main() {
 	if a.db != nil {
 		a.db.Close()
 	}
+	if a.valkey != nil {
+		a.valkey.Close()
+	}
+	if a.typesense != nil {
+		a.typesense.Close()
+	}
+	if a.nats != nil {
+		a.nats.Close()
+	}
 	log.Println("stopped")
 }
 
-// handleHealth returns a JSON health report with the status of all configured services.
 func (a *app) handleHealth(w http.ResponseWriter, r *http.Request) {
 	resp := healthResponse{
-		Status: "up",
-		Uptime: time.Since(a.startTime).Round(time.Second).String(),
+		Status:   "up",
+		Uptime:   time.Since(a.startTime).Round(time.Second).String(),
+		Services: make(map[string]serviceStatus),
 	}
 
+	check := func(name string, s serviceStatus) {
+		resp.Services[name] = s
+		if s.Status != "up" {
+			resp.Status = "degraded"
+		}
+	}
+
+	notConfigured := serviceStatus{Status: "not configured"}
+
+	// PostgreSQL
 	if a.db != nil {
-		resp.Services = make(map[string]serviceStatus)
+		check("postgres-write", checkPool(r.Context(), a.db.WritePool))
+		check("postgres-read", checkPool(r.Context(), a.db.ReadPool))
+	} else {
+		resp.Services["postgres"] = notConfigured
+	}
 
-		ws := checkPool(r.Context(), a.db.WritePool)
-		resp.Services["postgres-write"] = ws
-		if ws.Status != "up" {
-			resp.Status = "degraded"
-		}
+	// Valkey
+	if a.valkey != nil {
+		check("valkey", a.valkey.Check(r.Context()))
+	} else {
+		resp.Services["valkey"] = notConfigured
+	}
 
-		rs := checkPool(r.Context(), a.db.ReadPool)
-		resp.Services["postgres-read"] = rs
-		if rs.Status != "up" {
-			resp.Status = "degraded"
-		}
+	// Typesense
+	if a.typesense != nil {
+		check("typesense", a.typesense.Check(r.Context()))
+	} else {
+		resp.Services["typesense"] = notConfigured
+	}
+
+	// NATS
+	if a.nats != nil {
+		check("nats", a.nats.Check(r.Context()))
+	} else {
+		resp.Services["nats"] = notConfigured
 	}
 
 	code := http.StatusOK
@@ -126,13 +195,11 @@ func (a *app) handleHealth(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-// handleHealthz is a lightweight liveness probe (no dependency checks).
 func (a *app) handleHealthz(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, "ok")
 }
 
-// handleReady is the readiness probe — checks write DB connectivity.
 func (a *app) handleReady(w http.ResponseWriter, r *http.Request) {
 	if a.db != nil {
 		ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)

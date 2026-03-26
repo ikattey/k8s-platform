@@ -19,6 +19,16 @@ variable "openstack_network_id" {
   type        = string
 }
 
+variable "gateway_ip" {
+  description = "Default vRack gateway IP for private-network-routed nodes. Set to the OpenStack router's IP on the private subnet (typically cidrhost(subnet_cidr, 1))."
+  type        = string
+
+  validation {
+    condition     = var.gateway_ip != ""
+    error_message = "gateway_ip must be set when private_network_routing_as_default is true. Pass the router's fixed IP (e.g., cidrhost(subnet_cidr, 1))."
+  }
+}
+
 # --- OIDC Configuration ---
 
 variable "enable_oidc" {

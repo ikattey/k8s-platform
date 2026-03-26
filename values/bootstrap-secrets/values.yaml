@@ -2,6 +2,10 @@
 secretStoreName: onepassword
 secretStoreKind: ClusterSecretStore
 
+# 1Password vault UUID or name. Used to construct op://vault/item references
+# for the onepasswordSDK provider. Set by ArgoCD from Terraform output.
+onepasswordVaultId: ""
+
 # How often ESO should refresh these secrets.
 # Keep this relatively short so initial bootstrap converges quickly.
 refreshInterval: 5m
@@ -58,7 +62,7 @@ secrets:
     enabled: false
     name: cnpg-backup-credentials
     namespace: database
-    onepasswordItem: ""  # Set per-cluster, typically reusing the Loki S3 item
+    onepasswordItem: ""  # Set per-cluster, e.g., "cnpg-backup-ovh-starter"
     onepasswordItemUuid: "" # Optional: use item UUID to avoid duplicate-title ambiguity
     targetLabels: {}
     data:
@@ -131,6 +135,30 @@ secrets:
       - secretKey: DB_PASSWORD
         remoteRef:
           property: password
+
+  natsAuthToken:
+    enabled: false
+    name: nats-auth-token
+    namespace: messaging
+    onepasswordItem: ""  # Set per-cluster, e.g., "nats-auth-ovh-starter"
+    onepasswordItemUuid: "" # Optional: use item UUID to avoid duplicate-title ambiguity
+    targetLabels: {}
+    data:
+      - secretKey: token
+        remoteRef:
+          property: token
+
+  typesenseAdminKey:
+    enabled: false
+    name: typesense-admin-key
+    namespace: search
+    onepasswordItem: ""  # Set per-cluster, e.g., "typesense-admin-ovh-starter"
+    onepasswordItemUuid: "" # Optional: use item UUID to avoid duplicate-title ambiguity
+    targetLabels: {}
+    data:
+      - secretKey: api-key
+        remoteRef:
+          property: api_key
 
   alertmanagerSlackWebhook:
     enabled: false

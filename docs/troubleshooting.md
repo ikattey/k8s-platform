@@ -64,17 +64,23 @@ Common causes: wrong vault name/UUID, incorrect item title or field name, missin
 
 ### Prometheus and Alertmanager return `401`
 
-Use `prometheus-<cluster>` / `alertmanager-<cluster>` browser-login items (team-logins vault) or credentials from `monitoring-basic-auth-<cluster>` in the infra vault. With Grafana OAuth or ArgoCD OIDC enabled, browser-login items move to the infra vault.
+Use `prometheus-<cluster>` / `alertmanager-<cluster>` browser-login items from the 1Password vault, or credentials from `monitoring-basic-auth-<cluster>` in the same vault.
 
 ### Grafana password does not update
 
-Grafana applies the admin password at first startup only. To reset: delete the `grafana-admin` Secret, restart the Grafana pod, then re-run Stage 2.
+Grafana applies the admin password at first startup only. To reset: re-run Stage 2 (which recreates the `grafana-admin` Secret with the current password), then restart the Grafana pod. Do not delete the Secret before Stage 2 recreates it — Grafana has `existingSecret: grafana-admin` configured and will crash if the Secret is missing on startup.
 
 ## Data and backups
 
 ### CNPG restore fails with missing WAL
 
 Examine restore pod logs for WAL archival errors. Verify `wals/` segments exist in object storage.
+
+## Typesense
+
+### Cluster fails to form (x86_64)
+
+Typesense v30.x has a known segfault on x86_64. The chart is pinned to v29.0. If you see segfaults or immediate pod restarts, verify `typesense.image` in `values/typesense/values.yaml` is set to `typesense/typesense:29.0`. Do not upgrade to v30.x until an upstream fix is confirmed.
 
 ## Longhorn (Hetzner)
 

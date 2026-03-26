@@ -1,4 +1,6 @@
 {{- if .Values.components.cnpg }}
+{{- $backupProvider := ternary "s3" (default "s3" .Values.objectStorage.provider) (eq .Values.cloudProvider "gcp") }}
+{{- $backupScheme := ternary "gs" $backupProvider (eq $backupProvider "gcs") }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -23,12 +25,14 @@ spec:
         {{- if .Values.cnpgBackupBucketName }}
         parameters:
           - name: backup.destinationPath
-            value: {{ printf "s3://%s/" .Values.cnpgBackupBucketName | quote }}
-          {{- if .Values.objectStorage.endpoint }}
+            value: {{ printf "%s://%s/postgres/" $backupScheme .Values.cnpgBackupBucketName | quote }}
+          - name: backup.provider
+            value: {{ $backupProvider | quote }}
+          {{- if and (eq $backupProvider "s3") .Values.objectStorage.endpoint }}
           - name: backup.endpointURL
             value: {{ .Values.objectStorage.endpoint | quote }}
           {{- end }}
-          {{- if .Values.objectStorage.region }}
+          {{- if and (eq $backupProvider "s3") .Values.objectStorage.region }}
           - name: backup.s3.region
             value: {{ .Values.objectStorage.region | quote }}
           {{- end }}
@@ -53,11 +57,11 @@ spec:
         maxDuration: 5m
 {{- end }}
 ---
-{{- if .Values.components.dragonfly }}
+{{- if .Values.components.valkey }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: dragonfly
+  name: valkey
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "4"
@@ -66,13 +70,16 @@ metadata:
 spec:
   project: apps
   sources:
-    - repoURL: {{ .Values.repoURL }}
-      targetRevision: {{ .Values.targetRevision }}
-      path: values/dragonfly
+    - repoURL: https://valkey.io/valkey-helm/
+      chart: valkey
+      targetRevision: {{ .Values.versions.valkey | default "0.9.3" }}
       helm:
+        releaseName: valkey
+        ignoreMissingValueFiles: true
         valueFiles:
-          - values.yaml
-          - values-{{ .Values.cloudProvider }}.yaml
+          - $values/values/valkey/values.yaml
+          - $values/values/valkey/values-{{ .Values.cloudProvider }}.yaml
+          - $values/clusters/{{ .Values.clusterName }}/valkey-values.yaml
     - repoURL: {{ .Values.repoURL }}
       targetRevision: {{ .Values.targetRevision }}
       ref: values
@@ -110,9 +117,11 @@ spec:
       targetRevision: {{ .Values.targetRevision }}
       path: values/typesense
       helm:
+        ignoreMissingValueFiles: true
         valueFiles:
           - values.yaml
           - values-{{ .Values.cloudProvider }}.yaml
+          - $values/clusters/{{ .Values.clusterName }}/typesense-values.yaml
     - repoURL: {{ .Values.repoURL }}
       targetRevision: {{ .Values.targetRevision }}
       ref: values
@@ -150,9 +159,11 @@ spec:
       targetRevision: {{ .Values.targetRevision }}
       path: values/nats
       helm:
+        ignoreMissingValueFiles: true
         valueFiles:
           - values.yaml
           - values-{{ .Values.cloudProvider }}.yaml
+          - $values/clusters/{{ .Values.clusterName }}/nats-values.yaml
     - repoURL: {{ .Values.repoURL }}
       targetRevision: {{ .Values.targetRevision }}
       ref: values

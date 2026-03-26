@@ -6,16 +6,16 @@ locals {
       }
       cm = var.enable_argocd_oidc ? {
         url = "https://argocd-${var.cluster_name}.${var.domain}"
-        "oidc.config" = join("\n", [
-          "name: SSO",
-          "issuer: ${var.oidc_issuer_url}",
-          "clientID: ${var.argocd_oidc_client_id}",
-          "clientSecret: $argocd-oidc-secret:clientSecret",
-          "requestedScopes:",
-          "  - openid",
-          "  - email",
-          "  - profile",
-        ])
+        # Note: ArgoCD's OIDC config does NOT support allowedDomains.
+        # Domain restriction must be enforced at the identity provider level
+        # (e.g., Google OAuth consent screen set to "Internal" for Workspace).
+        "oidc.config" = yamlencode({
+          name            = "SSO"
+          issuer          = var.oidc_issuer_url
+          clientID        = var.argocd_oidc_client_id
+          clientSecret    = "$argocd-oidc-secret:clientSecret"
+          requestedScopes = ["openid", "email", "profile"]
+        })
       } : {}
       rbac = var.enable_argocd_oidc ? {
         "policy.default" = "role:readonly"
@@ -71,6 +71,12 @@ resource "time_sleep" "argocd_destroy_grace_period" {
 
 # Create the root Application that manages all other apps (App-of-Apps)
 resource "kubectl_manifest" "root_application" {
+  # force_conflicts prevents ArgoCD's application-controller from taking field
+  # ownership of spec.sources. Without this, ArgoCD's selfHeal continuously reverts
+  # Terraform's parameters (e.g. cloudProvider) back to stale cached values after
+  # cluster recreation, causing the wrong cloud provider config to be applied.
+  force_conflicts   = true
+  server_side_apply = true
   yaml_body = yamlencode({
     apiVersion = "argoproj.io/v1alpha1"
     kind       = "Application"
@@ -152,6 +158,10 @@ resource "kubectl_manifest" "root_application" {
                 value = var.object_storage_endpoint
               },
               {
+                name  = "objectStorage.provider"
+                value = var.object_storage_provider
+              },
+              {
                 name  = "objectStorage.region"
                 value = var.object_storage_region
               },
@@ -160,8 +170,16 @@ resource "kubectl_manifest" "root_application" {
                 value = var.cnpg_backup_bucket_name
               },
               {
+                name  = "gcpProjectId"
+                value = var.gcp_project_id
+              },
+              {
                 name  = "onepasswordItemUuids.monitoringBasicAuth"
                 value = var.onepassword_monitoring_auth_item_uuid
+              },
+              {
+                name  = "onepasswordItemUuids.database"
+                value = var.onepassword_database_item_uuid
               },
               {
                 name  = "components.grafanaOAuth"
@@ -190,6 +208,10 @@ resource "kubectl_manifest" "root_application" {
               {
                 name  = "components.cnpg"
                 value = tostring(var.cnpg_enabled)
+              },
+              {
+                name  = "databaseEnabled"
+                value = tostring(var.database_enabled)
               }
             ]
           }

@@ -9,9 +9,17 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-staging
     solvers:
+      {{- if eq .Values.solver "dns01-cloudflare" }}
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: {{ .Values.cloudflareApiTokenSecretName | quote }}
+              key: {{ .Values.cloudflareApiTokenSecretKey | quote }}
+      {{- else }}
       - http01:
           ingress:
             class: traefik
+      {{- end }}
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -24,6 +32,14 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-production
     solvers:
+      {{- if eq .Values.solver "dns01-cloudflare" }}
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: {{ .Values.cloudflareApiTokenSecretName | quote }}
+              key: {{ .Values.cloudflareApiTokenSecretKey | quote }}
+      {{- else }}
       - http01:
           ingress:
             class: traefik
+      {{- end }}

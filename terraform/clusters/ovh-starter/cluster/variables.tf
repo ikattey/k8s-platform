@@ -64,13 +64,13 @@ variable "cluster_name" {
 }
 
 variable "domain" {
-  description = "Base domain for the cluster. Used to derive globally-unique OVH Object Storage bucket names for Loki when enable_object_storage is true."
+  description = "Base domain for the cluster. Used to derive globally-unique OVH Object Storage bucket names for Loki when create_backup_bucket is true."
   type        = string
   default     = ""
 
   validation {
-    condition     = !var.enable_object_storage || var.domain != ""
-    error_message = "domain must be set when enable_object_storage is true (OVH Object Storage bucket names are globally unique)."
+    condition     = !var.create_backup_bucket || var.domain != ""
+    error_message = "domain must be set when create_backup_bucket is true (OVH Object Storage bucket names are globally unique)."
   }
 }
 
@@ -116,6 +116,38 @@ variable "autoscale" {
   description = "Enable autoscaling for the node pool"
   type        = bool
   default     = true
+}
+
+# --- Storage Node Pool ---
+
+variable "enable_storage_node_pool" {
+  description = "Create a dedicated storage node pool with labels and taints"
+  type        = bool
+  default     = false
+}
+
+variable "storage_flavor" {
+  description = "OVH instance flavor for storage nodes"
+  type        = string
+  default     = "b3-8"
+}
+
+variable "storage_desired_nodes" {
+  description = "Desired number of storage nodes"
+  type        = number
+  default     = 1
+}
+
+variable "storage_min_nodes" {
+  description = "Minimum number of storage nodes"
+  type        = number
+  default     = 1
+}
+
+variable "storage_max_nodes" {
+  description = "Maximum number of storage nodes"
+  type        = number
+  default     = 2
 }
 
 # --- OIDC Configuration ---
@@ -166,12 +198,12 @@ variable "oidc_username_prefix" {
 # --- Database Configuration ---
 
 variable "database_provider" {
-  description = "Database provider: 'managed' for OVH managed PostgreSQL, 'cnpg' for CloudNativePG, 'none' for no database"
+  description = "Database provider: 'managed' for OVH managed PostgreSQL, 'cnpg' for CloudNativePG, 'external' for user-managed, or 'none' to skip"
   type        = string
   default     = "none"
   validation {
-    condition     = contains(["managed", "cnpg", "none"], var.database_provider)
-    error_message = "database_provider must be one of: managed, cnpg, none"
+    condition     = contains(["managed", "cnpg", "external", "none"], var.database_provider)
+    error_message = "database_provider must be one of: managed, cnpg, external, none"
   }
 }
 
@@ -220,8 +252,8 @@ variable "environment" {
   default     = "production"
 }
 
-variable "enable_object_storage" {
-  description = "Enable OVH Object Storage for Loki"
+variable "create_backup_bucket" {
+  description = "Provision OVH Object Storage buckets for Loki and CNPG backups."
   type        = bool
   default     = true
 }

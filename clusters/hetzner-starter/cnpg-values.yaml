@@ -1,12 +1,5 @@
 # Per-cluster CNPG overrides for hetzner-starter.
-#
-# The reference cluster uses dedicated storage nodes (enable_storage_nodes = true)
-# with Longhorn NVMe storage. CNPG is pinned to storage nodes via nodeSelector
-# and tolerations. Requires enable_storage_class_aliases = true in addons tfvars
-# to create the fast-rwo StorageClass.
-#
-# If you don't use storage nodes, remove the cluster block below. CNPG will
-# schedule on any node and use the default storage class (hcloud-volumes).
+# Storage nodes + storage class aliases enabled for E2E test.
 
 backup:
   enabled: true
@@ -18,9 +11,9 @@ cluster:
   walStorage:
     storageClass: fast-rwo
   nodeSelector:
-    node.kubernetes.io/server-usage: storage
+    k8s-platform/pool-role: storage
   tolerations:
-    - key: storage
+    - key: k8s-platform/pool-role
       operator: Equal
-      value: "true"
+      value: storage
       effect: NoSchedule

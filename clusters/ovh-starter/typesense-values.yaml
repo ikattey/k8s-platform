@@ -1,0 +1,11 @@
+# Per-cluster Typesense overrides for ovh-starter.
+
+# Uncomment when enable_storage_node_pool = true:
+# typesense:
+#   nodeSelector:
+#     k8s-platform/pool-role: storage
+#   tolerations:
+#     - key: k8s-platform/pool-role
+#       operator: Equal
+#       value: storage
+#       effect: NoSchedule

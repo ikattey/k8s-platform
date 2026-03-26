@@ -1,0 +1,17 @@
+region       = "eu-west-1"
+cluster_name = "aws-starter"
+environment  = "production"
+
+availability_zones = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+
+# Backup bucket and storage node pool (optional)
+# create_backup_bucket     = true
+# enable_storage_node_pool = true
+
+# Managed database options
+# database_provider        = "managed"  # or cnpg (default) or external
+# rds_instance_class       = "db.t4g.small"
+# rds_engine_version       = "16"
+# rds_allocated_storage    = 20
+# rds_max_allocated_storage = 100
+# rds_multi_az             = false

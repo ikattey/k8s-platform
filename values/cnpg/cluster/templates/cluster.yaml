@@ -43,15 +43,18 @@ spec:
     storageClass: {{ .Values.cluster.walStorage.storageClass | default .Values.cluster.storage.storageClass }}
     {{- end }}
 
-  {{- if or .Values.cluster.nodeSelector .Values.cluster.tolerations }}
+  {{- if or .Values.cluster.nodeSelector .Values.cluster.tolerations .Values.cluster.affinity }}
   affinity:
-    {{- if .Values.cluster.nodeSelector }}
+    {{- with .Values.cluster.nodeSelector }}
     nodeSelector:
-      {{- toYaml .Values.cluster.nodeSelector | nindent 6 }}
+      {{- toYaml . | nindent 6 }}
     {{- end }}
-    {{- if .Values.cluster.tolerations }}
+    {{- with .Values.cluster.tolerations }}
     tolerations:
-      {{- toYaml .Values.cluster.tolerations | nindent 6 }}
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.cluster.affinity }}
+    {{- toYaml . | nindent 4 }}
     {{- end }}
   {{- end }}
 
@@ -65,17 +68,11 @@ spec:
   {{- if .Values.backup.enabled }}
   backup:
     barmanObjectStore:
-      destinationPath: {{ .Values.backup.destinationPath }}
-      {{- if .Values.backup.endpointURL }}
-      endpointURL: {{ .Values.backup.endpointURL }}
+      destinationPath: {{ .Values.backup.destinationPath | quote }}
+      {{- if and (eq .Values.backup.provider "s3") .Values.backup.endpointURL }}
+      endpointURL: {{ .Values.backup.endpointURL | quote }}
       {{- end }}
-      {{- if .Values.backup.inheritFromIAMRole }}
-      s3Credentials:
-        inheritFromIAMRole: true
-      {{- else if .Values.backup.googleCredentials }}
-      googleCredentials:
-        {{- toYaml .Values.backup.googleCredentials | nindent 8 }}
-      {{- else if .Values.backup.s3.region }}
+      {{- if .Values.backup.s3.region }}
       s3Credentials:
         region:
           name: cnpg-backup-credentials

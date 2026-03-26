@@ -24,7 +24,7 @@ aws --version
 **Required accounts:**
 
 - **Cloudflare** -- a domain managed in Cloudflare for DNS automation. [Create an API token](https://dash.cloudflare.com/profile/api-tokens) using the "Edit zone DNS" template, scoped to your domain's zone.
-- **1Password** -- a service account with read/write access to an infrastructure vault. Create one in your 1Password admin console under Developer > Service Accounts. You need the vault **name** (e.g. `Starter Kit Infra`) or the vault **UUID** (visible in the URL at Settings > Vaults) — either one works. Also set up a **team logins vault** (can be the same vault or a separate one shared with your team) — Terraform writes browser-login items here for ArgoCD, Grafana, Prometheus, and Alertmanager so your team can log in via 1Password.
+- **1Password** -- a service account with read/write access to an infrastructure vault. Create one in your 1Password admin console under Developer > Service Accounts. You need the vault **UUID** (find via `op vault list` or visible in the URL at Settings > Vaults). Also set up a **team logins vault** (can be the same vault or a separate one shared with your team) — Terraform writes browser-login items here for ArgoCD, Grafana, Prometheus, and Alertmanager so your team can log in via 1Password.
 - **OVH Cloud** -- a Public Cloud project with API access (credentials covered in step 3).
 
 If you plan to use CI (Option B in step 10), you also need admin access to your GitHub fork to create environments and add secrets.
@@ -137,7 +137,7 @@ cluster_name = "ovh-starter"
 domain       = "example.com"
 ```
 
-OVH defaults `enable_object_storage` to `true`, which provisions Loki and CNPG backup buckets automatically.
+OVH defaults `create_backup_bucket` to `true`, which provisions Loki and CNPG backup buckets automatically.
 
 ## 8. Push to fork
 
@@ -180,7 +180,7 @@ For private repo access, set `github_token`. See [argocd-guide.md](argocd-guide.
 Required environment variables (from [configuration.md](configuration.md)):
 `TF_VAR_state_bucket`, `TF_VAR_state_region`, `TF_VAR_state_endpoint`,
 `TF_VAR_onepassword_service_account_token`,
-`TF_VAR_onepassword_infra_vault_id` (or `TF_VAR_onepassword_infra_vault` — only one is needed),
+`TF_VAR_onepassword_vault_id`,
 `TF_VAR_cloudflare_api_token`, `TF_VAR_domain`, `TF_VAR_letsencrypt_email`.
 
 (`OP_SERVICE_ACCOUNT_TOKEN` is auto-aliased from `TF_VAR_onepassword_service_account_token` in `.env.shared.example`.)
@@ -236,7 +236,7 @@ The included workflow handles both stages sequentially. You need admin access to
 | `TF_VAR_state_bucket` | `OVH_STATE_BUCKET` |
 | `TF_VAR_cloudflare_api_token` | `CLOUDFLARE_API_TOKEN` |
 | `TF_VAR_onepassword_service_account_token` | `ONEPASSWORD_SERVICE_ACCOUNT_TOKEN` |
-| `TF_VAR_onepassword_infra_vault_id` | `ONEPASSWORD_INFRA_VAULT_ID` |
+| `TF_VAR_onepassword_vault_id` | `ONEPASSWORD_VAULT_ID` |
 
 **3. Add variables** in Settings > Secrets and variables > Actions > Variables:
 
@@ -249,7 +249,7 @@ The included workflow handles both stages sequentially. You need admin access to
 | `TF_VAR_argocd_target_revision` | `ARGOCD_TARGET_REVISION` |
 | `TF_VAR_letsencrypt_email` | `LETSENCRYPT_EMAIL` |
 
-Optional: `ARGOCD_GITHUB_TOKEN` (secret, for private repos), `ONEPASSWORD_TEAM_LOGINS_VAULT_ID` (secret), OIDC secrets -- see [ci.md](ci.md) for the full list.
+Optional: `ARGOCD_GITHUB_TOKEN` (secret, for private repos), OIDC secrets -- see [ci.md](ci.md) for the full list.
 
 **4. Trigger:** Go to **Actions > Terraform Apply > Run workflow**. Select `ovh-starter` and `plan` for a dry run, then re-run with `apply` to deploy.
 
@@ -280,7 +280,7 @@ echo
 
 To enable CNPG, set `cnpg: true` under `components:` in `clusters/ovh-starter/values.yaml` and `cnpg_enabled = true` in addons `terraform.tfvars`. CNPG backups require object storage (set in Stage 1).
 
-For a private demo app image, create an `imagePullSecret` in the `demo` namespace before enabling `demoApp`.
+The demo app image is public and multi-arch (amd64 + arm64). No `imagePullSecrets` are required.
 
 ### Networking
 
@@ -307,13 +307,7 @@ database_flavor   = "db1-4"      # db1-4 (4 GB RAM) is the smallest
 
 The database connects to your cluster's private network. Stage 1 provisions the instance and exports credentials; Stage 2 creates the `database-credentials` Secret in the `demo` namespace and writes a `database-{cluster}` item to 1Password.
 
-To wire up the demo app's database connection:
-
-```yaml
-# clusters/ovh-starter/demo-app-values.yaml
-databaseSecret:
-  enabled: true
-```
+To wire up the demo app's database connection, set `components.cnpg: true` in your cluster values file (`clusters/ovh-starter/values.yaml`). The ArgoCD application template automatically enables `databaseSecret.enabled` when CNPG is active.
 
 ```yaml
 # clusters/ovh-starter/bootstrap-secrets.yaml

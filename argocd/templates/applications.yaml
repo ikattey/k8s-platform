@@ -15,21 +15,39 @@ spec:
       targetRevision: {{ .Values.targetRevision }}
       path: values/demo-app
       helm:
+        ignoreMissingValueFiles: true
         valueFiles:
           - $values/clusters/{{ .Values.clusterName }}/demo-app-values.yaml
-        parameters:
-          - name: ingress.enabled
-            value: "true"
-          - name: ingress.hosts[0].host
-            value: {{ printf "demo-%s.%s" .Values.clusterName .Values.domain | quote }}
-          - name: ingress.hosts[0].paths[0].path
-            value: "/"
-          - name: ingress.hosts[0].paths[0].pathType
-            value: "Prefix"
-          - name: ingress.tls[0].secretName
-            value: "demo-app-tls"
-          - name: ingress.tls[0].hosts[0]
-            value: {{ printf "demo-%s.%s" .Values.clusterName .Values.domain | quote }}
+        valuesObject:
+          ingress:
+            enabled: true
+            annotations:
+              cert-manager.io/cluster-issuer: {{ .Values.clusterIssuer | quote }}
+            hosts:
+              - host: {{ printf "demo-%s.%s" .Values.clusterName .Values.domain | quote }}
+                paths:
+                  - path: /
+                    pathType: Prefix
+            tls:
+              - secretName: demo-app-tls
+                hosts:
+                  - {{ printf "demo-%s.%s" .Values.clusterName .Values.domain | quote }}
+          {{- if .Values.databaseEnabled }}
+          databaseSecret:
+            enabled: true
+          {{- end }}
+          {{- if .Values.components.valkey }}
+          valkey:
+            enabled: true
+          {{- end }}
+          {{- if .Values.components.typesense }}
+          typesense:
+            enabled: true
+          {{- end }}
+          {{- if .Values.components.nats }}
+          nats:
+            enabled: true
+          {{- end }}
     - repoURL: {{ .Values.repoURL }}
       targetRevision: {{ .Values.targetRevision }}
       ref: values

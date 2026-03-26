@@ -29,13 +29,13 @@ variable "letsencrypt_email" {
 }
 
 variable "cloud_provider" {
-  description = "Cloud provider for platform overlay (ovh, hetzner)"
+  description = "Cloud provider for platform overlay (ovh, hetzner, gcp, aws)"
   type        = string
   default     = "ovh"
 
   validation {
-    condition     = contains(["ovh", "hetzner"], var.cloud_provider)
-    error_message = "cloud_provider must be one of: ovh, hetzner"
+    condition     = contains(["ovh", "hetzner", "gcp", "aws"], var.cloud_provider)
+    error_message = "cloud_provider must be one of: ovh, hetzner, gcp, aws"
   }
 }
 
@@ -109,6 +109,17 @@ variable "object_storage_endpoint" {
   default     = ""
 }
 
+variable "object_storage_provider" {
+  description = "Object storage provider used by the GitOps layer (s3 or gcs)."
+  type        = string
+  default     = "s3"
+
+  validation {
+    condition     = contains(["s3", "gcs"], var.object_storage_provider)
+    error_message = "object_storage_provider must be one of: s3, gcs"
+  }
+}
+
 variable "object_storage_region" {
   description = "S3 region/location for platform object storage. Set by Terraform from the cluster stage when object storage is provisioned."
   type        = string
@@ -117,6 +128,12 @@ variable "object_storage_region" {
 
 variable "onepassword_monitoring_auth_item_uuid" {
   description = "Optional: 1Password item UUID for monitoring-basic-auth-* bootstrap secret lookup."
+  type        = string
+  default     = ""
+}
+
+variable "onepassword_database_item_uuid" {
+  description = "Optional: 1Password item UUID for database-* bootstrap secret lookup."
   type        = string
   default     = ""
 }
@@ -153,7 +170,7 @@ variable "enable_grafana_oauth" {
 }
 
 variable "oidc_allowed_domains" {
-  description = "Comma-separated email domains allowed to log in via OIDC/OAuth. Enforced by Grafana; ArgoCD access is controlled via RBAC."
+  description = "Email domain for Grafana allowed_domains (safety net). ArgoCD does not support domain filtering — restrict access at the identity provider level instead."
   type        = string
   default     = ""
 }
@@ -186,4 +203,16 @@ variable "cnpg_enabled" {
   description = "Enable CloudNativePG operator and PostgreSQL cluster"
   type        = bool
   default     = false
+}
+
+variable "database_enabled" {
+  description = "Enable the shared database contract for apps that consume database-credentials."
+  type        = bool
+  default     = false
+}
+
+variable "gcp_project_id" {
+  description = "Optional GCP project ID passed into the root ArgoCD values for GCS / snapshot integrations."
+  type        = string
+  default     = ""
 }

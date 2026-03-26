@@ -1,0 +1,7 @@
+# Per-cluster ArgoCD values overlay for gcp-starter
+
+cloudProvider: "gcp"
+clusterIssuer: "letsencrypt-production"
+
+components:
+  demoApp: true

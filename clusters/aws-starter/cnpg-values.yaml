@@ -1,0 +1,21 @@
+# Per-cluster CNPG overrides for aws-starter.
+
+backup:
+  enabled: true
+  schedule: "0 0 2 * * *"
+
+# Uncomment for fast storage (requires storage class aliases, created by default on AWS):
+# cluster:
+#   storage:
+#     storageClass: fast-rwo
+#   walStorage:
+#     storageClass: fast-rwo
+
+# Uncomment when enable_storage_node_pool = true:
+#   nodeSelector:
+#     k8s-platform/pool-role: storage
+#   tolerations:
+#     - key: k8s-platform/pool-role
+#       operator: Equal
+#       value: storage
+#       effect: NoSchedule

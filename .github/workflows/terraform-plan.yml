@@ -32,6 +32,12 @@ jobs:
           - cloud: hetzner
             cluster_dir: terraform/clusters/hetzner-starter/cluster
             label: "Hetzner Cluster"
+          - cloud: aws
+            cluster_dir: terraform/clusters/aws-starter/cluster
+            label: "AWS Cluster"
+          - cloud: gcp
+            cluster_dir: terraform/clusters/gcp-starter/cluster
+            label: "GCP Cluster"
     steps:
       - uses: actions/checkout@v4
 
@@ -69,6 +75,12 @@ jobs:
           - cloud: hetzner
             addons_dir: terraform/clusters/hetzner-starter/addons
             label: "Hetzner Addons"
+          - cloud: aws
+            addons_dir: terraform/clusters/aws-starter/addons
+            label: "AWS Addons"
+          - cloud: gcp
+            addons_dir: terraform/clusters/gcp-starter/addons
+            label: "GCP Addons"
     steps:
       - uses: actions/checkout@v4
 

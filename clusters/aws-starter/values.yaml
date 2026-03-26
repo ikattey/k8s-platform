@@ -1,0 +1,13 @@
+# Per-cluster ArgoCD values overlay for aws-starter
+
+cloudProvider: "aws"
+clusterIssuer: "letsencrypt-production"
+
+externalDns:
+  txtOwnerId: "k8s-platform"
+
+components:
+  demoApp: true
+  valkey: true
+  typesense: true
+  nats: true

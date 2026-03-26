@@ -52,6 +52,19 @@ variable "github_token" {
   default     = ""
 }
 
+variable "ghcr_username" {
+  description = "GitHub username for pulling private images from GHCR. Leave empty to skip."
+  type        = string
+  default     = ""
+}
+
+variable "ghcr_token" {
+  description = "GitHub PAT with read:packages scope for GHCR pull access. Falls back to github_token if empty."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "letsencrypt_email" {
   description = "Email address for Let's Encrypt certificate notifications"
   type        = string
@@ -106,8 +119,8 @@ variable "cloud_provider" {
   default     = "hetzner"
 
   validation {
-    condition     = contains(["ovh", "hetzner"], var.cloud_provider)
-    error_message = "cloud_provider must be one of: ovh, hetzner"
+    condition     = contains(["ovh", "hetzner", "gcp", "aws"], var.cloud_provider)
+    error_message = "cloud_provider must be one of: ovh, hetzner, gcp, aws"
   }
 }
 
@@ -131,29 +144,17 @@ variable "cloudflare_api_token" {
   }
 }
 
-# --- 1Password Dual-Vault ---
+# --- 1Password Vault ---
 
-variable "onepassword_infra_vault_id" {
-  description = "1Password vault UUID used by Terraform to write infrastructure items (grafana-*, cloudflare-dns-*). Leave empty to skip writing items."
-  type        = string
-  default     = ""
-}
-
-variable "onepassword_infra_vault" {
-  description = "1Password vault name used by ESO's 1Password SDK ClusterSecretStore (e.g. -infra). If empty, Terraform will look up the name from onepassword_infra_vault_id."
+variable "onepassword_vault_id" {
+  description = "1Password vault UUID used by both Terraform to write infrastructure items and ESO's ClusterSecretStore. Leave empty to skip 1Password item creation."
   type        = string
   default     = ""
 
   validation {
-    condition     = !var.enable_onepassword_bootstrap || var.onepassword_infra_vault != "" || var.onepassword_infra_vault_id != ""
-    error_message = "Either onepassword_infra_vault (name) or onepassword_infra_vault_id (UUID) must be set when enable_onepassword_bootstrap is true."
+    condition     = !var.enable_onepassword_bootstrap || var.onepassword_vault_id != ""
+    error_message = "onepassword_vault_id must be set when enable_onepassword_bootstrap is true. Find your vault UUID via: op vault list"
   }
-}
-
-variable "onepassword_team_logins_vault_id" {
-  description = "1Password vault ID for team browser logins. Leave empty to skip."
-  type        = string
-  default     = ""
 }
 
 # --- Storage Class Aliases ---
@@ -161,7 +162,7 @@ variable "onepassword_team_logins_vault_id" {
 variable "enable_storage_class_aliases" {
   description = "Create cloud-portable storage class aliases (fast-rwo, standard-rwo). Enable when storage nodes are configured."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "longhorn_replica_count" {
@@ -263,6 +264,11 @@ variable "kubectl_oidc_client_id" {
   description = "OIDC client ID for kubectl/kubelogin. Leave empty to skip kubeconfig generation."
   type        = string
   default     = ""
+
+  validation {
+    condition     = var.kubectl_oidc_client_id == "" || length(var.oidc_viewers) + length(var.oidc_admins) > 0
+    error_message = "kubectl OIDC requires at least one oidc_viewers or oidc_admins principal, otherwise authentication will succeed but all kubectl requests will be forbidden."
+  }
 }
 
 variable "kubectl_oidc_client_secret" {
@@ -287,33 +293,12 @@ variable "monitoring_basic_auth_password" {
   default     = ""
 }
 
-# --- GHCR (GitHub Container Registry) ---
-
-variable "ghcr_username" {
-  description = "GitHub username for pulling private images from GHCR. Leave empty to skip."
-  type        = string
-  default     = ""
-}
-
-variable "ghcr_token" {
-  description = "GitHub PAT with read:packages scope for GHCR pull access. Falls back to github_token if empty."
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
 # --- CNPG (CloudNativePG) ---
 
 variable "cnpg_enabled" {
   description = "Enable CloudNativePG operator and PostgreSQL cluster"
   type        = bool
   default     = false
-}
-
-variable "cnpg_namespace" {
-  description = "Namespace where the CNPG cluster is deployed. Must match the namespace in argocd/templates/data.yaml (cnpg-cluster destination)."
-  type        = string
-  default     = "database"
 }
 
 variable "cnpg_cluster_name" {

@@ -15,7 +15,7 @@ resource "kubernetes_storage_class_v1" "fast_rwo" {
     name = "fast-rwo"
     labels = {
       "app.kubernetes.io/managed-by" = "terraform-bootstrap"
-      "k8s-platform/storage-tier" = "high-performance"
+      "k8s-platform/storage-tier"    = "high-performance"
     }
   }
 
@@ -28,7 +28,6 @@ resource "kubernetes_storage_class_v1" "fast_rwo" {
     numberOfReplicas    = var.longhorn_replica_count
     staleReplicaTimeout = "30"
     fsType              = "ext4"
-    nodeSelector        = "server-usage:storage"
   }
 }
 
@@ -39,7 +38,7 @@ resource "kubernetes_storage_class_v1" "standard_rwo" {
     name = "standard-rwo"
     labels = {
       "app.kubernetes.io/managed-by" = "terraform-bootstrap"
-      "k8s-platform/storage-tier" = "standard"
+      "k8s-platform/storage-tier"    = "standard"
     }
   }
 

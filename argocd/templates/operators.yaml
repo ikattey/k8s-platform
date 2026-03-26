@@ -50,6 +50,9 @@ spec:
     helm:
       values: |
         letsencryptEmail: {{ .Values.letsencryptEmail | quote }}
+        solver: {{ .Values.issuerSolver | quote }}
+        cloudflareApiTokenSecretName: {{ .Values.issuerCloudflareApiTokenSecretName | quote }}
+        cloudflareApiTokenSecretKey: {{ .Values.issuerCloudflareApiTokenSecretKey | quote }}
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager
@@ -202,39 +205,6 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
-    retry:
-      limit: 5
-      backoff:
-        duration: 30s
-        factor: 2
-        maxDuration: 5m
-{{- end }}
----
-{{- if .Values.components.dragonfly }}
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: dragonfly-operator
-  namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "-2"
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io
-spec:
-  project: platform
-  source:
-    repoURL: https://github.com/dragonflydb/dragonfly-operator.git
-    targetRevision: {{ .Values.versions.dragonflyOperator }}
-    path: charts/dragonfly-operator
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: dragonfly-operator-system
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
     retry:
       limit: 5
       backoff:

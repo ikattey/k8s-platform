@@ -2,18 +2,17 @@
 
 ## Bootstrap flow
 
-1. Stage 2 Terraform creates the `onepassword-token` Secret for ESO.
+1. Stage 2 Terraform creates the `onepassword-token` Secret for ESO (requires `enable_onepassword_bootstrap = true`, the default).
 2. ArgoCD installs ESO.
 3. ArgoCD installs the `platform-secrets` app, which creates the
    `ClusterSecretStore`.
 4. ArgoCD installs `bootstrap-secrets`.
 5. ESO reads 1Password items and writes namespace-local Kubernetes Secrets.
-6. ArgoCD installs `monitoring-middleware`, which reads
-   `monitoring/monitoring-basic-auth`.
+6. ArgoCD installs `monitoring-middleware`, which creates `monitoring/monitoring-basic-auth` (via ExternalSecret from 1Password) and the Traefik basicAuth Middleware that references it.
 
 When CNPG is enabled, Stage 2 also creates the `database` namespace early so bootstrap secrets exist before the CNPG app syncs.
 
-The kit uses 1Password via ESO's `onepasswordSDK` provider. To use a different backend (AWS Secrets Manager, Vault, Azure Key Vault), update the `ClusterSecretStore` spec in `values/platform-secrets/templates/cluster-secret-store.yaml` and its auth credentials. ExternalSecret manifests reference the store by name and require no changes.
+The kit uses 1Password via ESO's `onepasswordSDK` provider. To use a different backend (AWS Secrets Manager, Vault, GCP Secret Manager), update the `ClusterSecretStore` in `values/platform-secrets/templates/cluster-secret-store.yaml`, set `secretStoreName` in each cluster's `bootstrap-secrets.yaml`, and adjust the `onepasswordItem` values to match your backend's key format. The ExternalSecret template uses standard ESO `key`/`property` fields and works across all backends. See [external-secrets-backends.md](external-secrets-backends.md) for a full migration guide.
 
 ## How secrets reach workloads
 
@@ -23,34 +22,34 @@ Terraform creates Kubernetes Secrets and syncs them to 1Password. ESO keeps Kube
 
 Infrastructure items (for Kubernetes Secret sync via ESO):
 
-- `grafana-<cluster>` when `TF_VAR_onepassword_infra_vault_id` is set
-- `loki-s3-<cluster>` when `TF_VAR_onepassword_infra_vault_id` is set and object storage is enabled in Stage 1
-- `cloudflare-dns-<cluster>` when `TF_VAR_onepassword_infra_vault_id` is set
-- `monitoring-basic-auth-<cluster>` when `TF_VAR_onepassword_infra_vault_id` is set
-- `grafana-oidc-<cluster>` when Grafana OAuth is enabled and `TF_VAR_onepassword_infra_vault_id` is set
-- `argocd-oidc-<cluster>` when ArgoCD OIDC is enabled and `TF_VAR_onepassword_infra_vault_id` is set
-- `database-<cluster>` when the database contract is enabled and `TF_VAR_onepassword_infra_vault_id` is set
+- `grafana-<cluster>` when `TF_VAR_onepassword_vault_id` is set
+- `loki-s3-<cluster>` when `TF_VAR_onepassword_vault_id` is set and the cluster stage outputs S3 access/secret key credentials for object storage
+- `cnpg-backup-<cluster>` when `TF_VAR_onepassword_vault_id` is set, CNPG is enabled, and the cluster stage outputs S3 credentials
+- `cloudflare-dns-<cluster>` when `TF_VAR_onepassword_vault_id` is set
+- `monitoring-basic-auth-<cluster>` when `TF_VAR_onepassword_vault_id` is set
+- `grafana-oidc-<cluster>` when Grafana OAuth is enabled and `TF_VAR_onepassword_vault_id` is set
+- `argocd-oidc-<cluster>` when ArgoCD OIDC is enabled and `TF_VAR_onepassword_vault_id` is set
+- `database-<cluster>` when the database contract is enabled and `TF_VAR_onepassword_vault_id` is set
 
 Terraform creates `grafana-admin` at bootstrap. `grafana-<cluster>` is the ESO sync item; `grafana-admin-<cluster>` is the browser-login item.
 
-Browser-login items for human access:
+Browser-login items for human access (written to the infra vault when `TF_VAR_onepassword_vault_id` is set):
 
-- `argocd-<cluster>` when `TF_VAR_onepassword_team_logins_vault_id` is set
-- `grafana-admin-<cluster>` when `TF_VAR_onepassword_team_logins_vault_id` is set
-- `prometheus-<cluster>` when `TF_VAR_onepassword_team_logins_vault_id` is set
-- `alertmanager-<cluster>` when `TF_VAR_onepassword_team_logins_vault_id` is set
-- `kubeconfig-oidc-<cluster>` when kubectl OIDC is enabled and a team-logins
-  vault is configured
+- `argocd-<cluster>`
+- `grafana-admin-<cluster>`
+- `prometheus-<cluster>`
+- `alertmanager-<cluster>`
 
 ## Managed PostgreSQL credentials
 
-When OVH managed PostgreSQL is enabled (`database_provider = "managed"`, OVH only — not available on Hetzner):
+When `database_provider = "managed"`:
 
-1. Stage 1 provisions the database and exports credentials as Terraform outputs
-2. Stage 2 creates `database-credentials` Secret in the `demo` namespace (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DATABASE_URL`) and writes `database-<cluster>` to 1Password
-3. If `database.enabled: true` in `clusters/<cluster>/bootstrap-secrets.yaml`, ESO syncs the item back for ongoing refresh
+1. Stage 1 provisions the platform database and exports the same output contract on every supported managed path:
+   AWS uses RDS, GCP uses Cloud SQL, and OVH uses OVH managed PostgreSQL.
+2. Stage 2 creates `demo/database-credentials` (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DATABASE_WRITE_URL`, `DATABASE_READ_URL`) and writes `database-<cluster>` to 1Password.
+3. When `database.enabled: true` in `clusters/<cluster>/bootstrap-secrets.yaml`, ESO keeps the Kubernetes Secret refreshed from 1Password.
 
-When CNPG is used instead, the same Secret contract is populated from Terraform-generated passwords. The workload interface is identical.
+When CNPG is used instead, Terraform seeds the same Secret contract from the in-cluster PostgreSQL bootstrap credentials. On Hetzner, `database_provider = "external"` uses that exact same Secret contract, but you provide the backing credentials yourself.
 
 ## Required environment
 
@@ -61,19 +60,10 @@ export TF_VAR_onepassword_service_account_token="ops.xxxxxxxxxxxxxxxxxxxxxxxxxxx
 # OP_SERVICE_ACCOUNT_TOKEN is set automatically via the alias in .env.shared.example
 ```
 
-Infrastructure vault — ESO uses the vault **name**, Terraform uses the vault **UUID**:
+Infrastructure vault — the UUID is used by both Terraform (to write items) and ESO's ClusterSecretStore (to read them):
 
 ```bash
-export TF_VAR_onepassword_infra_vault="Starter Kit Infra"       # vault name — used by ESO via ClusterSecretStore
-export TF_VAR_onepassword_infra_vault_id="<vault-uuid>"          # vault UUID — used by Terraform to write items
-```
-
-ESO `ClusterSecretStore` uses the vault **name** (`TF_VAR_onepassword_infra_vault`); Terraform uses the vault **UUID** (`TF_VAR_onepassword_infra_vault_id`). Both must be set.
-
-Optional team browser-login vault:
-
-```bash
-export TF_VAR_onepassword_team_logins_vault_id="<vault-uuid>"
+export TF_VAR_onepassword_vault_id="<vault-uuid>"   # find via: op vault list
 ```
 
 ## Secret consumption
@@ -83,11 +73,11 @@ Common Kubernetes Secret bindings:
 - external-dns reads `external-dns/cloudflare-api-token`
 - Grafana reads `monitoring/grafana-admin`
 - Grafana OAuth reads `monitoring/grafana-oauth` (when OAuth is enabled)
-- Loki reads `monitoring/loki-storage-credentials`
+- Loki reads `monitoring/loki-storage-credentials` on OVH and Hetzner
 - Prometheus and Alertmanager ingress read `monitoring/monitoring-basic-auth`
-- demo workloads read `demo/database-credentials` (DATABASE_URL, DB_HOST, etc.)
-- CNPG uses `database/postgres-app-bootstrap` for its internal superuser
-- CNPG backups read `database/cnpg-backup-credentials` for S3 access
+- demo workloads read `demo/database-credentials` (DATABASE_WRITE_URL, DATABASE_READ_URL, DB_HOST, etc.)
+- CNPG uses `database/postgres-app-bootstrap` for the initial application user credentials (the `cnpg_database_user` variable)
+- CNPG backups read `database/cnpg-backup-credentials` on every cloud
 
 ## Verification
 
@@ -101,7 +91,7 @@ kubectl get secret -n database cnpg-backup-credentials
 
 ## Common issues
 
-- wrong vault name or vault UUID
+- wrong vault UUID (check with `op vault list`)
 - missing `TF_VAR_onepassword_service_account_token` (also sets `OP_SERVICE_ACCOUNT_TOKEN` via alias)
 - wrong item title or field name in the referenced 1Password item
 - duplicate 1Password items with the same title (e.g. from a partial

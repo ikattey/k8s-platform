@@ -87,7 +87,7 @@ variable "desired_nodes" {
 
 # --- Storage nodes (optional) ---
 
-variable "enable_storage_nodes" {
+variable "enable_storage_node_pool" {
   description = "Enable dedicated Longhorn storage nodes with labels and taints"
   type        = bool
   default     = false

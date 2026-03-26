@@ -109,8 +109,7 @@ jobs:
           TF_VAR_letsencrypt_email: ${{ vars.LETSENCRYPT_EMAIL }}
           TF_VAR_cloud_provider: ovh
           TF_VAR_onepassword_service_account_token: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN }}
-          TF_VAR_onepassword_infra_vault_id: ${{ secrets.ONEPASSWORD_INFRA_VAULT_ID }}
-          TF_VAR_onepassword_team_logins_vault_id: ${{ secrets.ONEPASSWORD_TEAM_LOGINS_VAULT_ID }}
+          TF_VAR_onepassword_vault_id: ${{ secrets.ONEPASSWORD_VAULT_ID }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN }}
           TF_VAR_kubectl_oidc_client_id: ${{ secrets.OVH_KUBECTL_OIDC_CLIENT_ID }}
           TF_VAR_kubectl_oidc_client_secret: ${{ secrets.OVH_KUBECTL_OIDC_CLIENT_SECRET }}
@@ -141,8 +140,7 @@ jobs:
           TF_VAR_letsencrypt_email: ${{ vars.LETSENCRYPT_EMAIL }}
           TF_VAR_cloud_provider: ovh
           TF_VAR_onepassword_service_account_token: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN }}
-          TF_VAR_onepassword_infra_vault_id: ${{ secrets.ONEPASSWORD_INFRA_VAULT_ID }}
-          TF_VAR_onepassword_team_logins_vault_id: ${{ secrets.ONEPASSWORD_TEAM_LOGINS_VAULT_ID }}
+          TF_VAR_onepassword_vault_id: ${{ secrets.ONEPASSWORD_VAULT_ID }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN }}
           TF_VAR_kubectl_oidc_client_id: ${{ secrets.OVH_KUBECTL_OIDC_CLIENT_ID }}
           TF_VAR_kubectl_oidc_client_secret: ${{ secrets.OVH_KUBECTL_OIDC_CLIENT_SECRET }}
@@ -237,8 +235,7 @@ jobs:
           TF_VAR_letsencrypt_email: ${{ vars.LETSENCRYPT_EMAIL }}
           TF_VAR_cloud_provider: hetzner
           TF_VAR_onepassword_service_account_token: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN }}
-          TF_VAR_onepassword_infra_vault_id: ${{ secrets.ONEPASSWORD_INFRA_VAULT_ID }}
-          TF_VAR_onepassword_team_logins_vault_id: ${{ secrets.ONEPASSWORD_TEAM_LOGINS_VAULT_ID }}
+          TF_VAR_onepassword_vault_id: ${{ secrets.ONEPASSWORD_VAULT_ID }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN }}
           TF_VAR_kubectl_oidc_client_id: ${{ secrets.HETZNER_KUBECTL_OIDC_CLIENT_ID }}
           TF_VAR_kubectl_oidc_client_secret: ${{ secrets.HETZNER_KUBECTL_OIDC_CLIENT_SECRET }}
@@ -269,8 +266,7 @@ jobs:
           TF_VAR_letsencrypt_email: ${{ vars.LETSENCRYPT_EMAIL }}
           TF_VAR_cloud_provider: hetzner
           TF_VAR_onepassword_service_account_token: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN }}
-          TF_VAR_onepassword_infra_vault_id: ${{ secrets.ONEPASSWORD_INFRA_VAULT_ID }}
-          TF_VAR_onepassword_team_logins_vault_id: ${{ secrets.ONEPASSWORD_TEAM_LOGINS_VAULT_ID }}
+          TF_VAR_onepassword_vault_id: ${{ secrets.ONEPASSWORD_VAULT_ID }}
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONEPASSWORD_SERVICE_ACCOUNT_TOKEN }}
           TF_VAR_kubectl_oidc_client_id: ${{ secrets.HETZNER_KUBECTL_OIDC_CLIENT_ID }}
           TF_VAR_kubectl_oidc_client_secret: ${{ secrets.HETZNER_KUBECTL_OIDC_CLIENT_SECRET }}

@@ -1,5 +1,5 @@
 # Longhorn configuration for dedicated storage nodes
-# Only applied when enable_storage_nodes = true
+# Only applied when enable_storage_node_pool = true
 locals {
   oidc_args = var.enable_oidc && var.oidc_client_id != "" ? [
     "--kube-apiserver-arg=--oidc-issuer-url=${var.oidc_issuer_url}",
@@ -31,16 +31,16 @@ locals {
       disableSchedulingOnCordonedNode     = true
       replicaNodeLevelSoftAntiAffinity    = false
       kubernetesClusterAutoscalerEnabled  = true
-      taintToleration                     = "storage=true:NoSchedule"
-      systemManagedComponentsNodeSelector = "server-usage:storage"
+      taintToleration                     = "k8s-platform/pool-role=storage:NoSchedule"
+      systemManagedComponentsNodeSelector = "k8s-platform/pool-role:storage"
     }
     longhornManager = {
-      nodeSelector = { "server-usage" = "storage" }
-      tolerations  = [{ key = "storage", operator = "Equal", value = "true", effect = "NoSchedule" }]
+      nodeSelector = { "k8s-platform/pool-role" = "storage" }
+      tolerations  = [{ key = "k8s-platform/pool-role", operator = "Equal", value = "storage", effect = "NoSchedule" }]
     }
     longhornDriver = {
-      nodeSelector = { "server-usage" = "storage" }
-      tolerations  = [{ key = "storage", operator = "Equal", value = "true", effect = "NoSchedule" }]
+      nodeSelector = { "k8s-platform/pool-role" = "storage" }
+      tolerations  = [{ key = "k8s-platform/pool-role", operator = "Equal", value = "storage", effect = "NoSchedule" }]
     }
   }
 
@@ -92,18 +92,18 @@ module "kube-hetzner" {
         count       = var.desired_nodes
       }
     ],
-    var.enable_storage_nodes ? [
+    var.enable_storage_node_pool ? [
       {
         name        = "storage"
         server_type = var.storage_server_type
         location    = var.region
         labels = [
-          "server-usage=storage",
+          "k8s-platform/pool-role=storage",
           "node.longhorn.io/create-default-disk=true",
           "k8s-platform/storage-node-generation=v1"
         ]
         taints = [
-          "storage=true:NoSchedule"
+          "k8s-platform/pool-role=storage:NoSchedule"
         ]
         count = var.storage_node_count
       }
@@ -118,10 +118,10 @@ module "kube-hetzner" {
   enable_cert_manager = false
 
   # kube-hetzner manages Longhorn (node-local NVMe storage, Hetzner-specific)
-  enable_longhorn        = var.enable_storage_nodes
+  enable_longhorn        = var.enable_storage_node_pool
   longhorn_replica_count = var.storage_node_count
   longhorn_fstype        = "ext4"
-  longhorn_values        = var.enable_storage_nodes ? yamlencode(local.longhorn_configuration) : ""
+  longhorn_values        = var.enable_storage_node_pool ? yamlencode(local.longhorn_configuration) : ""
 
   # --- Networking ---
   # P2P registry mirroring (avoids 403 from k8s.gcr.io on blocked Hetzner IPs)
